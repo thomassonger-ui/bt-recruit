@@ -7,31 +7,31 @@ const scoutFeatures = [
     id: 1,
     title: "Listing Assistant",
     description: "Writes MLS descriptions, property highlights, and marketing copy from basic property details.",
-    imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1973&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop",
   },
   {
     id: 2,
     title: "Buyer Assistant",
     description: "Prepares property summaries, showing notes, and buyer guidance to support client conversations.",
-    imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
   },
   {
     id: 3,
     title: "Showing Assistant",
     description: "Generates talking points and property highlights before a showing so agents walk in prepared.",
-    imageUrl: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=2096&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=2070&auto=format&fit=crop",
   },
   {
     id: 4,
     title: "Communication Assistant",
     description: "Drafts follow-up emails, text messages, and responses to buyer or seller questions.",
-    imageUrl: "https://images.unsplash.com/photo-1516156008625-3a9d6067fab5?q=80&w=2070&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=80&w=2080&auto=format&fit=crop",
   },
   {
     id: 5,
     title: "Marketing Assistant",
     description: "Creates social media posts, listing promotions, and property announcements in seconds.",
-    imageUrl: "https://images.unsplash.com/photo-1432821596592-e2c18b78144f?q=80&w=2070&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=2071&auto=format&fit=crop",
   },
 ]
 
