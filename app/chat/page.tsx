@@ -5,7 +5,7 @@ import { useChat } from "@ai-sdk/react"
 import { useState, useRef, useEffect, useCallback } from "react"
 
 const chat = createAgentChat({
-  agent: "my-agent",
+  agent: "scout",
   tokenUrl: "/api/an-token",
 })
 
