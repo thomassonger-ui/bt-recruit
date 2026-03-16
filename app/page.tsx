@@ -5,7 +5,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import FadeIn from "@/components/ui/FadeIn";
 import ScoutAccordion from "@/components/ui/ScoutAccordion";
-import BearAcademyShowcase from "@/components/sections/BearAcademyShowcase";
+import BearSystemsOverview from "@/components/sections/BearSystemsOverview";
 import Footer from "@/components/ui/Footer";
 
 export default function HomePage() {
@@ -76,25 +76,33 @@ export default function HomePage() {
         </FadeIn>
       </Section>
 
-      {/* Bear Academy — Training & Systems */}
+      {/* The BearTeam System — Bear Academy + BearTeamOS */}
       <div id="training">
-        <BearAcademyShowcase />
+        <BearSystemsOverview />
       </div>
 
       {/* Call to Action */}
-      <Section className="bg-panel-blue text-text-light">
+      <Section className="bg-card">
         <FadeIn>
-          <div id="cta" className="flex flex-col items-center gap-6 text-center">
-            <h2 className="text-3xl font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
-              Ready to Level Up Your Team?
+          <div id="cta" className="flex flex-col items-center gap-6 text-center py-8">
+            <h2 className="text-3xl font-bold text-foreground" style={{ fontFamily: "Inter, sans-serif" }}>
+              Ready to Grow With BearTeam?
             </h2>
-            <p className="max-w-xl text-lg text-text-light/70">
-              Get started with a free consultation and see how BearTeam can transform the way your team works.
+            <p className="max-w-md text-lg leading-relaxed text-muted">
+              No commitment, no pressure — just an honest conversation about
+              what BearTeam can do for your business.
             </p>
-            <div className="flex gap-4">
-              <Button variant="secondary">Book a Call</Button>
-              <Button variant="ghost" className="text-text-light hover:bg-white/10">View Case Studies</Button>
-            </div>
+            <a
+              href="sms:4077588102?body=Hello%20Tom,%20I%20would%20like%20to%20learn%20more%20about%20joining%20BearTeam."
+              className="pt-4"
+            >
+              <Button variant="primary" className="!px-8 !py-4 !text-base">
+                Schedule a Confidential Conversation
+              </Button>
+            </a>
+            <p className="text-sm text-muted">
+              Text Tom at 407-758-8102
+            </p>
           </div>
         </FadeIn>
       </Section>
