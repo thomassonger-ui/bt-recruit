@@ -7,6 +7,8 @@ const quickPrompts = [
   "Write a listing description for a 3-bedroom home in Winter Park",
   "Create a social media post for a new listing",
   "Draft a follow-up message to a buyer",
+  "Summarize the Orlando housing market",
+  "Prepare a showing checklist for a buyer client",
 ]
 
 const simulatedResponses: Record<string, string> = {
@@ -16,6 +18,10 @@ const simulatedResponses: Record<string, string> = {
     "Just listed! Beautiful home with modern finishes and a private backyard perfect for entertaining. Priced to move. Message me for details or to schedule a private showing.",
   "Draft a follow-up message to a buyer":
     "Hi [Name], thank you for visiting the property yesterday. I wanted to follow up and see if you had any questions. The seller is motivated and I'd love to help you put together a competitive offer. Let me know when you're free to discuss.",
+  "Summarize the Orlando housing market":
+    "The Orlando metro market remains competitive with median home prices around $385,000, up 4.2% year-over-year. Inventory has increased slightly to 2.8 months of supply. Homes in Winter Park and Dr. Phillips are averaging 22 days on market. Interest rates are stabilizing, bringing more buyers back into the market.",
+  "Prepare a showing checklist for a buyer client":
+    "Pre-showing: Confirm appointment time, review listing details and disclosures, prepare comps for the area. During showing: Check roof condition, water pressure, HVAC age, electrical panel, and signs of water damage. Note neighborhood noise levels and natural light. Post-showing: Send follow-up within 2 hours with your assessment and next steps.",
 }
 
 export default function HeroPromptInput() {
