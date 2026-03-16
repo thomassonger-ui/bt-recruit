@@ -4,6 +4,7 @@ import { createAgentChat } from "@21st-sdk/nextjs"
 import { useChat } from "@ai-sdk/react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import ScoutPromptTabs from "@/components/ui/ScoutPromptTabs"
+import ReactMarkdown from "react-markdown"
 
 const chat = createAgentChat({
   agent: "scout",
@@ -169,14 +170,14 @@ export default function ChatPage() {
               return (
                 <div key={msg.id} className="flex justify-start">
                   <div
-                    className="max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed"
+                    className="scout-markdown max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed"
                     style={{
                       background: "#F8FAFC",
                       border: "1px solid #F1F5F9",
                       color: "#1E293B",
                     }}
                   >
-                    {getMessageText(msg)}
+                    <ReactMarkdown>{getMessageText(msg)}</ReactMarkdown>
                   </div>
                 </div>
               )
@@ -313,6 +314,20 @@ export default function ChatPage() {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 1; }
         }
+        .scout-markdown h1 { font-size: 1.125rem; font-weight: 700; margin: 12px 0 6px; }
+        .scout-markdown h2 { font-size: 1rem; font-weight: 600; margin: 10px 0 4px; color: #3B5A82; }
+        .scout-markdown h3 { font-size: 0.875rem; font-weight: 600; margin: 8px 0 4px; }
+        .scout-markdown p { margin: 4px 0; }
+        .scout-markdown ul { margin: 4px 0 8px; padding-left: 18px; list-style-type: disc; }
+        .scout-markdown ol { margin: 4px 0 8px; padding-left: 18px; list-style-type: decimal; }
+        .scout-markdown li { margin: 2px 0; }
+        .scout-markdown strong { font-weight: 600; color: #1E293B; }
+        .scout-markdown hr { border: none; border-top: 1px solid #E2E8F0; margin: 10px 0; }
+        .scout-markdown code { background: #F1F5F9; padding: 1px 5px; border-radius: 4px; font-size: 0.8125rem; }
+        .scout-markdown pre { background: #1E293B; color: #E2E8F0; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; }
+        .scout-markdown pre code { background: none; padding: 0; color: inherit; }
+        .scout-markdown > *:first-child { margin-top: 0; }
+        .scout-markdown > *:last-child { margin-bottom: 0; }
       `}</style>
     </div>
   )
