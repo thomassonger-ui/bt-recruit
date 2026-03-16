@@ -3,6 +3,7 @@
 import { createAgentChat } from "@21st-sdk/nextjs"
 import { useChat } from "@ai-sdk/react"
 import { useState, useRef, useEffect, useCallback } from "react"
+import ScoutPromptTabs from "@/components/ui/ScoutPromptTabs"
 
 const chat = createAgentChat({
   agent: "scout",
@@ -15,13 +16,6 @@ function getMessageText(msg: { parts: Array<{ type: string; text?: string }> }):
     .map((p) => p.text)
     .join("")
 }
-
-const suggestedPrompts = [
-  "Write a listing description for a 3-bedroom home in Winter Park.",
-  "What pricing strategy would you recommend?",
-  "Create a social media post for the listing.",
-  "Analyze comparable sales in my neighborhood.",
-]
 
 export default function ChatPage() {
   const { messages, sendMessage, status, stop, error } = useChat({ chat })
@@ -140,44 +134,18 @@ export default function ChatPage() {
           <div
             ref={chatContainerRef}
             className="flex flex-col gap-4 overflow-y-auto p-6"
-            style={{ minHeight: "380px", maxHeight: "520px" }}
+            style={{ minHeight: "420px", maxHeight: "580px" }}
           >
-            {/* Empty state with suggested prompts */}
+            {/* Empty state with categorized prompts */}
             {messages.length === 0 && (
-              <div className="flex flex-1 flex-col items-center justify-center py-8">
+              <div className="flex flex-1 flex-col py-4">
                 <p
-                  className="mb-6 text-center text-sm"
+                  className="mb-4 text-center text-sm"
                   style={{ color: "#9CA3AF" }}
                 >
                   Ask Scout about listings, pricing, market data, or marketing.
                 </p>
-                <div className="grid w-full gap-2 sm:grid-cols-2">
-                  {suggestedPrompts.map((prompt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSend(prompt)}
-                      className="rounded-xl px-4 py-3 text-left text-sm leading-relaxed transition-colors"
-                      style={{
-                        background: "#F8FAFC",
-                        border: "1px solid #F1F5F9",
-                        color: "#6B7280",
-                        fontFamily: "Inter, sans-serif",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#F1F5F9"
-                        e.currentTarget.style.borderColor = "#E2E8F0"
-                        e.currentTarget.style.color = "#1E293B"
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "#F8FAFC"
-                        e.currentTarget.style.borderColor = "#F1F5F9"
-                        e.currentTarget.style.color = "#6B7280"
-                      }}
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
+                <ScoutPromptTabs onSelectPrompt={handleSend} />
               </div>
             )}
 
