@@ -23,6 +23,7 @@ export default function ChatPage() {
   const [input, setInput] = useState("")
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const notifiedRef = useRef(false)
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -43,6 +44,10 @@ export default function ChatPage() {
     const msg = text || input.trim()
     if (!msg) return
     sendMessage({ text: msg })
+    if (!notifiedRef.current) {
+      notifiedRef.current = true
+      fetch("/api/notify", { method: "POST" }).catch(() => {})
+    }
     setInput("")
     if (inputRef.current) {
       inputRef.current.style.height = "auto"
