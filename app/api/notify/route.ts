@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server"
-import twilio from "twilio"
-
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-)
+import { Resend } from "resend"
 
 export async function POST() {
   try {
-    await client.messages.create({
-      body: "Someone is using Scout on joinbearteam.com",
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: process.env.NOTIFY_PHONE_NUMBER!,
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    await resend.emails.send({
+      from: "Scout <onboarding@resend.dev>",
+      to: process.env.NOTIFY_EMAIL!,
+      subject: "Someone is using Scout",
+      html: `<p>Someone just started chatting with Scout on <strong>joinbearteam.com</strong>.</p><p style="color:#6B7280;font-size:13px;">This is an automated notification from your BearTeam website.</p>`,
     })
     return NextResponse.json({ ok: true })
   } catch {
