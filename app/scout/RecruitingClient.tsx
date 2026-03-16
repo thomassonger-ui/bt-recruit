@@ -14,7 +14,7 @@ import {
   ContentDepth,
 } from "@/components/ui/DepthLayer";
 import InteractiveCard from "@/components/ui/InteractiveCard";
-import ScoutRobot from "@/components/ui/ScoutRobot";
+import BearAnimation from "@/components/ui/BearAnimation";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
 
@@ -435,9 +435,9 @@ function HeroParallaxContent() {
         </div>
       </div>
 
-      {/* ── Animated Scout Robot (desktop only) ── */}
+      {/* ── Animated Bear (desktop only) ── */}
       <div className="hidden md:block">
-        <ScoutRobot />
+        <BearAnimation />
       </div>
     </section>
   );
@@ -458,7 +458,16 @@ export default function RecruitingClient() {
       <HeroParallaxContent />
 
       {/* ═══════════════════════════════════════════════════════
-          MEET SCOUT — 5 capability cards
+          SCOUT DEMO — AI-Powered intro
+      ═══════════════════════════════════════════════════════ */}
+      <div id="scout">
+        <ParallaxLayer depth={0.15}>
+          <ScoutDemo className="bg-card" />
+        </ParallaxLayer>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════
+          MEET SCOUT — 5 capability cards (below Scout Demo)
       ═══════════════════════════════════════════════════════ */}
       <section className="px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl py-24 sm:py-32">
@@ -472,18 +481,18 @@ export default function RecruitingClient() {
                 className="mb-4 text-sm font-medium uppercase tracking-wider text-muted"
                 style={{ letterSpacing: "0.08em" }}
               >
-                AI-Powered
+                What Scout Can Do
               </p>
               <h2
                 className="text-heading text-foreground"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
-                Meet Scout
+                Built for Real Estate Agents
               </h2>
               <p className="mt-4 text-lg leading-relaxed text-muted">
-                Your AI assistant for real estate agents. Scout helps agents
-                complete everyday real estate tasks faster by assisting with
-                marketing, communication, and business workflow.
+                Scout helps agents complete everyday real estate tasks faster
+                by assisting with marketing, communication, and business
+                workflow.
               </p>
             </ContentDepth>
           </motion.div>
@@ -522,15 +531,6 @@ export default function RecruitingClient() {
           </ParallaxLayer>
         </div>
       </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SCOUT DEMO
-      ═══════════════════════════════════════════════════════ */}
-      <div id="scout">
-        <ParallaxLayer depth={0.15}>
-          <ScoutDemo className="bg-card" />
-        </ParallaxLayer>
-      </div>
 
       {/* ═══════════════════════════════════════════════════════
           STATS — Tom Songer production metrics (Depth 3 content)
