@@ -5,6 +5,8 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import FadeIn from "@/components/ui/FadeIn";
 import ScoutAccordion from "@/components/ui/ScoutAccordion";
+import BearAcademyShowcase from "@/components/sections/BearAcademyShowcase";
+import Footer from "@/components/ui/Footer";
 
 export default function HomePage() {
   return (
@@ -74,35 +76,10 @@ export default function HomePage() {
         </FadeIn>
       </Section>
 
-      {/* Training & Systems */}
-      <Section className="bg-background">
-        <FadeIn>
-          <div id="training">
-            <h2 className="mb-4 text-center text-3xl font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
-              Training & Systems
-            </h2>
-            <p className="mx-auto mb-12 max-w-2xl text-center text-muted">
-              Structured programs that scale with your organization.
-            </p>
-            <div className="grid gap-6 sm:grid-cols-2">
-              <Card>
-                <h3 className="mb-2 text-xl font-semibold text-primary" style={{ fontFamily: "Inter, sans-serif" }}>Team Alignment Program</h3>
-                <p className="mb-4 text-sm text-muted">
-                  A 6-week intensive that aligns your team around shared goals, clear roles, and effective communication patterns.
-                </p>
-                <Button variant="secondary">Learn More</Button>
-              </Card>
-              <Card>
-                <h3 className="mb-2 text-xl font-semibold text-primary" style={{ fontFamily: "Inter, sans-serif" }}>Operations Toolkit</h3>
-                <p className="mb-4 text-sm text-muted">
-                  Ready-to-deploy systems for standups, retrospectives, decision-making, and async workflows.
-                </p>
-                <Button variant="secondary">Explore Tools</Button>
-              </Card>
-            </div>
-          </div>
-        </FadeIn>
-      </Section>
+      {/* Bear Academy — Training & Systems */}
+      <div id="training">
+        <BearAcademyShowcase />
+      </div>
 
       {/* Call to Action */}
       <Section className="bg-panel-blue text-text-light">
@@ -123,9 +100,7 @@ export default function HomePage() {
       </Section>
 
       {/* Footer */}
-      <footer className="border-t border-muted/20 bg-card px-6 py-8 text-center text-sm text-muted">
-        &copy; 2026 BearTeam. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }

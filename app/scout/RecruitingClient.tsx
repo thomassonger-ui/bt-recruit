@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/DepthLayer";
 import InteractiveCard from "@/components/ui/InteractiveCard";
 import Button from "@/components/ui/Button";
+import Footer from "@/components/ui/Footer";
 
 /* ── Animation helpers ── */
 const fadeUp = {
@@ -663,12 +664,7 @@ export default function RecruitingClient() {
       </section>
 
       {/* ── Footer ── */}
-      <footer
-        className="px-6 py-10 text-center text-sm text-muted"
-        style={{ borderTop: "1px solid var(--color-border-light)" }}
-      >
-        &copy; 2026 BearTeam. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }
