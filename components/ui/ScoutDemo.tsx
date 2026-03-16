@@ -505,6 +505,35 @@ export default function ScoutDemo({
           </div>
         </motion.div>
 
+        {/* Try Scout Live CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="mx-auto mt-8 max-w-2xl text-center"
+        >
+          <a
+            href="/chat"
+            className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{
+              background: "var(--color-primary)",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            Try Scout Live
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M1 7h12M8 2l5 5-5 5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </a>
+        </motion.div>
+
         {/* Capabilities row */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
