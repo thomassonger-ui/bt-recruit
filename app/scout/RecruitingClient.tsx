@@ -14,6 +14,7 @@ import {
   ContentDepth,
 } from "@/components/ui/DepthLayer";
 import InteractiveCard from "@/components/ui/InteractiveCard";
+import ScoutRobot from "@/components/ui/ScoutRobot";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
 
@@ -120,6 +121,34 @@ const outcomes = [
     title: "Team infrastructure",
     description:
       "When you're ready to build your own team, we provide the playbook and support.",
+  },
+];
+
+const scoutCapabilities = [
+  {
+    title: "Listing Assistant",
+    description:
+      "Creates MLS descriptions and property highlights.",
+  },
+  {
+    title: "Client Communication",
+    description:
+      "Drafts emails and messages to buyers and sellers.",
+  },
+  {
+    title: "Marketing Assistant",
+    description:
+      "Creates listing promotions and social media posts.",
+  },
+  {
+    title: "Showing Assistant",
+    description:
+      "Generates talking points before property showings.",
+  },
+  {
+    title: "Daily Workflow Assistant",
+    description:
+      "Helps agents organize prospecting and follow-up.",
   },
 ];
 
@@ -405,6 +434,11 @@ function HeroParallaxContent() {
           </div>
         </div>
       </div>
+
+      {/* ── Animated Scout Robot (desktop only) ── */}
+      <div className="hidden md:block">
+        <ScoutRobot />
+      </div>
     </section>
   );
 }
@@ -422,6 +456,72 @@ export default function RecruitingClient() {
           HERO — 5-layer 3D depth parallax
       ═══════════════════════════════════════════════════════ */}
       <HeroParallaxContent />
+
+      {/* ═══════════════════════════════════════════════════════
+          MEET SCOUT — 5 capability cards
+      ═══════════════════════════════════════════════════════ */}
+      <section className="px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl py-24 sm:py-32">
+          <motion.div
+            {...fadeUp}
+            transition={{ duration: 0.5 }}
+            className="mx-auto mb-16 max-w-2xl text-center"
+          >
+            <ContentDepth>
+              <p
+                className="mb-4 text-sm font-medium uppercase tracking-wider text-muted"
+                style={{ letterSpacing: "0.08em" }}
+              >
+                AI-Powered
+              </p>
+              <h2
+                className="text-heading text-foreground"
+                style={{ fontFamily: "Inter, sans-serif" }}
+              >
+                Meet Scout
+              </h2>
+              <p className="mt-4 text-lg leading-relaxed text-muted">
+                Your AI assistant for real estate agents. Scout helps agents
+                complete everyday real estate tasks faster by assisting with
+                marketing, communication, and business workflow.
+              </p>
+            </ContentDepth>
+          </motion.div>
+
+          <ParallaxLayer depth={0.2}>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+              {scoutCapabilities.map((cap, i) => (
+                <motion.div
+                  key={cap.title}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.4, delay: i * 0.06 }}
+                  whileHover={{
+                    y: -4,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                  }}
+                  className="flex flex-col gap-3 rounded-2xl p-6 transition-shadow duration-300"
+                  style={{
+                    background: "var(--color-card)",
+                    border: "1px solid var(--color-border-light)",
+                  }}
+                >
+                  <h3
+                    className="text-sm font-semibold text-foreground"
+                    style={{ fontFamily: "Inter, sans-serif" }}
+                  >
+                    {cap.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-muted">
+                    {cap.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </ParallaxLayer>
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════════════════
           SCOUT DEMO
