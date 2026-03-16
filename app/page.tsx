@@ -4,6 +4,7 @@ import Hero from "@/components/features/Hero";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import FadeIn from "@/components/ui/FadeIn";
+import ScoutAccordion from "@/components/ui/ScoutAccordion";
 
 export default function HomePage() {
   return (
@@ -25,8 +26,28 @@ export default function HomePage() {
         </Hero>
       </div>
 
-      {/* Value Proposition */}
+      {/* Meet Scout */}
       <Section className="bg-card">
+        <FadeIn>
+          <div id="scout">
+            <h2 className="mb-4 text-center text-3xl font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
+              Meet Scout
+            </h2>
+            <p className="mx-auto mb-10 max-w-2xl text-center text-muted">
+              Your AI-powered real estate assistant. Scout helps agents work faster across listings, buyers, showings, communication, and marketing.
+            </p>
+            <ScoutAccordion />
+            <div className="mt-8 flex justify-center">
+              <a href="/chat">
+                <Button variant="secondary">Try Scout Live</Button>
+              </a>
+            </div>
+          </div>
+        </FadeIn>
+      </Section>
+
+      {/* Value Proposition */}
+      <Section className="bg-background">
         <FadeIn>
           <div id="values">
             <h2 className="mb-4 text-center text-3xl font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
