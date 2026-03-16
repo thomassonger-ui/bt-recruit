@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import React, { useRef, useCallback, useEffect, useState } from "react";
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import ScoutCard from "@/components/ui/ScoutCard";
 import ScoutDemo from "@/components/ui/ScoutDemo";
@@ -134,6 +134,53 @@ const outcomes = [
    ═══════════════════════════════════════════════════════════════ */
 function HeroParallaxContent() {
   const heroRef = useRef<HTMLElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // ── Cursor-tracking parallax ──
+  // Raw motion values for mouse position (-1 to 1, centered)
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  // Smooth spring physics for fluid motion
+  const springConfig = { damping: 40, stiffness: 90, mass: 0.5 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  // Different layers move at different speeds (deeper = less movement)
+  // Layer 1 (grid): ±12px — deepest, slowest
+  const cursorGridX = useTransform(smoothX, [-1, 1], [12, -12]);
+  const cursorGridY = useTransform(smoothY, [-1, 1], [8, -8]);
+  // Layer 2 (lines/shapes): ±8px
+  const cursorEnvX = useTransform(smoothX, [-1, 1], [8, -8]);
+  const cursorEnvY = useTransform(smoothY, [-1, 1], [6, -6]);
+  // Layer 5 (accents): ±15px — foreground, fastest
+  const cursorAccentX = useTransform(smoothX, [-1, 1], [15, -15]);
+  const cursorAccentY = useTransform(smoothY, [-1, 1], [10, -10]);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.matchMedia("(max-width: 768px)").matches);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      if (isMobile) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      // Normalize to -1 → 1
+      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+      mouseX.set(x);
+      mouseY.set(y);
+    },
+    [isMobile, mouseX, mouseY]
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    mouseX.set(0);
+    mouseY.set(0);
+  }, [mouseX, mouseY]);
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -161,43 +208,48 @@ function HeroParallaxContent() {
   const accentOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.08, 0.12, 0.04]);
 
   return (
-    <section ref={heroRef} className="relative overflow-hidden">
-      {/* ── Layer 1: Background — Blueprint grid (slowest) ── */}
+    <section
+      ref={heroRef}
+      className="relative overflow-hidden"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* ── Layer 1: Background — Blueprint grid (slowest, deepest cursor shift) ── */}
       <motion.div
-        className="pointer-events-none absolute inset-0"
-        style={{ y: gridY, willChange: "transform" }}
+        className="pointer-events-none absolute inset-[-20px]"
+        style={{ y: gridY, x: cursorGridX, translateY: cursorGridY, willChange: "transform" }}
       >
         <BlueprintHeroGrid />
       </motion.div>
 
-      {/* ── Layer 2: Environment — Architectural lines (slow drift) ── */}
+      {/* ── Layer 2: Environment — Architectural lines (medium cursor shift) ── */}
       <motion.div
-        className="pointer-events-none absolute inset-0"
-        style={{ y: lineLayerY, opacity: envOpacity, willChange: "transform" }}
+        className="pointer-events-none absolute inset-[-16px]"
+        style={{ y: lineLayerY, x: cursorEnvX, translateY: cursorEnvY, opacity: envOpacity, willChange: "transform" }}
       >
         <BlueprintLineLayer containerRef={heroRef} />
       </motion.div>
 
-      {/* ── Layer 2b: Environment — Floating shapes (slightly faster) ── */}
+      {/* ── Layer 2b: Environment — Floating shapes (medium cursor shift) ── */}
       <motion.div
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        style={{ y: floatingShapesY, opacity: envOpacity, willChange: "transform" }}
+        className="pointer-events-none absolute inset-[-16px] h-[calc(100%+32px)] w-[calc(100%+32px)]"
+        style={{ y: floatingShapesY, x: cursorEnvX, translateY: cursorEnvY, opacity: envOpacity, willChange: "transform" }}
       >
         <FloatingShapes className="z-[1]" />
       </motion.div>
 
-      {/* ── Layer 2c: Environment — Blueprint floating elements ── */}
+      {/* ── Layer 2c: Environment — Blueprint floating elements (medium cursor shift) ── */}
       <motion.div
-        className="pointer-events-none absolute inset-0"
-        style={{ y: lineLayerY, opacity: envOpacity, willChange: "transform" }}
+        className="pointer-events-none absolute inset-[-16px]"
+        style={{ y: lineLayerY, x: cursorEnvX, translateY: cursorEnvY, opacity: envOpacity, willChange: "transform" }}
       >
         <BlueprintFloatingElements containerRef={heroRef} />
       </motion.div>
 
-      {/* ── Layer 5: Foreground accents — corner bracket marks ── */}
+      {/* ── Layer 5: Foreground accents — corner bracket marks (fastest cursor shift) ── */}
       <motion.div
         className="pointer-events-none absolute inset-0 z-[2]"
-        style={{ willChange: "transform" }}
+        style={{ x: cursorAccentX, translateY: cursorAccentY, willChange: "transform" }}
         aria-hidden="true"
       >
         {/* Top-left bracket */}
