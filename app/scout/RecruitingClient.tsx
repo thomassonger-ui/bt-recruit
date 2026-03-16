@@ -345,13 +345,13 @@ function HeroParallaxContent() {
             href="#scout"
             className="text-sm text-muted transition-colors hover:text-foreground"
           >
-            Scout
+            See Scout
           </a>
           <a
             href="#how"
             className="text-sm text-muted transition-colors hover:text-foreground"
           >
-            How It Works
+            30/60/90 Plan
           </a>
           <a
             href="#results"
