@@ -355,11 +355,11 @@ export default function ScoutDemo({
             className="text-heading mb-5 text-foreground"
             style={{ fontFamily: "Inter, sans-serif" }}
           >
-            Meet Scout
+            See Scout in Action
           </h2>
           <p className="text-lg leading-relaxed text-muted">
-            Scout is the BearTeam AI assistant designed to help agents analyze
-            deals, prepare listings, and move faster.
+            Scout assists agents with marketing, communication, and daily
+            workflow tasks.
           </p>
         </motion.div>
 

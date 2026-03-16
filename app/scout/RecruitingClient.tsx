@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/DepthLayer";
 import InteractiveCard from "@/components/ui/InteractiveCard";
 import BearAnimation from "@/components/ui/BearAnimation";
+import HeroPromptInput from "@/components/ui/HeroPromptInput";
 import BearSystemReveal from "@/components/sections/BearSystemReveal";
+import CinematicReveal from "@/components/sections/CinematicReveal";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
 
@@ -369,7 +371,7 @@ function HeroParallaxContent() {
       <div className="relative z-10 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl py-24 sm:py-32 lg:py-40">
           <div className="grid items-center gap-16 lg:grid-cols-2">
-            {/* Left — Layer 3 (content depth) + Layer 4 (CTA) */}
+            {/* Left — Layer 3 (content depth) + Layer 4 (prompt) */}
             <motion.div
               variants={stagger}
               initial="initial"
@@ -377,18 +379,24 @@ function HeroParallaxContent() {
               className="flex flex-col gap-6"
             >
               {/* Layer 3 — Headline */}
-              <motion.h1
+              <motion.div
                 variants={childFade}
                 transition={{ duration: 0.6 }}
-                className="text-display text-foreground"
-                style={{
-                  fontFamily: "Inter, sans-serif",
-                  y: headlineY,
-                  willChange: "transform",
-                }}
+                style={{ y: headlineY, willChange: "transform" }}
               >
-                Build Your Real Estate Business With Systems That Work
-              </motion.h1>
+                <p
+                  className="mb-3 text-sm font-medium uppercase tracking-wider text-muted"
+                  style={{ letterSpacing: "0.08em", fontFamily: "Inter, sans-serif" }}
+                >
+                  BearTeam AI Assistant
+                </p>
+                <h1
+                  className="text-display text-foreground"
+                  style={{ fontFamily: "Inter, sans-serif" }}
+                >
+                  Scout
+                </h1>
+              </motion.div>
 
               {/* Layer 3 — Subtitle */}
               <motion.p
@@ -397,35 +405,22 @@ function HeroParallaxContent() {
                 className="max-w-lg text-lg leading-relaxed text-muted"
                 style={{ y: subtitleY, willChange: "transform" }}
               >
-                BearTeam provides the systems, training, and operational
-                support real estate agents need to grow consistently — backed
-                by 40 years of proven production.
+                Scout helps agents analyze deals, prepare listings,
+                communicate with clients, and move faster.
               </motion.p>
 
-              {/* Layer 4 — CTA buttons */}
+              {/* Layer 4 — OpenAI-style prompt input */}
               <motion.div
                 variants={childFade}
                 transition={{ duration: 0.5 }}
-                className="flex flex-wrap gap-4 pt-4"
                 style={{ y: ctaY, willChange: "transform" }}
+                className="pt-2"
               >
-                <a href="#scout">
-                  <Button variant="primary" className="!px-6 !py-3">
-                    Start a Conversation
-                  </Button>
-                </a>
-                <a href="#how">
-                  <Button
-                    variant="ghost"
-                    className="!px-6 !py-3 !text-muted hover:!text-foreground"
-                  >
-                    See How It Works
-                  </Button>
-                </a>
+                <HeroPromptInput />
               </motion.div>
             </motion.div>
 
-            {/* Right — Layer 4: ScoutCard (interactive depth) */}
+            {/* Right — Layer 4: Simple ScoutCard intro */}
             <motion.div
               className="hidden lg:block"
               style={{ y: scoutCardY, willChange: "transform" }}
@@ -459,7 +454,7 @@ export default function RecruitingClient() {
       <HeroParallaxContent />
 
       {/* ═══════════════════════════════════════════════════════
-          SCOUT DEMO — AI-Powered intro
+          SEE SCOUT IN ACTION — Full animated demo
       ═══════════════════════════════════════════════════════ */}
       <div id="scout">
         <ParallaxLayer depth={0.15}>
@@ -468,7 +463,7 @@ export default function RecruitingClient() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════
-          MEET SCOUT — 5 capability cards (below Scout Demo)
+          MEET SCOUT — 5 capability cards
       ═══════════════════════════════════════════════════════ */}
       <section className="px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl py-24 sm:py-32">
@@ -537,6 +532,11 @@ export default function RecruitingClient() {
           BEAR SYSTEM REVEAL — 3D floating panels + scroll reveal
       ═══════════════════════════════════════════════════════ */}
       <BearSystemReveal />
+
+      {/* ═══════════════════════════════════════════════════════
+          CINEMATIC REVEAL — Apple-style product showcase
+      ═══════════════════════════════════════════════════════ */}
+      <CinematicReveal />
 
       {/* ═══════════════════════════════════════════════════════
           STATS — Tom Songer production metrics (Depth 3 content)
