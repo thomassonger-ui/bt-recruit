@@ -65,7 +65,7 @@ export default function ChatPage() {
         {/* Back link */}
         <div className="mb-4">
           <a
-            href="/recruiting"
+            href="/scout"
             className="inline-flex items-center gap-2 text-sm transition-colors"
             style={{ color: "#6B7280", fontFamily: "Inter, sans-serif" }}
             onMouseEnter={(e) => (e.currentTarget.style.color = "#1E293B")}
