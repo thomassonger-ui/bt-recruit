@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/DepthLayer";
 import InteractiveCard from "@/components/ui/InteractiveCard";
 import BearAnimation from "@/components/ui/BearAnimation";
+import BearSystemReveal from "@/components/sections/BearSystemReveal";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
 
@@ -531,6 +532,11 @@ export default function RecruitingClient() {
           </ParallaxLayer>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════
+          BEAR SYSTEM REVEAL — 3D floating panels + scroll reveal
+      ═══════════════════════════════════════════════════════ */}
+      <BearSystemReveal />
 
       {/* ═══════════════════════════════════════════════════════
           STATS — Tom Songer production metrics (Depth 3 content)
