@@ -668,7 +668,7 @@ export default function RecruitingClient() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 7 — URGENCY + ACTION
+          SECTION 7 — CLOSING CTA
       ═══════════════════════════════════════════════════════ */}
       <section
         className="px-4 sm:px-6 lg:px-8"
@@ -696,42 +696,6 @@ export default function RecruitingClient() {
               </p>
             </ContentDepth>
 
-            <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:gap-4">
-              <a href={`sms:+18444072587?body=${SMS_BODY}`}>
-                <Button variant="primary" className="!px-8 !py-4 !text-base">
-                  Start Using Scout
-                </Button>
-              </a>
-              <a href="#try">
-                <button
-                  className="rounded-lg px-8 py-4 text-base font-medium transition-colors"
-                  style={{
-                    background: "var(--color-background)",
-                    border: "1px solid var(--color-border-light)",
-                    color: "var(--color-foreground)",
-                    fontFamily: "Inter, sans-serif",
-                  }}
-                >
-                  Try Scout First
-                </button>
-              </a>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 8 — FINAL STATEMENT
-      ═══════════════════════════════════════════════════════ */}
-      <section className="px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl py-20 sm:py-28">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
             <p
               className="text-xl font-semibold leading-relaxed text-foreground sm:text-2xl"
               style={{ fontFamily: "Inter, sans-serif" }}
@@ -743,12 +707,10 @@ export default function RecruitingClient() {
               </span>
             </p>
 
-            <div className="mt-10">
-              <a
-                href={`sms:+18444072587?body=${SMS_BODY}`}
-              >
+            <div className="pt-4">
+              <a href="https://www.joinbearteam.com/chat">
                 <Button variant="primary" className="!px-8 !py-4 !text-base">
-                  Join Bear Team
+                  Start Using Scout
                 </Button>
               </a>
             </div>
