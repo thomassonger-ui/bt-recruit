@@ -685,29 +685,33 @@ export default function RecruitingClient() {
           </ParallaxLayer>
 
           {/* Trust statements */}
-          <motion.div
-            {...fadeUp}
-            transition={{ duration: 0.5 }}
-            className="mx-auto mt-20 flex max-w-3xl flex-col items-center gap-6 text-center sm:mt-28"
-          >
+          <div className="mx-auto mt-20 flex max-w-3xl flex-col items-center gap-5 text-center sm:mt-28">
             {[
               "Built inside Bear Academy",
               "Designed for real transactions",
               "Supports active production workflows",
             ].map((text, i) => (
-              <motion.p
+              <motion.div
                 key={i}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="text-lg font-medium text-foreground/70 sm:text-xl lg:text-2xl"
-                style={{ fontFamily: "Inter, sans-serif" }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.6, delay: i * 0.2 }}
+                className="flex items-center gap-3"
               >
-                {text}
-              </motion.p>
+                <span
+                  className="h-2 w-2 flex-shrink-0 rounded-full"
+                  style={{ background: "var(--color-primary)" }}
+                />
+                <p
+                  className="text-base font-medium text-foreground sm:text-lg"
+                  style={{ fontFamily: "Inter, sans-serif" }}
+                >
+                  {text}
+                </p>
+              </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
