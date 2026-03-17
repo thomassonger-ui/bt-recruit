@@ -23,7 +23,7 @@ import {
   ShowingCard,
   WorkflowCard,
 } from "@/components/ui/ScoutUICards";
-import SystemStack from "@/components/ui/system-stack";
+import { SystemAccordion } from "@/components/ui/system-accordion";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
 
@@ -505,9 +505,9 @@ export default function RecruitingClient() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          SYSTEM STACK — Interactive layered system explanation
+          SYSTEM ACCORDION — Scroll-driven cinematic reveal
       ═══════════════════════════════════════════════════════ */}
-      <SystemStack />
+      <SystemAccordion />
 
       {/* ═══════════════════════════════════════════════════════
           30 / 60 / 90 DAY SUCCESS PLAN — Depth 3 + 4
