@@ -49,10 +49,26 @@ const stats = [
 ];
 
 const painPoints = [
-  "Follow-up slips through the cracks",
-  "Listings take too long to prepare",
-  "Client communication breaks down",
-  "Transactions get messy and disorganized",
+  {
+    problem: "Follow-up slips through the cracks",
+    solution:
+      "Scout automatically follows up with every lead so no opportunity is missed",
+  },
+  {
+    problem: "Listings take too long to prepare",
+    solution:
+      "Scout generates listing content and messaging instantly to speed up go-to-market time",
+  },
+  {
+    problem: "Client communication breaks down",
+    solution:
+      "Scout maintains consistent, professional communication across every client interaction",
+  },
+  {
+    problem: "Transactions get messy and disorganized",
+    solution:
+      "Scout keeps every step structured so transactions stay on track from start to close",
+  },
 ];
 
 const builtForItems = [
@@ -472,21 +488,49 @@ export default function RecruitingClient() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="flex items-center gap-4 rounded-xl px-5 py-4"
+                className="group rounded-xl px-5 py-4 md:py-4"
                 style={{
                   background: "var(--color-card)",
                   border: "1px solid var(--color-border-light)",
+                  transition:
+                    "transform 180ms ease, box-shadow 180ms ease, background 180ms ease",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.transform = "translateY(-2px)";
+                  el.style.boxShadow =
+                    "0 4px 24px rgba(0,0,0,0.08)";
+                  el.style.background = "var(--color-card-hover, var(--color-card))";
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.transform = "translateY(0)";
+                  el.style.boxShadow = "none";
+                  el.style.background = "var(--color-card)";
                 }}
               >
-                <span
-                  className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                  style={{ background: "var(--color-primary)" }}
-                />
+                <div className="flex items-center gap-4">
+                  <span
+                    className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                    style={{ background: "var(--color-primary)" }}
+                  />
+                  <p
+                    className="text-sm font-medium leading-relaxed text-foreground/80 sm:text-base"
+                    style={{ fontFamily: "Inter, sans-serif" }}
+                  >
+                    {point.problem}
+                  </p>
+                </div>
+                {/* Solution — visible on mobile, hover-reveal on desktop */}
                 <p
-                  className="text-sm leading-relaxed text-foreground/80 sm:text-base"
-                  style={{ fontFamily: "Inter, sans-serif" }}
+                  className="mt-2 pl-[22px] text-xs leading-relaxed text-muted sm:text-sm md:mt-0 md:max-h-0 md:overflow-hidden md:opacity-0 md:group-hover:mt-2 md:group-hover:max-h-20 md:group-hover:opacity-100"
+                  style={{
+                    fontFamily: "Inter, sans-serif",
+                    transition:
+                      "opacity 180ms ease, max-height 180ms ease, margin-top 180ms ease",
+                  }}
                 >
-                  {point}
+                  {point.solution}
                 </p>
               </motion.div>
             ))}
