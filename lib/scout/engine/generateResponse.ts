@@ -29,6 +29,7 @@ import {
 import { checkInboundCompliance } from "../guardrails/complianceRules";
 import { checkEscalation } from "../guardrails/escalationRules";
 import { validateResponse } from "../guardrails/responseValidator";
+import { enforceConversion } from "../guardrails/conversionRules";
 import { classifyMessage, type Classification, type GuardrailLevel } from "./decisionTree";
 import { FALLBACKS } from "../config/scoutConfig";
 
@@ -147,14 +148,30 @@ export async function generateScoutResponse(
     guardrailsApplied.push(`classified:${classification.category}:${classification.guardrailLevel}`);
 
     // ── Step 2: Inbound compliance check ──
-    // Catch risky topics BEFORE they reach the LLM
+    // Catch risky topics BEFORE they reach the LLM.
+    // v3: Uses fallbackOverride for neighborhood-specific safe rewrite.
+    //     Runs conversion enforcement so CTA is always present.
     const inboundCheck = checkInboundCompliance(request.message);
     if (inboundCheck.requiresDeflection) {
       guardrailsApplied.push(
         `inbound_deflection:${inboundCheck.deflectionReason}`
       );
+
+      // Use specific fallback if provided, otherwise generic
+      const baseFallback = inboundCheck.fallbackOverride ?? FALLBACKS.compliance;
+
+      // Ensure CTA is present on the deflection response
+      const conversion = enforceConversion(baseFallback);
+      const finalText = conversion.hasForwardMotion
+        ? baseFallback
+        : conversion.enhancedResponse;
+
+      if (!conversion.hasForwardMotion) {
+        guardrailsApplied.push("conversion:closer_appended_to_deflection");
+      }
+
       return {
-        text: FALLBACKS.compliance,
+        text: finalText,
         classification,
         escalated: false,
         guardrailsApplied,

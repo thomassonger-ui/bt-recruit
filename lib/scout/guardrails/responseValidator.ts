@@ -163,16 +163,28 @@ export function validateResponse(
   let current = response;
 
   // 1. Compliance — can completely replace the response
+  //    v3: Compliance-blocked responses now run through conversion enforcement
+  //    so the CTA is never lost on a rewrite.
   const compliance = checkCompliance(current);
   if (!compliance.passed) {
     modifications.push(`compliance:${compliance.violations.join(",")}`);
     if (compliance.severity === "block" && compliance.rewrittenResponse) {
+      // Apply conversion enforcement to the rewrite — CTA must survive
+      const rewriteConversion = enforceConversion(compliance.rewrittenResponse);
+      const finalRewrite = rewriteConversion.hasForwardMotion
+        ? compliance.rewrittenResponse
+        : rewriteConversion.enhancedResponse;
+
+      if (!rewriteConversion.hasForwardMotion) {
+        modifications.push("conversion:closer_appended_to_rewrite");
+      }
+
       return {
         valid: false,
-        finalResponse: compliance.rewrittenResponse,
+        finalResponse: finalRewrite,
         checks: {
           compliance: false,
-          forwardMotion: false,
+          forwardMotion: rewriteConversion.hasForwardMotion,
           tone: true,
           length: true,
         },

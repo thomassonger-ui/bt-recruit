@@ -150,10 +150,39 @@ export const CONVERSION_CLOSERS = [
   "Should I have someone follow up with you on that?",
 ] as const;
 
+/* ── Steering phrases — phrase-level detection ──
+ * These are the exact phrases that must trigger a hard block.
+ * Checked case-insensitively with word-boundary regex.
+ * Any match = severity "block" + response replaced with neighborhood rewrite.
+ */
+export const STEERING_PHRASES = [
+  "family-friendly",
+  "family friendly",
+  "great for families",
+  "good for families",
+  "perfect for families",
+  "ideal for families",
+  "safe neighborhood",
+  "safe area",
+  "safe community",
+  "safe place",
+  "community feel",
+  "community vibe",
+  "good area for kids",
+  "great area for kids",
+  "nice area for kids",
+  "kid-friendly",
+  "kid friendly",
+] as const;
+
 /* ── Safe fallback responses ── */
 export const FALLBACKS = {
   compliance:
     "That's a great question — your agent will be the best person to guide you on that.",
+  /** Specific rewrite for neighborhood/family/steering questions.
+   *  Neutral, helpful, includes property details offer + agent handoff. */
+  neighborhood:
+    "That's a great question. I can share details about the property and nearby features like schools, parks, and local amenities. Your agent can also help guide you based on what matters most to you.",
   escalation:
     "I'll have your agent reach out right away to help you with that.",
   uncertain:
