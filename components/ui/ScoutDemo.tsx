@@ -355,7 +355,7 @@ export default function ScoutDemo({
             className="text-heading mb-5 text-foreground"
             style={{ fontFamily: "Inter, sans-serif" }}
           >
-            See Scout in Action
+            Scout in Action
           </h2>
           <p className="text-lg leading-relaxed text-muted">
             Scout assists agents with marketing, communication, and daily

@@ -17,7 +17,6 @@ import InteractiveCard from "@/components/ui/InteractiveCard";
 import BearAnimation from "@/components/ui/BearAnimation";
 import HeroPromptInput from "@/components/ui/HeroPromptInput";
 import BearSystemReveal from "@/components/sections/BearSystemReveal";
-import CinematicReveal from "@/components/sections/CinematicReveal";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
 
@@ -124,34 +123,6 @@ const outcomes = [
     title: "Team infrastructure",
     description:
       "When you're ready to build your own team, we provide the playbook and support.",
-  },
-];
-
-const scoutCapabilities = [
-  {
-    title: "Listing Assistant",
-    description:
-      "Creates MLS descriptions and property highlights.",
-  },
-  {
-    title: "Client Communication",
-    description:
-      "Drafts emails and messages to buyers and sellers.",
-  },
-  {
-    title: "Marketing Assistant",
-    description:
-      "Creates listing promotions and social media posts.",
-  },
-  {
-    title: "Showing Assistant",
-    description:
-      "Generates talking points before property showings.",
-  },
-  {
-    title: "Daily Workflow Assistant",
-    description:
-      "Helps agents organize prospecting and follow-up.",
   },
 ];
 
@@ -384,18 +355,18 @@ function HeroParallaxContent() {
                 transition={{ duration: 0.6 }}
                 style={{ y: headlineY, willChange: "transform" }}
               >
-                <p
-                  className="mb-3 text-sm font-medium uppercase tracking-wider text-muted"
-                  style={{ letterSpacing: "0.08em", fontFamily: "Inter, sans-serif" }}
-                >
-                  Introducing Scout
-                </p>
                 <h1
                   className="text-display text-foreground"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
-                  BearTeam AI Assistant
+                  Introducing Scout
                 </h1>
+                <p
+                  className="mt-3 text-lg font-medium text-muted sm:text-xl"
+                  style={{ fontFamily: "Inter, sans-serif" }}
+                >
+                  BearTeam AI Assistant
+                </p>
               </motion.div>
 
               {/* Layer 3 — Subtitle */}
@@ -463,80 +434,9 @@ export default function RecruitingClient() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════
-          MEET SCOUT — 5 capability cards
-      ═══════════════════════════════════════════════════════ */}
-      <section className="px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl py-24 sm:py-32">
-          <motion.div
-            {...fadeUp}
-            transition={{ duration: 0.5 }}
-            className="mx-auto mb-16 max-w-2xl text-center"
-          >
-            <ContentDepth>
-              <p
-                className="mb-4 text-sm font-medium uppercase tracking-wider text-muted"
-                style={{ letterSpacing: "0.08em" }}
-              >
-                What Scout Can Do
-              </p>
-              <h2
-                className="text-heading text-foreground"
-                style={{ fontFamily: "Inter, sans-serif" }}
-              >
-                Built for Real Estate Agents
-              </h2>
-              <p className="mt-4 text-lg leading-relaxed text-muted">
-                Scout helps agents complete everyday real estate tasks faster
-                by assisting with marketing, communication, and business
-                workflow.
-              </p>
-            </ContentDepth>
-          </motion.div>
-
-          <ParallaxLayer depth={0.2}>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
-              {scoutCapabilities.map((cap, i) => (
-                <motion.div
-                  key={cap.title}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.4, delay: i * 0.06 }}
-                  whileHover={{
-                    y: -4,
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                  }}
-                  className="flex flex-col gap-3 rounded-2xl p-6 transition-shadow duration-300"
-                  style={{
-                    background: "var(--color-card)",
-                    border: "1px solid var(--color-border-light)",
-                  }}
-                >
-                  <h3
-                    className="text-sm font-semibold text-foreground"
-                    style={{ fontFamily: "Inter, sans-serif" }}
-                  >
-                    {cap.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-muted">
-                    {cap.description}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </ParallaxLayer>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
           BEAR SYSTEM REVEAL — 3D floating panels + scroll reveal
       ═══════════════════════════════════════════════════════ */}
       <BearSystemReveal />
-
-      {/* ═══════════════════════════════════════════════════════
-          CINEMATIC REVEAL — Apple-style product showcase
-      ═══════════════════════════════════════════════════════ */}
-      <CinematicReveal />
 
       {/* ═══════════════════════════════════════════════════════
           STATS — Tom Songer production metrics (Depth 3 content)
