@@ -120,7 +120,7 @@ export default function AcademyPage() {
 
       {/* Footer */}
       <footer className="border-t border-muted/20 bg-card px-6 py-8 text-center text-sm text-muted">
-        &copy; 2026 BearTeam. All rights reserved.
+        Copyright 2026 WorldTeachPathways | Bear Team All rights reserved.
       </footer>
     </div>
   );

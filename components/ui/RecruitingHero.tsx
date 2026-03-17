@@ -122,9 +122,6 @@ export default function RecruitingHero() {
                   Schedule a Confidential Conversation
                 </Button>
               </a>
-              <p className="hidden text-sm text-text-light/70 sm:block">
-                Text Tom at 407-758-8102
-              </p>
               <a href="#advantage">
                 <Button
                   variant="ghost"

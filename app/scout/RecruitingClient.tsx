@@ -388,13 +388,13 @@ function HeroParallaxContent() {
                   className="mb-3 text-sm font-medium uppercase tracking-wider text-muted"
                   style={{ letterSpacing: "0.08em", fontFamily: "Inter, sans-serif" }}
                 >
-                  BearTeam AI Assistant
+                  Introducing Scout
                 </p>
                 <h1
                   className="text-display text-foreground"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
-                  Scout
+                  BearTeam AI Assistant
                 </h1>
               </motion.div>
 
@@ -814,9 +814,6 @@ export default function RecruitingClient() {
                 Schedule a Confidential Conversation
               </Button>
             </a>
-            <p className="hidden text-sm text-muted sm:block">
-              Text Tom at 407-758-8102
-            </p>
           </motion.div>
         </div>
       </section>

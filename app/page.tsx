@@ -100,9 +100,6 @@ export default function HomePage() {
                 Schedule a Confidential Conversation
               </Button>
             </a>
-            <p className="text-sm text-muted">
-              Text Tom at 407-758-8102
-            </p>
           </div>
         </FadeIn>
       </Section>
