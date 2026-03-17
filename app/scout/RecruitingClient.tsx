@@ -49,22 +49,10 @@ const stats = [
 ];
 
 const painPoints = [
-  {
-    icon: "⏱",
-    text: "Follow-up slips through the cracks",
-  },
-  {
-    icon: "📋",
-    text: "Listings take too long to prepare",
-  },
-  {
-    icon: "💬",
-    text: "Client communication breaks down",
-  },
-  {
-    icon: "📂",
-    text: "Transactions get messy and disorganized",
-  },
+  "Follow-up slips through the cracks",
+  "Listings take too long to prepare",
+  "Client communication breaks down",
+  "Transactions get messy and disorganized",
 ];
 
 const builtForItems = [
@@ -484,20 +472,21 @@ export default function RecruitingClient() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="flex items-start gap-4 rounded-xl px-5 py-4"
+                className="flex items-center gap-4 rounded-xl px-5 py-4"
                 style={{
                   background: "var(--color-card)",
                   border: "1px solid var(--color-border-light)",
                 }}
               >
-                <span className="mt-0.5 text-lg" role="img" aria-hidden="true">
-                  {point.icon}
-                </span>
+                <span
+                  className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                  style={{ background: "var(--color-primary)" }}
+                />
                 <p
                   className="text-sm leading-relaxed text-foreground/80 sm:text-base"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
-                  {point.text}
+                  {point}
                 </p>
               </motion.div>
             ))}
@@ -568,14 +557,9 @@ export default function RecruitingClient() {
                 className="flex items-center gap-3"
               >
                 <span
-                  className="flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
-                  style={{
-                    background: "var(--color-primary)",
-                    color: "white",
-                  }}
-                >
-                  ✓
-                </span>
+                  className="h-2 w-2 flex-shrink-0 rounded-full"
+                  style={{ background: "var(--color-primary)" }}
+                />
                 <span
                   className="text-sm font-medium text-foreground/80 sm:text-base"
                   style={{ fontFamily: "Inter, sans-serif" }}
