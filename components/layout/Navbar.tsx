@@ -25,7 +25,7 @@ export default function Navbar({ children, variant = "dark" }: NavbarProps) {
       }}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <a href="/" aria-label="BearTeam Home">
+        <a href="/" aria-label="Bear Real Estate Team Home">
           <BearTeamLogo size="md" variant={variant} />
         </a>
 

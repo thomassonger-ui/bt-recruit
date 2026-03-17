@@ -9,9 +9,9 @@ interface BearTeamLogoProps {
 }
 
 const sizes = {
-  sm: { iconSize: 24, fontSize: "14px", gap: 7 },
-  md: { iconSize: 30, fontSize: "18px", gap: 9 },
-  lg: { iconSize: 40, fontSize: "24px", gap: 11 },
+  sm: { iconSize: 32, fontSize: "14px", gap: 8 },
+  md: { iconSize: 42, fontSize: "17px", gap: 10 },
+  lg: { iconSize: 54, fontSize: "22px", gap: 12 },
 };
 
 export default function BearTeamLogo({
@@ -31,13 +31,13 @@ export default function BearTeamLogo({
     <div
       className={`flex items-center ${className}`}
       style={{ gap: `${gap}px` }}
-      aria-label="BearTeam"
+      aria-label="Bear Real Estate Team"
     >
       {/* BT square mark */}
       <svg
         width={iconSize}
         height={iconSize}
-        viewBox="0 0 40 40"
+        viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
@@ -46,42 +46,42 @@ export default function BearTeamLogo({
         <rect
           x="1"
           y="1"
-          width="38"
-          height="38"
-          rx="2"
+          width="46"
+          height="46"
+          rx="3"
           fill={markBg}
         />
         {/* Inner border */}
         <rect
-          x="4"
-          y="4"
-          width="32"
-          height="32"
-          rx="1"
+          x="5"
+          y="5"
+          width="38"
+          height="38"
+          rx="1.5"
           stroke={markFg}
-          strokeWidth="2"
+          strokeWidth="2.5"
           fill="none"
         />
         {/* B letter */}
         <text
-          x="11.5"
-          y="27.5"
+          x="13"
+          y="33"
           fill={markFg}
           fontFamily="Inter, Arial, sans-serif"
           fontWeight="800"
-          fontSize="18"
+          fontSize="22"
           letterSpacing="-0.5"
         >
           B
         </text>
         {/* T letter */}
         <text
-          x="22"
-          y="27.5"
+          x="26"
+          y="33"
           fill={markFg}
           fontFamily="Inter, Arial, sans-serif"
           fontWeight="800"
-          fontSize="18"
+          fontSize="22"
           letterSpacing="-0.5"
         >
           T
@@ -96,10 +96,10 @@ export default function BearTeamLogo({
           fontWeight: 700,
           color: wordmarkColor,
           letterSpacing: "-0.02em",
-          lineHeight: 1,
+          lineHeight: 1.15,
         }}
       >
-        BearTeam
+        Bear Real Estate Team
       </span>
     </div>
   );
