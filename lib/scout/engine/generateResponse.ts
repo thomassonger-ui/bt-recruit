@@ -14,6 +14,11 @@
  * 8. Return safe, compliant, conversion-focused response
  *
  * Nothing bypasses this pipeline. Every channel uses it.
+ *
+ * AUDIT FIXES (v2):
+ * - Removed dead mapChannel identity function.
+ * - guardrailLevel from classification now adjusts LLM temperature
+ *   and max_tokens (tighter at elevated/maximum levels).
  */
 
 import OpenAI from "openai";
@@ -24,7 +29,7 @@ import {
 import { checkInboundCompliance } from "../guardrails/complianceRules";
 import { checkEscalation } from "../guardrails/escalationRules";
 import { validateResponse } from "../guardrails/responseValidator";
-import { classifyMessage, type Classification } from "./decisionTree";
+import { classifyMessage, type Classification, type GuardrailLevel } from "./decisionTree";
 import { FALLBACKS } from "../config/scoutConfig";
 
 /* ── OpenAI client — lazy initialization ── */
@@ -57,6 +62,19 @@ export interface ScoutResponse {
 }
 
 /**
+ * LLM parameters based on guardrail level.
+ * Higher guardrail levels = lower temperature, fewer tokens.
+ */
+const LLM_PARAMS: Record<
+  GuardrailLevel,
+  { temperature: number; max_tokens: number }
+> = {
+  standard: { temperature: 0.6, max_tokens: 150 },
+  elevated: { temperature: 0.4, max_tokens: 120 },
+  maximum: { temperature: 0.2, max_tokens: 100 },
+};
+
+/**
  * Build the user prompt with classification context and strategy guidance.
  */
 function buildUserPrompt(
@@ -66,6 +84,7 @@ function buildUserPrompt(
 ): string {
   let prompt = `User message: "${message}"`;
   prompt += `\nClassification: ${classification.category}`;
+  prompt += `\nGuardrail level: ${classification.guardrailLevel}`;
   prompt += `\nResponse strategy: ${classification.responseStrategy}`;
 
   if (context?.stage) {
@@ -89,15 +108,19 @@ function buildUserPrompt(
 
 /**
  * Call the LLM with guardrail-enforced prompts.
+ * Temperature and max_tokens are adjusted by guardrail level.
  */
 async function callLLM(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  guardrailLevel: GuardrailLevel
 ): Promise<string> {
+  const params = LLM_PARAMS[guardrailLevel];
+
   const completion = await getClient().chat.completions.create({
     model: "gpt-4o-mini",
-    temperature: 0.6,
-    max_tokens: 150,
+    temperature: params.temperature,
+    max_tokens: params.max_tokens,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
@@ -121,7 +144,7 @@ export async function generateScoutResponse(
   try {
     // ── Step 1: Classify the inbound message ──
     const classification = classifyMessage(request.message);
-    guardrailsApplied.push(`classified:${classification.category}`);
+    guardrailsApplied.push(`classified:${classification.category}:${classification.guardrailLevel}`);
 
     // ── Step 2: Inbound compliance check ──
     // Catch risky topics BEFORE they reach the LLM
@@ -170,7 +193,12 @@ export async function generateScoutResponse(
     }
 
     // ── Step 5: Generate LLM response ──
-    let llmResponse = await callLLM(systemPrompt, userPrompt);
+    // guardrailLevel now controls temperature and token limits
+    let llmResponse = await callLLM(
+      systemPrompt,
+      userPrompt,
+      classification.guardrailLevel
+    );
 
     // Empty response fallback
     if (!llmResponse) {
@@ -179,16 +207,7 @@ export async function generateScoutResponse(
     }
 
     // ── Step 6: Run through guardrails ──
-    const mapChannel = (ch: Channel): "sms" | "web" | "messenger" => {
-      if (ch === "sms") return "sms";
-      if (ch === "messenger") return "messenger";
-      return "web";
-    };
-
-    const validation = validateResponse(
-      llmResponse,
-      mapChannel(request.channel)
-    );
+    const validation = validateResponse(llmResponse, request.channel);
     guardrailsApplied.push(...validation.modifications);
 
     // ── Step 7: Return final response ──

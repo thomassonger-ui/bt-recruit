@@ -4,9 +4,14 @@
  * Some conversations require a licensed agent. Scout does not guess,
  * negotiate, or interpret legal documents. When escalation triggers
  * fire, Scout immediately defers.
+ *
+ * AUDIT FIXES (v2):
+ * - Switched from substring .includes() to word-boundary regex patterns
+ *   to prevent false positives ("sue" matching inside "issue").
+ * - Imported ESCALATION_TRIGGER_PATTERNS instead of ESCALATION_TRIGGERS.
  */
 
-import { ESCALATION_TRIGGERS, FALLBACKS } from "../config/scoutConfig";
+import { ESCALATION_TRIGGER_PATTERNS, FALLBACKS } from "../config/scoutConfig";
 
 export type EscalationLevel = "none" | "soft" | "hard";
 
@@ -22,23 +27,21 @@ export interface EscalationResult {
  * Scout must immediately hand off. No attempt to answer.
  */
 function checkHardEscalation(message: string): string | null {
-  const lower = message.toLowerCase();
-
-  for (const trigger of ESCALATION_TRIGGERS) {
-    if (lower.includes(trigger)) {
-      return trigger;
+  // Word-boundary pattern matching (fixes "sue" in "issue" etc.)
+  for (const { pattern, label } of ESCALATION_TRIGGER_PATTERNS) {
+    if (pattern.test(message)) {
+      return label;
     }
   }
 
-  // Pattern-based hard escalation
+  // Additional pattern-based hard escalation
   const hardPatterns = [
-    /(?:how much|what) should (?:i|we) offer/i,
     /(?:is this|is that) a (?:good|fair|reasonable) (?:price|deal|offer)/i,
     /(?:can you|will you) (?:negotiate|counter|write|draft)/i,
     /(?:sign|signed|signing) (?:the|a|this) (?:contract|agreement|offer|listing)/i,
     /what (?:are|is) my (?:legal |)(?:rights|options|obligation)/i,
     /(?:should i|can i) (?:back out|cancel|withdraw|terminate)/i,
-    /(?:breach|default|violation|penalty|damages)/i,
+    /(?:breach|default|violation|penalty|damages)\b/i,
   ];
 
   for (const pattern of hardPatterns) {
@@ -55,8 +58,6 @@ function checkHardEscalation(message: string): string | null {
  * Scout acknowledges and connects them with an agent proactively.
  */
 function checkSoftEscalation(message: string): string | null {
-  const lower = message.toLowerCase();
-
   const softPatterns = [
     /(?:i want to|ready to|looking to) (?:buy|sell|list|make an offer)/i,
     /(?:found|saw|love) (?:a |the )?(?:house|home|property|listing|condo)/i,
@@ -67,7 +68,7 @@ function checkSoftEscalation(message: string): string | null {
   ];
 
   for (const pattern of softPatterns) {
-    if (pattern.test(lower)) {
+    if (pattern.test(message)) {
       return "high_intent:" + pattern.source.slice(0, 40);
     }
   }

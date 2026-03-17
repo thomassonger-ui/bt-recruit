@@ -14,6 +14,7 @@ export type {
   GuardrailLevel,
   Classification,
 } from "./engine/decisionTree";
+export type { EscalationLevel, EscalationResult } from "./guardrails/escalationRules";
 
 // Guardrails
 export { checkCompliance, checkInboundCompliance } from "./guardrails/complianceRules";

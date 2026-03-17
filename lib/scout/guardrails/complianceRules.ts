@@ -5,12 +5,21 @@
  * it is sent to the user. If any rule fails, the response is
  * either rewritten or replaced with a safe fallback.
  *
- * Priority: Fair Housing > Legal > Tone > Brand
+ * Priority: Fair Housing > Legal > Guarantee > Blocked Phrase
+ *
+ * AUDIT FIXES (v2):
+ * - Protected class terms now use word-boundary regex instead of
+ *   substring .includes() to prevent false positives on
+ *   "single family home", "color of the cabinets", etc.
+ * - Blocked phrases now contribute to "block" severity when they
+ *   match Fair Housing terms (previously logged but never acted on).
+ * - Removed unused `lower` variable in checkLegalBoundaries.
+ * - checkInboundCompliance regex flags cleaned up.
  */
 
 import {
   BLOCKED_PHRASES,
-  PROTECTED_CLASS_TERMS,
+  PROTECTED_CLASS_PATTERNS,
   FALLBACKS,
 } from "../config/scoutConfig";
 
@@ -23,15 +32,16 @@ export interface ComplianceResult {
 
 /**
  * Check for Fair Housing Act violations.
+ * Uses word-boundary regex patterns to avoid false positives.
  * This is the highest-priority check. Any match = immediate block.
  */
 function checkFairHousing(response: string): string[] {
-  const lower = response.toLowerCase();
   const violations: string[] = [];
 
-  for (const term of PROTECTED_CLASS_TERMS) {
-    if (lower.includes(term)) {
-      violations.push(`fair_housing:protected_class:"${term}"`);
+  // Word-boundary protected class matching (fixes false positives)
+  for (const { pattern, label } of PROTECTED_CLASS_PATTERNS) {
+    if (pattern.test(response)) {
+      violations.push(`fair_housing:protected_class:"${label}"`);
     }
   }
 
@@ -47,7 +57,7 @@ function checkFairHousing(response: string): string[] {
 
   for (const pattern of steeringPatterns) {
     if (pattern.test(response)) {
-      violations.push(`fair_housing:steering_language`);
+      violations.push("fair_housing:steering_language");
     }
   }
 
@@ -58,7 +68,6 @@ function checkFairHousing(response: string): string[] {
  * Check for legal overreach — Scout must never give legal advice.
  */
 function checkLegalBoundaries(response: string): string[] {
-  const lower = response.toLowerCase();
   const violations: string[] = [];
 
   const legalPatterns = [
@@ -74,7 +83,7 @@ function checkLegalBoundaries(response: string): string[] {
 
   for (const pattern of legalPatterns) {
     if (pattern.test(response)) {
-      violations.push(`legal:advice_given`);
+      violations.push("legal:advice_given");
     }
   }
 
@@ -88,7 +97,7 @@ function checkLegalBoundaries(response: string): string[] {
 
   for (const pattern of contractPatterns) {
     if (pattern.test(response)) {
-      violations.push(`legal:contract_interpretation`);
+      violations.push("legal:contract_interpretation");
     }
   }
 
@@ -113,7 +122,7 @@ function checkGuarantees(response: string): string[] {
 
   for (const pattern of guaranteePatterns) {
     if (pattern.test(response)) {
-      violations.push(`guarantee:outcome_promised`);
+      violations.push("guarantee:outcome_promised");
     }
   }
 
@@ -122,6 +131,7 @@ function checkGuarantees(response: string): string[] {
 
 /**
  * Check for blocked phrases — words and phrases that should never appear.
+ * Now categorized so Fair Housing blocked phrases trigger "block" severity.
  */
 function checkBlockedPhrases(response: string): string[] {
   const lower = response.toLowerCase();
@@ -138,6 +148,7 @@ function checkBlockedPhrases(response: string): string[] {
 
 /**
  * Determine severity based on violation types.
+ * Blocked phrases that are Fair Housing related now trigger "block".
  */
 function calculateSeverity(
   violations: string[]
@@ -151,14 +162,29 @@ function calculateSeverity(
       v.startsWith("guarantee")
   );
 
-  return hasBlock ? "block" : "warning";
+  if (hasBlock) return "block";
+
+  // Blocked phrases that are Fair Housing terms should also block
+  const fairHousingPhrases = [
+    "safe neighborhood", "safe area", "good neighborhood", "bad neighborhood",
+    "bad area", "family-friendly", "family friendly", "family oriented",
+    "good schools", "great schools", "school district", "up and coming",
+    "up-and-coming", "ethnic", "diverse area", "not diverse",
+    "young professionals", "mature community", "retired community",
+    "singles area", "no children", "quiet community",
+  ];
+  const hasFairHousingPhrase = violations.some((v) => {
+    const match = v.match(/^blocked_phrase:"(.+)"$/);
+    return match && fairHousingPhrases.includes(match[1]);
+  });
+
+  if (hasFairHousingPhrase) return "block";
+
+  return "warning";
 }
 
 /**
  * Main compliance check — runs all rules against a response.
- *
- * Returns a ComplianceResult with pass/fail, violations, severity,
- * and a rewritten response if the original fails.
  */
 export function checkCompliance(response: string): ComplianceResult {
   const violations: string[] = [
@@ -186,12 +212,10 @@ export function checkInboundCompliance(message: string): {
   requiresDeflection: boolean;
   deflectionReason: string | null;
 } {
-  const lower = message.toLowerCase();
-
   // Neighborhood demographics
   if (
     /(?:what (?:kind|type) of people|who lives|demographics|population)/i.test(
-      lower
+      message
     )
   ) {
     return {
@@ -201,12 +225,12 @@ export function checkInboundCompliance(message: string): {
   }
 
   // Safety / crime
-  if (/(?:safe|safety|crime|dangerous|sketchy)/i.test(lower)) {
+  if (/(?:safe|safety|crime|dangerous|sketchy)\s+(?:area|neighborhood|street|town|city)/i.test(message)) {
     return { requiresDeflection: true, deflectionReason: "safety_inquiry" };
   }
 
   // School quality (steering risk)
-  if (/(?:good schools|school (?:ratings?|quality|district))/i.test(lower)) {
+  if (/(?:good schools|school (?:ratings?|quality|district))/i.test(message)) {
     return { requiresDeflection: true, deflectionReason: "school_inquiry" };
   }
 
