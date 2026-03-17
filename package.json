@@ -17,6 +17,7 @@
     "ai": "^5.0.154",
     "framer-motion": "^12.36.0",
     "next": "16.1.6",
+    "openai": "^6.31.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
