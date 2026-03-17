@@ -197,7 +197,7 @@ export default function TryScout() {
             </p>
 
             <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <a href={`sms:4077588102?body=${SMS_BODY}`}>
+              <a href={`sms:+18444072587?body=${SMS_BODY}`}>
                 <Button variant="primary" className="!px-6 !py-3 !text-sm">
                   Text Me Scout
                 </Button>

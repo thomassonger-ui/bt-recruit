@@ -354,7 +354,7 @@ function HeroParallaxContent() {
             Try It
           </a>
           <a
-            href={`sms:4077588102?body=${SMS_BODY}`}
+            href={`sms:+18444072587?body=${SMS_BODY}`}
           >
             <Button variant="primary" className="!py-2 !px-4 !text-sm">
               Text Me Scout
@@ -713,7 +713,7 @@ export default function RecruitingClient() {
             </ContentDepth>
 
             <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:gap-4">
-              <a href={`sms:4077588102?body=${SMS_BODY}`}>
+              <a href={`sms:+18444072587?body=${SMS_BODY}`}>
                 <Button variant="primary" className="!px-8 !py-4 !text-base">
                   Start Using Scout
                 </Button>
@@ -761,7 +761,7 @@ export default function RecruitingClient() {
 
             <div className="mt-10">
               <a
-                href={`sms:4077588102?body=${SMS_BODY}`}
+                href={`sms:+18444072587?body=${SMS_BODY}`}
               >
                 <Button variant="primary" className="!px-8 !py-4 !text-base">
                   Join Bear Team
