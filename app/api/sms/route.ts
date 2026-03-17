@@ -1,14 +1,19 @@
 /**
- * Twilio SMS webhook endpoint.
+ * Twilio SMS webhook endpoint — now powered by Scout Guardrail System.
  *
  * Flow:
  * 1. Parse inbound SMS (Body + From)
  * 2. Load/create contact state
- * 3. Classify intent
- * 4. Extract deal context if substantive message
- * 5. Advance conversation stage
- * 6. Generate AI response via OpenAI
- * 7. Return TwiML XML response
+ * 3. Classify intent (existing system)
+ * 4. Advance conversation stage (existing state machine)
+ * 5. Generate response through Scout guardrail pipeline
+ * 6. Return TwiML XML response
+ *
+ * The guardrail system ensures every response is:
+ * - Compliant (Fair Housing + legal safe)
+ * - On-brand (professional, no fluff)
+ * - Conversion-focused (always moves forward)
+ * - Controlled (no hallucinations or unsafe responses)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -16,7 +21,7 @@ import twilio from "twilio";
 import { getContact, saveContact } from "@/lib/state";
 import { classifyIntent } from "@/lib/intent";
 import { nextStage } from "@/lib/flow";
-import { generateResponse } from "@/lib/ai";
+import { generateScoutResponse } from "@/lib/scout";
 
 const { MessagingResponse } = twilio.twiml;
 
@@ -33,16 +38,18 @@ export async function POST(request: NextRequest) {
     const from = (formData.get("From") as string) ?? "";
 
     if (!from || !body) {
-      return new NextResponse(buildTwiml("Hey — send me a message and I'll get back to you."), {
-        status: 200,
-        headers: { "Content-Type": "text/xml" },
-      });
+      return new NextResponse(
+        buildTwiml(
+          "Hey — send me a message and I'll get back to you."
+        ),
+        { status: 200, headers: { "Content-Type": "text/xml" } }
+      );
     }
 
     // 1. Load state
     const contact = getContact(from);
 
-    // 2. Classify intent
+    // 2. Classify intent (existing keyword system)
     const intent = classifyIntent(body);
     contact.intent = intent;
 
@@ -51,27 +58,31 @@ export async function POST(request: NextRequest) {
       contact.dealContext = body;
     }
 
-    // 4. Advance stage
+    // 4. Advance stage (existing state machine)
     contact.stage = nextStage(contact.stage, intent, contact);
 
-    // 5. Generate AI response
-    const reply = await generateResponse(
-      body,
-      contact.intent,
-      contact.stage,
-      contact.dealContext
-    );
+    // 5. Generate response through Scout guardrail pipeline
+    const scoutResponse = await generateScoutResponse({
+      message: body,
+      channel: "sms",
+      context: {
+        stage: contact.stage,
+        intent: contact.intent,
+        dealContext: contact.dealContext,
+        messageCount: contact.messageCount,
+      },
+    });
 
     // 6. Save updated state
     saveContact(contact);
 
     // 7. Return TwiML
-    return new NextResponse(buildTwiml(reply), {
+    return new NextResponse(buildTwiml(scoutResponse.text), {
       status: 200,
       headers: { "Content-Type": "text/xml" },
     });
   } catch {
-    // Fallback — never leave the user hanging
+    // Failsafe — never leave the user hanging
     const fallback = buildTwiml(
       "Got your message — let me look into this and text you right back."
     );
