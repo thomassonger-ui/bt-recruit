@@ -16,7 +16,14 @@ import {
 import InteractiveCard from "@/components/ui/InteractiveCard";
 import BearAnimation from "@/components/ui/BearAnimation";
 import HeroPromptInput from "@/components/ui/HeroPromptInput";
-import BearSystemReveal from "@/components/sections/BearSystemReveal";
+import CircularGallery from "@/components/ui/circular-gallery";
+import {
+  ListingCard,
+  CommunicationCard,
+  MarketingCard,
+  ShowingCard,
+  WorkflowCard,
+} from "@/components/ui/ScoutUICards";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
 
@@ -434,9 +441,56 @@ export default function RecruitingClient() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════
-          BEAR SYSTEM REVEAL — 3D floating panels + scroll reveal
+          WHAT SCOUT CAN DO — Interactive circular gallery
       ═══════════════════════════════════════════════════════ */}
-      <BearSystemReveal />
+      <section className="px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl py-24 sm:py-32">
+          <motion.div
+            {...fadeUp}
+            transition={{ duration: 0.5 }}
+            className="mx-auto mb-16 max-w-2xl text-center"
+          >
+            <ContentDepth>
+              <p
+                className="mb-4 text-sm font-medium uppercase tracking-wider text-muted"
+                style={{ letterSpacing: "0.08em" }}
+              >
+                What Scout Can Do
+              </p>
+              <h2
+                className="text-heading text-foreground"
+                style={{ fontFamily: "Inter, sans-serif" }}
+              >
+                Built for Real Estate Agents
+              </h2>
+              <p className="mt-4 text-lg leading-relaxed text-muted">
+                Scout helps agents complete everyday real estate tasks faster
+                by assisting with marketing, communication, and business
+                workflow.
+              </p>
+            </ContentDepth>
+          </motion.div>
+
+          <ParallaxLayer depth={0.2}>
+            <CircularGallery
+              items={[
+                <ListingCard key="listing" />,
+                <CommunicationCard key="communication" />,
+                <MarketingCard key="marketing" />,
+                <ShowingCard key="showing" />,
+                <WorkflowCard key="workflow" />,
+              ]}
+              labels={[
+                "Listing Assistant",
+                "Client Communication",
+                "Marketing Assistant",
+                "Showing Assistant",
+                "Daily Workflow",
+              ]}
+            />
+          </ParallaxLayer>
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════════════════
           STATS — Tom Songer production metrics (Depth 3 content)
