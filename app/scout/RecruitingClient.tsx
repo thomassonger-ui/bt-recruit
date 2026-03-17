@@ -13,7 +13,6 @@ import ParallaxLayer from "@/components/ui/ParallaxLayer";
 import {
   ContentDepth,
 } from "@/components/ui/DepthLayer";
-import InteractiveCard from "@/components/ui/InteractiveCard";
 import BearAnimation from "@/components/ui/BearAnimation";
 import HeroPromptInput from "@/components/ui/HeroPromptInput";
 import CircularGallery from "@/components/ui/circular-gallery";
@@ -24,6 +23,7 @@ import {
   ShowingCard,
   WorkflowCard,
 } from "@/components/ui/ScoutUICards";
+import SystemStack from "@/components/ui/system-stack";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
 
@@ -50,30 +50,6 @@ const stats = [
   { value: "7,000+", label: "Homes Sold" },
   { value: "$2B+", label: "Sales Volume" },
   { value: "15+", label: "Markets" },
-];
-
-const featureCards = [
-  {
-    title: "Systems",
-    summary:
-      "Structured workflows for listings, marketing, and transactions. No guesswork, no chaos — just repeatable processes that close deals.",
-    detail:
-      "Every agent gets access to BearTeam's proven operational playbook. CRM discipline, listing workflows, pricing frameworks, and marketing sequences — all systematized so you spend time selling, not scrambling.",
-  },
-  {
-    title: "Education",
-    summary:
-      "BearTeam Academy training designed for real-world production. Live coaching, self-paced modules, and a mentor from day one.",
-    detail:
-      "BearTeam Academy is a structured 12-week program with live coaching sessions, self-paced skill modules, and a dedicated producing mentor. Built for agents who want to close deals, not just pass exams.",
-  },
-  {
-    title: "Support",
-    summary:
-      "Operational systems that remove administrative friction. Transaction coordination, compliance, and marketing — all handled.",
-    detail:
-      "Dedicated transaction coordinators manage paperwork, compliance, and deadlines. Marketing systems produce listing materials, social content, and digital ads. You focus on clients — we handle the rest.",
-  },
 ];
 
 const milestones = [
@@ -529,46 +505,9 @@ export default function RecruitingClient() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          VALUE PILLARS — Depth 4 (interactive) cards
+          SYSTEM STACK — Interactive layered system explanation
       ═══════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl py-24 sm:py-32">
-          <motion.div
-            {...fadeUp}
-            transition={{ duration: 0.5 }}
-            className="mx-auto mb-16 max-w-2xl text-center"
-          >
-            <ContentDepth>
-              <p
-                className="mb-4 text-sm font-medium uppercase tracking-wider text-muted"
-                style={{ letterSpacing: "0.08em" }}
-              >
-                What you get
-              </p>
-              <h2
-                className="text-heading text-foreground"
-                style={{ fontFamily: "Inter, sans-serif" }}
-              >
-                Everything an agent needs to compete
-              </h2>
-            </ContentDepth>
-          </motion.div>
-
-          <ParallaxLayer depth={0.35}>
-            <div className="grid gap-6 sm:grid-cols-3">
-              {featureCards.map((card, i) => (
-                <InteractiveCard
-                  key={card.title}
-                  title={card.title}
-                  summary={card.summary}
-                  detail={card.detail}
-                  index={i}
-                />
-              ))}
-            </div>
-          </ParallaxLayer>
-        </div>
-      </section>
+      <SystemStack />
 
       {/* ═══════════════════════════════════════════════════════
           30 / 60 / 90 DAY SUCCESS PLAN — Depth 3 + 4
