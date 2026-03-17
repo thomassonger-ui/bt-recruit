@@ -688,7 +688,7 @@ export default function RecruitingClient() {
           <motion.div
             {...fadeUp}
             transition={{ duration: 0.5 }}
-            className="mx-auto mt-16 flex max-w-2xl flex-col items-center gap-4 text-center sm:mt-20"
+            className="mx-auto mt-20 flex max-w-3xl flex-col items-center gap-6 text-center sm:mt-28"
           >
             {[
               "Built inside Bear Academy",
@@ -701,7 +701,7 @@ export default function RecruitingClient() {
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="text-base text-muted sm:text-lg"
+                className="text-lg font-medium text-foreground/70 sm:text-xl lg:text-2xl"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 {text}
