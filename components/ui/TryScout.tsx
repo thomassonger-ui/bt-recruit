@@ -4,49 +4,115 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/ui/Button";
 
-const GENERATED_LISTING = `Welcome to this beautifully maintained 3-bedroom, 2-bathroom home in the heart of Winter Park. Step inside to find an open-concept living area with natural light flowing through every room. The updated kitchen features granite countertops, stainless steel appliances, and a breakfast bar that opens to the family room.
+interface ScoutOption {
+  label: string;
+  prompt: string;
+  response: string;
+}
+
+const OPTIONS: ScoutOption[] = [
+  {
+    label: "Write a listing description",
+    prompt:
+      "Write a listing description for a 3 bed 2 bath in Winter Park",
+    response: `Welcome to this beautifully maintained 3-bedroom, 2-bathroom home in the heart of Winter Park. Step inside to find an open-concept living area with natural light flowing through every room. The updated kitchen features granite countertops, stainless steel appliances, and a breakfast bar that opens to the family room.
 
 The primary suite offers a walk-in closet and an en-suite bathroom with dual vanities. Two additional bedrooms provide flexible space for a home office, guest room, or growing family.
 
-Step outside to a spacious backyard with a covered patio — perfect for entertaining year-round. Located minutes from Park Avenue shopping, dining, and top-rated schools.
+Step outside to a spacious backyard with a covered patio -- perfect for entertaining year-round. Located minutes from Park Avenue shopping, dining, and top-rated schools.
 
 Key Features:
-• 1,850 sq ft living space
-• Updated kitchen with modern finishes
-• Covered patio with private backyard
-• Two-car garage
-• Walk to Park Avenue`;
+- 1,850 sq ft living space
+- Updated kitchen with modern finishes
+- Covered patio with private backyard
+- Two-car garage
+- Walk to Park Avenue`,
+  },
+  {
+    label: "Draft a follow-up message",
+    prompt:
+      "Draft a follow-up message to a buyer who visited a home yesterday",
+    response: `Hi Sarah,
+
+Thank you for taking the time to visit the Lake Nona property yesterday. I wanted to follow up and see how you're feeling about it.
+
+Based on what you mentioned during the showing -- the open kitchen layout, the proximity to top-rated schools, and the backyard space for the kids -- I think this one checks a lot of your boxes.
+
+I pulled a few comparable sales in the area so you can see where this home sits relative to recent transactions. Happy to walk through those numbers whenever you're ready.
+
+If you'd like to schedule a second visit or if anything else caught your eye, just let me know. I'm here to help you make the best decision for your family.
+
+Looking forward to hearing from you.`,
+  },
+  {
+    label: "Organize my daily workflow",
+    prompt:
+      "Help me organize my prospecting and follow-up for today",
+    response: `Here's your daily workflow for today:
+
+Morning Block (8:00 - 10:00 AM)
+- Review new leads from overnight inquiries
+- Send follow-up messages to 3 active buyers from this week
+- Confirm showing appointments for today and tomorrow
+
+Midday Block (10:00 AM - 12:00 PM)
+- Prospecting calls: 15 contacts from your sphere of influence
+- Check MLS for new listings matching buyer criteria
+- Update CRM notes from yesterday's showings
+
+Afternoon Block (1:00 - 3:00 PM)
+- Prepare listing presentation for Thursday consultation
+- Review pending transaction checklist (Rivera closing March 28)
+- Send weekly market update to your seller pipeline
+
+End of Day (4:00 - 5:00 PM)
+- Log all conversations and next steps in CRM
+- Schedule tomorrow's priority tasks
+- Review pending offers and counter deadlines`,
+  },
+];
 
 const SMS_BODY = encodeURIComponent(
   "Hi, I just tried Scout on the site. Can you help me set it up for my listings?"
 );
 
 export default function TryScout() {
+  const [selected, setSelected] = useState<ScoutOption | null>(null);
   const [state, setState] = useState<"idle" | "generating" | "done">("idle");
   const [displayedText, setDisplayedText] = useState("");
   const [showConversion, setShowConversion] = useState(false);
 
-  const generate = useCallback(() => {
-    if (state === "generating") return;
-    setState("generating");
+  const generate = useCallback(
+    (option: ScoutOption) => {
+      if (state === "generating") return;
+      setSelected(option);
+      setState("generating");
+      setDisplayedText("");
+      setShowConversion(false);
+
+      let i = 0;
+      const interval = setInterval(() => {
+        setDisplayedText(option.response.slice(0, i));
+        i += 2;
+        if (i > option.response.length) {
+          setDisplayedText(option.response);
+          clearInterval(interval);
+          setState("done");
+        }
+      }, 8);
+
+      return () => clearInterval(interval);
+    },
+    [state]
+  );
+
+  const reset = useCallback(() => {
+    setSelected(null);
+    setState("idle");
     setDisplayedText("");
     setShowConversion(false);
+  }, []);
 
-    let i = 0;
-    const interval = setInterval(() => {
-      setDisplayedText(GENERATED_LISTING.slice(0, i));
-      i += 2; // 2 chars at a time for speed
-      if (i > GENERATED_LISTING.length) {
-        setDisplayedText(GENERATED_LISTING);
-        clearInterval(interval);
-        setState("done");
-      }
-    }, 8);
-
-    return () => clearInterval(interval);
-  }, [state]);
-
-  // Show conversion CTA after generation completes
   useEffect(() => {
     if (state !== "done") return;
     const timeout = setTimeout(() => setShowConversion(true), 800);
@@ -55,7 +121,7 @@ export default function TryScout() {
 
   return (
     <div className="mx-auto w-full max-w-3xl">
-      {/* Input area */}
+      {/* Option selector or active prompt */}
       <div
         className="rounded-2xl p-6"
         style={{
@@ -63,8 +129,8 @@ export default function TryScout() {
           border: "1px solid var(--color-border-light)",
         }}
       >
-        {/* Prompt label */}
-        <div className="mb-3 flex items-center gap-2">
+        {/* Scout AI label */}
+        <div className="mb-4 flex items-center gap-2">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10">
             <svg
               width="12"
@@ -86,45 +152,57 @@ export default function TryScout() {
           </span>
         </div>
 
-        {/* Prompt display */}
-        <div className="mb-4">
-          <p
-            className="text-sm leading-relaxed text-foreground/80"
-            style={{ fontFamily: "Inter, sans-serif" }}
-          >
-            &ldquo;Write a listing description for a 3 bed 2 bath in Winter
-            Park&rdquo;
-          </p>
-        </div>
-
-        {/* Generate button */}
+        {/* Idle state — show 3 options */}
         {state === "idle" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <button
-              onClick={generate}
-              className="rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90"
-              style={{
-                background: "var(--color-primary)",
-                fontFamily: "Inter, sans-serif",
-              }}
+          <div className="flex flex-col gap-3">
+            <p
+              className="mb-2 text-sm text-muted"
+              style={{ fontFamily: "Inter, sans-serif" }}
             >
-              Generate
-            </button>
-          </motion.div>
+              Choose a task to see Scout in action:
+            </p>
+            {OPTIONS.map((option, i) => (
+              <motion.button
+                key={i}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.08 }}
+                onClick={() => generate(option)}
+                className="flex items-center gap-3 rounded-xl px-5 py-4 text-left transition-all hover:shadow-md"
+                style={{
+                  background: "var(--color-background)",
+                  border: "1px solid var(--color-border-light)",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
+                <span
+                  className="h-2 w-2 flex-shrink-0 rounded-full"
+                  style={{ background: "var(--color-primary)" }}
+                />
+                <span className="text-sm font-medium text-foreground/80">
+                  {option.label}
+                </span>
+              </motion.button>
+            ))}
+          </div>
         )}
 
-        {/* Output area */}
-        <AnimatePresence>
-          {(state === "generating" || state === "done") && (
+        {/* Generating / Done state — show prompt + output */}
+        {selected && (state === "generating" || state === "done") && (
+          <>
+            <div className="mb-4">
+              <p
+                className="text-sm leading-relaxed text-foreground/80"
+                style={{ fontFamily: "Inter, sans-serif" }}
+              >
+                &ldquo;{selected.prompt}&rdquo;
+              </p>
+            </div>
+
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               transition={{ duration: 0.4 }}
-              className="mt-4"
             >
               <div
                 className="rounded-xl p-5"
@@ -133,7 +211,6 @@ export default function TryScout() {
                   border: "1px solid var(--color-border-light)",
                 }}
               >
-                {/* Status indicator */}
                 <div className="mb-3 flex items-center gap-2">
                   {state === "generating" ? (
                     <>
@@ -158,7 +235,6 @@ export default function TryScout() {
                   )}
                 </div>
 
-                {/* Generated text */}
                 <div
                   className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/70"
                   style={{ fontFamily: "Inter, sans-serif" }}
@@ -170,11 +246,29 @@ export default function TryScout() {
                 </div>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
+
+            {/* Try another */}
+            {state === "done" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+                className="mt-4"
+              >
+                <button
+                  onClick={reset}
+                  className="text-xs font-medium text-muted transition-colors hover:text-foreground"
+                  style={{ fontFamily: "Inter, sans-serif" }}
+                >
+                  Try another task
+                </button>
+              </motion.div>
+            )}
+          </>
+        )}
       </div>
 
-      {/* Conversion trigger — appears after generation completes */}
+      {/* Conversion trigger */}
       <AnimatePresence>
         {showConversion && (
           <motion.div
