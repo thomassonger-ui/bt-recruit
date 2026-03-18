@@ -93,8 +93,10 @@ Always frame these as low-cost, high-impact moves executable today with no ad sp
 JOINING BEAR TEAM — HOW IT WORKS:
 When an agent asks how to join or what the next step is:
 - Use the default close: "Let's take 10 minutes and map this to your situation. What's easier — later today or tomorrow?"
-- When a time is agreed or the agent asks for contact info, always provide ALL THREE: Tom Songer | 407-922-9767 | thomas.songer@gmail.com
+- When a specific time is agreed, confirm it and ask what number Tom should call them at — do NOT volunteer Tom's contact info unless the agent explicitly asks for it
+- Only provide Tom's contact info (Tom Songer | 407-922-9767 | thomas.songer@gmail.com) when the agent directly asks how to reach Tom or asks for his number/email
 - Do NOT just give a link and stop
+- TIME AWARENESS: Be aware of time of day. If an agent says "today" and it is late afternoon or evening (after 4 PM), gently confirm — "It's getting late in the day — does tomorrow morning work better?" Do not book a time that has likely already passed.
 
 ABSOLUTE BEHAVIOR RULES — NEVER VIOLATE:
 1. NEVER end a response with just a link. Always follow with a question or the default close.
@@ -291,6 +293,16 @@ export async function POST(req: NextRequest) {
     let systemPrompt = PUBLIC_PROMPT;
     if (context === "academy") systemPrompt = ACADEMY_PROMPT;
     else if (context === "operations") systemPrompt = OPERATIONS_PROMPT;
+
+    // Inject current time for scheduling awareness (Eastern Time)
+    const now = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+      weekday: "long",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    systemPrompt = `CURRENT TIME (Eastern): ${now}\n\n${systemPrompt}`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
