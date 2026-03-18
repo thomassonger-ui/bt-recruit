@@ -25,11 +25,9 @@ interface ScoutCTAProps {
   size?: "sm" | "lg";
   label?: string;
 }
-interface CardData {
-  title: string;
-  subtitle: string;
-  accent: string;
-  bg: string;
+interface ScreenCardProps {
+  children: React.ReactNode;
+  translate: MotionValue<number>;
 }
 interface SystemPanelProps {
   label: string;
@@ -184,115 +182,232 @@ function Nav() {
   );
 }
 
-// ─── HeroParallax Card ────────────────────────────────────────────────────────
+// ─── Blueprint Grid (matches /scout background) ───────────────────────────────
 
-function ParallaxCard({ card, translate }: { card: CardData; translate: MotionValue<number> }) {
+function BlueprintGrid() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const offsetRef = useRef({ x: 0, y: 0 });
+  const animRef = useRef<number>(0);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const r = canvas.getBoundingClientRect();
+      canvas.width = r.width * dpr;
+      canvas.height = r.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    const C = [107, 114, 128];
+    let last = 0;
+    const draw = (t: number) => {
+      const dt = last ? (t - last) / 1000 : 0.016;
+      last = t;
+      const w = canvas.getBoundingClientRect().width;
+      const h = canvas.getBoundingClientRect().height;
+      ctx.clearRect(0, 0, w, h);
+      offsetRef.current.x = (offsetRef.current.x + 5 * dt * 0.6) % 56;
+      offsetRef.current.y = (offsetRef.current.y + 5 * dt * 0.4) % 56;
+      const ox = offsetRef.current.x;
+      const oy = offsetRef.current.y;
+      const cols = Math.ceil(w / 56) + 2;
+      const rows = Math.ceil(h / 56) + 2;
+      ctx.strokeStyle = `rgba(${C[0]},${C[1]},${C[2]},0.10)`;
+      ctx.lineWidth = 0.5;
+      for (let i = -1; i <= cols; i++) {
+        const x = i * 56 + (ox % 56);
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let j = -1; j <= rows; j++) {
+        const y = j * 56 + (oy % 56);
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+      for (let i = -1; i <= cols; i++) {
+        for (let j = -1; j <= rows; j++) {
+          const x = i * 56 + (ox % 56);
+          const y = j * 56 + (oy % 56);
+          ctx.fillStyle = `rgba(${C[0]},${C[1]},${C[2]},0.12)`;
+          ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      animRef.current = requestAnimationFrame(draw);
+    };
+    animRef.current = requestAnimationFrame(draw);
+    return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(animRef.current); };
+  }, []);
+  return <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} aria-hidden="true" />;
+}
+
+// ─── Screenshot Mockup Cards ──────────────────────────────────────────────────
+
+function MoodleCard() {
+  return (
+    <div style={{ width: "100%", height: "100%", background: "#fff", borderRadius: "12px", overflow: "hidden", fontFamily: "-apple-system,sans-serif" }}>
+      <div style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "10px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
+        <div style={{ width: 22, height: 22, borderRadius: "4px", background: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.5rem", fontWeight: 800, color: "#fff", flexShrink: 0 }}>BT</div>
+        <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#111" }}>Bear Team Academy</span>
+        <div style={{ marginLeft: "auto", display: "flex", gap: "12px" }}>
+          {["My Courses","Progress","Resources"].map(t => <span key={t} style={{ fontSize: "0.6rem", color: t==="My Courses" ? "#3b5a82" : "#9ca3af", fontWeight: t==="My Courses" ? 700 : 400 }}>{t}</span>)}
+        </div>
+      </div>
+      <div style={{ padding: "10px 14px" }}>
+        <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#111", marginBottom: "8px" }}>My courses</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
+          {[
+            { label: "0 – Starting with Moodle", pct: "100%", img: true },
+            { label: "1 – Agent Onboarding", pct: "100%", img: false },
+            { label: "2 – Brokerage Structure", pct: "66%", img: false },
+          ].map((c, i) => (
+            <div key={i} style={{ background: i===0 ? "#f9fafb" : "#000", borderRadius: "6px", overflow: "hidden", border: "1px solid #e5e7eb" }}>
+              <div style={{ height: "36px", background: i===0 ? "linear-gradient(135deg,#fde68a,#f59e0b)" : "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {i===0 ? <span style={{ fontSize: "0.5rem", color: "#92400e" }}>📱 Moodle</span> : <span style={{ fontSize: "0.45rem", color: "#fff", fontWeight: 700, letterSpacing: "0.05em" }}>BT | BEAR TEAM ACADEMY</span>}
+              </div>
+              <div style={{ padding: "4px 6px", background: "#fff" }}>
+                <div style={{ fontSize: "0.5rem", color: "#3b5a82", fontWeight: 600, lineHeight: 1.3, marginBottom: "2px" }}>{c.label}</div>
+                <div style={{ fontSize: "0.45rem", color: "#9ca3af" }}>{c.pct} complete</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScoutChatCard() {
+  return (
+    <div style={{ width: "100%", height: "100%", background: "#f3f4f6", borderRadius: "12px", overflow: "hidden", fontFamily: "-apple-system,sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px" }}>
+      <div style={{ fontSize: "0.55rem", color: "#6b7280", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "6px" }}>AI-POWERED</div>
+      <div style={{ fontSize: "0.9rem", fontWeight: 800, color: "#111", marginBottom: "4px" }}>Scout in Action</div>
+      <div style={{ fontSize: "0.5rem", color: "#6b7280", marginBottom: "8px", textAlign: "center" }}>Scout assists agents with marketing, communication, and daily workflow tasks.</div>
+      <div style={{ background: "#fff", borderRadius: "8px", border: "1px solid #e5e7eb", padding: "8px", width: "100%", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "6px", paddingBottom: "5px", borderBottom: "1px solid #f3f4f6" }}>
+          <div style={{ width: 14, height: 14, borderRadius: "50%", background: "#3b5a82", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.4rem", color: "#fff", fontWeight: 700 }}>S</div>
+          <div><div style={{ fontSize: "0.52rem", fontWeight: 700, color: "#111", lineHeight: 1 }}>Scout</div><div style={{ fontSize: "0.45rem", color: "#9ca3af" }}>Bear Team AI Assistant</div></div>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "3px" }}><div style={{ width: 4, height: 4, borderRadius: "50%", background: "#22c55e" }} /><span style={{ fontSize: "0.45rem", color: "#22c55e" }}>Online</span></div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "4px" }}>
+          <div style={{ background: "#3b5a82", borderRadius: "8px 8px 2px 8px", padding: "4px 7px", fontSize: "0.48rem", color: "#fff", maxWidth: "75%" }}>Scout, write a listing description for a 3 bedroom home in Winter Park.</div>
+        </div>
+        <div style={{ background: "#f9fafb", borderRadius: "8px 8px 8px 2px", padding: "5px 7px", fontSize: "0.48rem", color: "#374151", lineHeight: 1.4, marginBottom: "4px" }}>Elegant 3-bedroom residence in the heart of Winter Park featuring updated interiors and natural light throughout...</div>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ background: "#3b5a82", borderRadius: "8px 8px 2px 8px", padding: "4px 7px", fontSize: "0.48rem", color: "#fff" }}>What pricing strategy would you recommend?</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScoutUICard() {
+  return (
+    <div style={{ width: "100%", height: "100%", background: "#f3f4f6", borderRadius: "12px", overflow: "hidden", fontFamily: "-apple-system,sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px" }}>
+      <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "10px", width: "100%", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "8px" }}>
+          <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#3b5a82", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.45rem", color: "#fff", fontWeight: 700 }}>S</div>
+          <div><div style={{ fontSize: "0.55rem", fontWeight: 700, color: "#111" }}>Scout</div><div style={{ fontSize: "0.45rem", color: "#9ca3af" }}>Bear Team AI Assistant</div></div>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "3px" }}><div style={{ width: 5, height: 5, borderRadius: "50%", background: "#22c55e" }} /><span style={{ fontSize: "0.48rem", color: "#22c55e" }}>Online</span></div>
+        </div>
+        <div style={{ display: "flex", gap: "4px", marginBottom: "7px", flexWrap: "wrap" }}>
+          {["Listing Marketing","Client Comms","Market Insights","Agent Growth"].map((t,i) => (
+            <span key={t} style={{ fontSize: "0.45rem", padding: "2px 5px", borderRadius: "10px", background: i===0 ? "#3b5a82" : "#f3f4f6", color: i===0 ? "#fff" : "#6b7280", fontWeight: i===0 ? 700 : 400 }}>{t}</span>
+          ))}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
+          {["Scout, write an MLS listing for a 3-bed in Winter Park.","Scout, create a social media post for a new listing.","Scout, summarize key selling points for this property.","Scout, write an email introducing this listing."].map((p,i) => (
+            <div key={i} style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: "6px", padding: "5px 6px", fontSize: "0.45rem", color: "#374151", lineHeight: 1.4 }}>{p}</div>
+          ))}
+        </div>
+        <div style={{ marginTop: "7px", background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: "6px", padding: "5px 8px", display: "flex", alignItems: "center", gap: "4px" }}>
+          <span style={{ fontSize: "0.48rem", color: "#9ca3af", flex: 1 }}>Ask Scout anything...</span>
+          <div style={{ width: 14, height: 14, borderRadius: "4px", background: "#3b5a82", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: "0.4rem", color: "#fff" }}>→</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MoodleCourseCard() {
+  return (
+    <div style={{ width: "100%", height: "100%", background: "#f3f4f6", borderRadius: "12px", overflow: "hidden", fontFamily: "-apple-system,sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px" }}>
+      <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "10px", width: "100%", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+        <div style={{ fontSize: "0.6rem", fontWeight: 800, color: "#111", marginBottom: "8px" }}>1 – Agent Onboarding: How We Think</div>
+        {["Who We Are","What We Believe","Why Structure Matters","What Defines the Bear Team Model","What Agents Can Expect"].map((item, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "5px 0", borderBottom: i < 4 ? "1px solid #f3f4f6" : "none" }}>
+            <div style={{ width: 12, height: 12, borderRadius: "2px", border: "1px solid #d1d5db", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: i < 2 ? "#3b5a82" : "#fff" }}>
+              {i < 2 && <span style={{ fontSize: "0.4rem", color: "#fff" }}>✓</span>}
+            </div>
+            <span style={{ fontSize: "0.5rem", color: i < 2 ? "#111" : "#6b7280", fontWeight: i < 2 ? 600 : 400 }}>{item}</span>
+            {i < 2 && <span style={{ marginLeft: "auto", fontSize: "0.4rem", color: "#22c55e", fontWeight: 600 }}>Done</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Parallax Screen Card wrapper ─────────────────────────────────────────────
+
+function ScreenCard({ children, translate }: { children: React.ReactNode; translate: MotionValue<number> }) {
   return (
     <motion.div
-      style={{ x: translate, flexShrink: 0 }}
-      whileHover={{ y: -8 }}
+      style={{ x: translate, flexShrink: 0, width: "380px", height: "260px" }}
+      whileHover={{ y: -8, scale: 1.02 }}
       transition={{ duration: 0.2 }}
     >
-      <Link href="/chat" style={{ display: "block", textDecoration: "none" }}>
-        <div
-          style={{
-            width: "300px",
-            height: "220px",
-            borderRadius: "16px",
-            background: card.bg,
-            border: "1px solid rgba(255,255,255,0.1)",
-            padding: "24px 22px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
-            position: "relative",
-            overflow: "hidden",
-            cursor: "pointer",
-          }}
-        >
-          <div style={{ position: "absolute", top: -30, right: -30, width: 100, height: 100, borderRadius: "50%", background: card.accent, opacity: 0.12, filter: "blur(30px)" }} />
-          <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: card.accent, opacity: 0.9 }}>Bear Team</div>
-          <div>
-            <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", lineHeight: 1.3, marginBottom: "6px" }}>{card.title}</div>
-            <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>{card.subtitle}</div>
-          </div>
-        </div>
-      </Link>
+      <div style={{ width: "100%", height: "100%", borderRadius: "14px", overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)", background: "#fff" }}>
+        {children}
+      </div>
     </motion.div>
   );
 }
 
 // ─── HeroParallax ─────────────────────────────────────────────────────────────
 
-const heroCards: CardData[] = [
-  { title: "60/40 → 90/10", subtitle: "Progressive splits that reward production, not seniority", accent: "#64b5f6", bg: "linear-gradient(135deg, #1a2a4a 0%, #0d1b36 100%)" },
-  { title: "$0 Monthly Fees", subtitle: "No desk fees. No tech fees. No surprises.", accent: "#81c784", bg: "linear-gradient(135deg, #1a3a2a 0%, #0d2018 100%)" },
-  { title: "$16K Cap", subtitle: "Hit the cap, graduate to the next tier automatically", accent: "#ffb74d", bg: "linear-gradient(135deg, #3a2a10 0%, #201808 100%)" },
-  { title: "Scout AI System", subtitle: "Knows your pipeline, your next step, and your math", accent: "#ce93d8", bg: "linear-gradient(135deg, #2a1a3a 0%, #180d24 100%)" },
-  { title: "E&O Covered", subtitle: "Bear Team absorbs your errors & omissions insurance", accent: "#ef9a9a", bg: "linear-gradient(135deg, #3a1a1a 0%, #240d0d 100%)" },
-  { title: "$150 Per Close", subtitle: "Flat transaction fee — same on a $200K or a $2M deal", accent: "#80cbc4", bg: "linear-gradient(135deg, #1a2a2a 0%, #0d1f1e 100%)" },
-  { title: "BearTeam Academy", subtitle: "Free training from day one — Moodle-based, self-paced", accent: "#ffcc80", bg: "linear-gradient(135deg, #2a2010 0%, #1a1408 100%)" },
-  { title: "30-60-90 Plan", subtitle: "Structured onboarding so your first 90 days produce", accent: "#a5d6a7", bg: "linear-gradient(135deg, #152a18 0%, #0d1e10 100%)" },
-  { title: "Boutique Brokerage", subtitle: "Orlando-based. Personal support. Real culture.", accent: "#90caf9", bg: "linear-gradient(135deg, #152240 0%, #0d1628 100%)" },
-  { title: "No Revenue Share", subtitle: "Earn by producing, not recruiting. No MLM. Ever.", accent: "#f48fb1", bg: "linear-gradient(135deg, #3a1028 0%, #240a1a 100%)" },
-  { title: "Tier 1: Deals 1–5", subtitle: "60/40 split while you build momentum and confidence", accent: "#64b5f6", bg: "linear-gradient(135deg, #182438 0%, #0e1826 100%)" },
-  { title: "Tier 2: Deals 6–9", subtitle: "Promote to 70/30 — automatically, no asking required", accent: "#81c784", bg: "linear-gradient(135deg, #182a1e 0%, #0e1e14 100%)" },
-  { title: "Tier 3: Deals 10–15", subtitle: "80/20 split for consistent producers", accent: "#ffb74d", bg: "linear-gradient(135deg, #362212 0%, #221608 100%)" },
-  { title: "Team Lead: 16+", subtitle: "90/10 — top producers keep the lion&rsquo;s share", accent: "#ce93d8", bg: "linear-gradient(135deg, #26163a 0%, #180e24 100%)" },
-  { title: "joinbearteam.com", subtitle: "Start the conversation with Scout — no commitment", accent: "#ef9a9a", bg: "linear-gradient(135deg, #3a1a20 0%, #240d14 100%)" },
-];
-
 function HeroParallax() {
-  const firstRow = heroCards.slice(0, 5);
-  const secondRow = heroCards.slice(5, 10);
-  const thirdRow = heroCards.slice(10, 15);
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const springConfig = { stiffness: 300, damping: 30, bounce: 100 };
-  const translateX = useSpring(useTransform(scrollYProgress, [0, 1], [0, 1000]), springConfig);
-  const translateXReverse = useSpring(useTransform(scrollYProgress, [0, 1], [0, -1000]), springConfig);
-  const rotateX = useSpring(useTransform(scrollYProgress, [0, 0.2], [15, 0]), springConfig);
-  const opacity = useSpring(useTransform(scrollYProgress, [0, 0.2], [0.3, 1]), springConfig);
-  const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [20, 0]), springConfig);
-  const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-300, 500]), springConfig);
+  const translateX = useSpring(useTransform(scrollYProgress, [0, 1], [0, 600]), springConfig);
+  const translateXReverse = useSpring(useTransform(scrollYProgress, [0, 1], [0, -600]), springConfig);
+  const rotateX = useSpring(useTransform(scrollYProgress, [0, 0.2], [12, 0]), springConfig);
+  const opacity = useSpring(useTransform(scrollYProgress, [0, 0.15], [0.5, 1]), springConfig);
+  const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [8, 0]), springConfig);
+  const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-100, 400]), springConfig);
+
+  const row1 = [<MoodleCard />, <ScoutChatCard />, <ScoutUICard />, <MoodleCourseCard />, <MoodleCard />];
+  const row2 = [<ScoutUICard />, <MoodleCourseCard />, <MoodleCard />, <ScoutChatCard />, <ScoutUICard />];
 
   return (
     <div
       ref={ref}
-      style={{
-        height: "300vh",
-        overflow: "hidden",
-        antialiased: "true",
-        position: "relative",
-        background: "linear-gradient(180deg, #060e1c 0%, #0b1d3a 50%, #0d2040 100%)",
-      }}
+      style={{ height: "280vh", overflow: "hidden", position: "relative", background: "#F0F1F3" }}
     >
-      {/* Grid texture */}
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(59,90,130,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(59,90,130,0.06) 1px, transparent 1px)", backgroundSize: "60px 60px", zIndex: 0, pointerEvents: "none" }} />
-      {/* Radial glow */}
-      <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: "900px", height: "500px", background: "radial-gradient(ellipse, rgba(59,90,130,0.2) 0%, transparent 70%)", zIndex: 0, pointerEvents: "none" }} />
+      {/* Blueprint grid background matching /scout */}
+      <BlueprintGrid />
 
       {/* Sticky hero text */}
       <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none" }}>
         <div style={{ maxWidth: "860px", padding: "0 32px", textAlign: "center", pointerEvents: "all" }}>
           <HeroFade delay={100}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", background: "rgba(59,90,130,0.2)", border: "1px solid rgba(59,90,130,0.4)", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)", marginBottom: "28px" }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#81c784", display: "inline-block", boxShadow: "0 0 6px #81c784" }} />
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", background: "rgba(59,90,130,0.1)", border: "1px solid rgba(59,90,130,0.25)", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#3b5a82", marginBottom: "28px" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
               Orlando, FL · Independent Brokerage
             </div>
           </HeroFade>
           <HeroFade delay={200}>
-            <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#ffffff", marginBottom: "20px", letterSpacing: "-0.02em" }}>
+            <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#1a1a1a", marginBottom: "20px", letterSpacing: "-0.02em" }}>
               A Real Estate System
               <br />
-              <span style={{ background: "linear-gradient(90deg, #64b5f6, #81c784)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              <span style={{ color: "#3b5a82" }}>
                 That Tells You What To Do Next
               </span>
             </h1>
           </HeroFade>
           <HeroFade delay={350}>
-            <p style={{ fontSize: "1.15rem", color: "rgba(255,255,255,0.62)", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.65 }}>
+            <p style={{ fontSize: "1.15rem", color: "#6b7280", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.65 }}>
               Most agents guess. Bear Team removes that. Zero fees, progressive splits, and Scout AI working for you from day one.
             </p>
           </HeroFade>
@@ -304,26 +419,14 @@ function HeroParallax() {
         </div>
       </div>
 
-      {/* 3D card grid — scrolls behind sticky text */}
+      {/* 3D card grid */}
       <div style={{ position: "absolute", inset: 0, zIndex: 5 }}>
-        <motion.div
-          style={{
-            rotateX,
-            rotateZ,
-            translateY,
-            opacity,
-            transformStyle: "preserve-3d",
-            paddingTop: "60vh",
-          }}
-        >
-          <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "20px", marginBottom: "20px", paddingLeft: "40px", paddingRight: "40px" }}>
-            {firstRow.map((card) => <ParallaxCard key={card.title} card={card} translate={translateX} />)}
+        <motion.div style={{ rotateX, rotateZ, translateY, opacity, transformStyle: "preserve-3d", paddingTop: "55vh" }}>
+          <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "24px", marginBottom: "24px", paddingLeft: "40px", paddingRight: "40px" }}>
+            {row1.map((child, i) => <ScreenCard key={i} translate={translateX}>{child}</ScreenCard>)}
           </motion.div>
-          <motion.div style={{ display: "flex", flexDirection: "row", gap: "20px", marginBottom: "20px", paddingLeft: "40px", paddingRight: "40px" }}>
-            {secondRow.map((card) => <ParallaxCard key={card.title} card={card} translate={translateXReverse} />)}
-          </motion.div>
-          <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "20px", paddingLeft: "40px", paddingRight: "40px" }}>
-            {thirdRow.map((card) => <ParallaxCard key={card.title} card={card} translate={translateX} />)}
+          <motion.div style={{ display: "flex", flexDirection: "row", gap: "24px", paddingLeft: "40px", paddingRight: "40px" }}>
+            {row2.map((child, i) => <ScreenCard key={i} translate={translateXReverse}>{child}</ScreenCard>)}
           </motion.div>
         </motion.div>
       </div>
