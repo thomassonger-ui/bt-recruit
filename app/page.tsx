@@ -542,7 +542,18 @@ function HeroParallax() {
 
       {/* Sticky hero text */}
       <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none" }}>
-        <div style={{ maxWidth: "860px", padding: "0 32px", textAlign: "center", pointerEvents: "all" }}>
+        <div style={{
+          maxWidth: "860px",
+          padding: "40px 48px",
+          textAlign: "center",
+          pointerEvents: "all",
+          background: "rgba(240,241,243,0.72)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          borderRadius: "24px",
+          border: "1px solid rgba(255,255,255,0.6)",
+          boxShadow: "0 8px 40px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.8) inset",
+        }}>
           <HeroFade delay={200}>
             <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#1a1a1a", marginBottom: "20px", letterSpacing: "-0.02em" }}>
               A Real Estate System
