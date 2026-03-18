@@ -1,26 +1,38 @@
 "use client"
 
-import { createAgentChat } from "@21st-sdk/nextjs"
-import { useChat } from "@ai-sdk/react"
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import ScoutPromptTabs from "@/components/ui/ScoutPromptTabs"
 import ReactMarkdown from "react-markdown"
 
-const chat = createAgentChat({
-  agent: "scout",
-  tokenUrl: "/api/an-token",
-})
-
-function getMessageText(msg: { parts: Array<{ type: string; text?: string }> }): string {
-  return msg.parts
-    .filter((p) => p.type === "text" && p.text)
-    .map((p) => p.text)
-    .join("")
+interface Message {
+  id: string
+  role: "user" | "assistant"
+  content: string
 }
 
-export default function ChatPage() {
-  const { messages, sendMessage, status, stop, error } = useChat({ chat })
+async function callScoutAPI(messages: Message[], context: string): Promise<string> {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      context,
+    }),
+  })
+  if (!res.ok) throw new Error("API error " + res.status)
+  const data = await res.json()
+  return data.reply || "Something went wrong. Try again."
+}
+
+function ChatPageInner() {
+  const searchParams = useSearchParams()
+  const context = searchParams.get("context") || "public"
+
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const notifiedRef = useRef(false)
@@ -28,312 +40,186 @@ export default function ChatPage() {
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
       if (chatContainerRef.current) {
-        chatContainerRef.current.scrollTo({
-          top: chatContainerRef.current.scrollHeight,
-          behavior: "smooth",
-        })
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
       }
     })
   }, [])
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages, status, scrollToBottom])
+  useEffect(() => { scrollToBottom() }, [messages, scrollToBottom])
 
-  const handleSend = (text?: string) => {
-    const msg = text || input.trim()
-    if (!msg) return
-    sendMessage({ text: msg })
-    if (!notifiedRef.current) {
-      notifiedRef.current = true
-      fetch("/api/notify", { method: "POST" }).catch(() => {})
-    }
+  const sendNotification = useCallback(async (userMessage: string) => {
+    if (notifiedRef.current) return
+    notifiedRef.current = true
+    try {
+      await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage, context }),
+      })
+    } catch { /* non-blocking */ }
+  }, [context])
+
+  const handleSubmit = useCallback(async (messageText?: string) => {
+    const text = (messageText ?? input).trim()
+    if (!text || isLoading) return
+
+    const userMessage: Message = { id: "user-" + Date.now(), role: "user", content: text }
+    const updatedMessages = [...messages, userMessage]
+    setMessages(updatedMessages)
     setInput("")
-    if (inputRef.current) {
-      inputRef.current.style.height = "auto"
-    }
-  }
+    setIsLoading(true)
+    sendNotification(text)
 
-  const isLoading = status === "streaming" || status === "submitted"
+    try {
+      const reply = await callScoutAPI(updatedMessages, context)
+      setMessages((prev) => [...prev, { id: "asst-" + Date.now(), role: "assistant", content: reply }])
+    } catch (err) {
+      console.error("Scout error:", err)
+      setMessages((prev) => [...prev, { id: "err-" + Date.now(), role: "assistant", content: "Something went wrong. Try again." }])
+    } finally {
+      setIsLoading(false)
+      setTimeout(() => inputRef.current?.focus(), 100)
+    }
+  }, [input, messages, isLoading, context, sendNotification])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit() }
+  }, [handleSubmit])
+
+  const handlePromptSelect = useCallback((prompt: string) => { handleSubmit(prompt) }, [handleSubmit])
+
+  const isEmpty = messages.length === 0
+  const canSend = input.trim().length > 0 && !isLoading
+
+  const greeting =
+    context === "academy" ? "I'm Scout. Tell me where you're stuck in BearTeam Academy and I'll point you to the right course."
+    : context === "operations" ? "I'm Scout. Tell me where you are in the transaction and I'll give you the next step."
+    : "I'm Scout. Ask me how Bear Team works, what the commission model looks like, and what joining means for your business."
 
   return (
-    <div
-      className="flex min-h-screen items-center justify-center px-4 py-8"
-      style={{ background: "#F2F2F2" }}
-    >
+    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F2F2F2" }}>
       <div className="w-full max-w-2xl">
-        {/* Back link */}
         <div className="mb-4">
-          <a
-            href="/scout"
-            className="inline-flex items-center gap-2 text-sm transition-colors"
-            style={{ color: "#6B7280", fontFamily: "Inter, sans-serif" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#1E293B")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#6B7280")}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M13 7H1M6 2L1 7l5 5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+          <a href="/scout" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#6B7280" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            Back to BearTeam
+            Back to Scout
           </a>
         </div>
 
-        {/* Chat card */}
-        <div
-          className="overflow-hidden"
-          style={{
-            background: "var(--color-card, #FFFFFF)",
-            border: "1px solid #E2E8F0",
-            borderRadius: "16px",
-            boxShadow:
-              "0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05)",
-          }}
-        >
-          {/* Header bar */}
-          <div
-            className="flex items-center justify-between px-6 py-4"
-            style={{ borderBottom: "1px solid #F1F5F9" }}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
-                style={{
-                  background: "#3B5A82",
-                  fontFamily: "Inter, sans-serif",
-                }}
-              >
-                S
-              </div>
-              <div>
-                <p
-                  className="text-sm font-semibold"
-                  style={{
-                    color: "#1E293B",
-                    fontFamily: "Inter, sans-serif",
-                  }}
-                >
-                  Scout
-                </p>
-                <p className="text-xs" style={{ color: "#6B7280" }}>
-                  BearTeam AI Assistant
-                </p>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#FFFFFF", boxShadow: "0 4px 24px rgba(0,0,0,0.08)", border: "1px solid #E5E7EB" }}>
+          {/* Header */}
+          <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: "1px solid #F3F4F6" }}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ background: "#0B1D3A" }}>S</div>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-sm" style={{ color: "#0B1D3A" }}>Scout</div>
+              <div className="text-xs" style={{ color: "#6B7280" }}>
+                {context === "academy" ? "Bear Team Academy Assistant" : context === "operations" ? "Bear Team Operations Assistant" : "Bear Team AI Assistant"}
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ background: "#34D399" }}
-              />
-              <span className="text-xs" style={{ color: "#6B7280" }}>
-                Online
-              </span>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-xs" style={{ color: "#6B7280" }}>Online</span>
             </div>
           </div>
 
-          {/* Messages area */}
-          <div
-            ref={chatContainerRef}
-            className="flex flex-col gap-4 overflow-y-auto p-6"
-            style={{ minHeight: "420px", maxHeight: "580px" }}
-          >
-            {/* Empty state with categorized prompts */}
-            {messages.length === 0 && (
-              <div className="flex flex-1 flex-col py-4">
-                <p
-                  className="mb-4 text-center text-sm"
-                  style={{ color: "#9CA3AF" }}
-                >
-                  Ask Scout about listings, pricing, market data, or marketing.
-                </p>
-                <ScoutPromptTabs onSelectPrompt={handleSend} />
+          {/* Messages */}
+          <div ref={chatContainerRef} className="px-6 py-4 overflow-y-auto" style={{ height: isEmpty ? "auto" : "420px", minHeight: "120px" }}>
+            {isEmpty ? (
+              <div className="py-8 text-center">
+                <div className="text-sm mb-1 font-medium" style={{ color: "#0B1D3A" }}>Hi, I'm Scout.</div>
+                <div className="text-sm max-w-md mx-auto" style={{ color: "#6B7280" }}>{greeting}</div>
               </div>
-            )}
-
-            {/* Chat messages */}
-            {messages.map((msg) => {
-              if (msg.role === "user") {
-                return (
-                  <div key={msg.id} className="flex justify-end">
-                    <div
-                      className="max-w-[80%] rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed"
-                      style={{
-                        background: "#3B5A82",
-                        color: "#FFFFFF",
-                      }}
-                    >
-                      {getMessageText(msg)}
+            ) : (
+              <div className="space-y-4">
+                {messages.map((msg) => (
+                  <div key={msg.id} className={"flex " + (msg.role === "user" ? "justify-end" : "justify-start")}>
+                    <div className="max-w-[85%] rounded-2xl px-4 py-3 text-sm" style={
+                      msg.role === "user"
+                        ? { background: "#0B1D3A", color: "#FFFFFF", borderBottomRightRadius: "4px" }
+                        : { background: "#F9FAFB", color: "#1A1A1A", borderBottomLeftRadius: "4px", border: "1px solid #E5E7EB" }
+                    }>
+                      {msg.role === "assistant" ? (
+                        <ReactMarkdown components={{
+                          p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+                          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                          a: ({ href, children }) => <a href={href} className="underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                        }}>
+                          {msg.content}
+                        </ReactMarkdown>
+                      ) : msg.content}
                     </div>
                   </div>
-                )
-              }
-              return (
-                <div key={msg.id} className="flex justify-start">
-                  <div
-                    className="scout-markdown max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed"
-                    style={{
-                      background: "#F8FAFC",
-                      border: "1px solid #F1F5F9",
-                      color: "#1E293B",
-                    }}
-                  >
-                    <ReactMarkdown>{getMessageText(msg)}</ReactMarkdown>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="rounded-2xl px-4 py-3" style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderBottomLeftRadius: "4px" }}>
+                      <div className="flex gap-1 items-center h-4">
+                        {[0, 150, 300].map((delay) => (
+                          <div key={delay} className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "#9CA3AF", animationDelay: delay + "ms" }} />
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-
-            {/* Thinking indicator */}
-            {isLoading &&
-              messages.length > 0 &&
-              messages[messages.length - 1].role === "user" && (
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                    style={{
-                      background: "#3B5A82",
-                      fontFamily: "Inter, sans-serif",
-                    }}
-                  >
-                    S
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="text-xs font-medium"
-                      style={{
-                        color: "#6B7280",
-                        fontFamily: "Inter, sans-serif",
-                      }}
-                    >
-                      Scout is thinking
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      {[0, 1, 2].map((i) => (
-                        <span
-                          key={i}
-                          className="h-1.5 w-1.5 rounded-full"
-                          style={{
-                            background: "#6B7280",
-                            animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
-                          }}
-                        />
-                      ))}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-            {/* Error */}
-            {error && (
-              <div
-                className="rounded-xl px-4 py-3 text-sm"
-                style={{
-                  background: "#FEF2F2",
-                  border: "1px solid #FECACA",
-                  color: "#DC2626",
-                }}
-              >
-                Something went wrong. Please try again.
+                )}
               </div>
             )}
           </div>
 
-          {/* Input bar */}
-          <div
-            className="flex items-end gap-3 px-6 py-4"
-            style={{ borderTop: "1px solid #F1F5F9" }}
-          >
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value)
-                e.target.style.height = "auto"
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSend()
-                }
-              }}
-              placeholder="Ask Scout anything..."
-              rows={1}
-              disabled={isLoading}
-              className="flex-1 resize-none text-sm leading-relaxed outline-none"
-              style={{
-                background: "#F8FAFC",
-                border: "1px solid #F1F5F9",
-                borderRadius: "12px",
-                padding: "10px 16px",
-                color: "#1E293B",
-                fontFamily: "Inter, sans-serif",
-                maxHeight: "120px",
-              }}
-            />
-            {isLoading ? (
-              <button
-                onClick={() => stop()}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors"
-                style={{ background: "#EF4444" }}
-                aria-label="Stop generating"
-              >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <rect width="12" height="12" rx="2" fill="white" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                onClick={() => handleSend()}
-                disabled={!input.trim()}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-opacity"
-                style={{
-                  background: input.trim() ? "#3B5A82" : "#CBD5E1",
-                  cursor: input.trim() ? "pointer" : "default",
+          {isEmpty && (
+            <div className="px-6 pb-4">
+              <ScoutPromptTabs onPromptSelect={handlePromptSelect} />
+            </div>
+          )}
+
+          {/* Input */}
+          <div className="px-4 pb-4">
+            <div className="flex items-end gap-2 rounded-xl px-4 py-3" style={{ background: "#F9FAFB", border: "1px solid #E5E7EB" }}>
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value)
+                  e.target.style.height = "auto"
+                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"
                 }}
-                aria-label="Send message"
+                onKeyDown={handleKeyDown}
+                placeholder="Ask Scout anything..."
+                rows={1}
+                className="flex-1 resize-none bg-transparent text-sm outline-none"
+                style={{ color: "#1A1A1A", maxHeight: "120px", lineHeight: "1.5" }}
+              />
+              <button
+                onClick={() => handleSubmit()}
+                disabled={!canSend}
+                className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                style={{ background: canSend ? "#0B1D3A" : "#E5E7EB", cursor: canSend ? "pointer" : "not-allowed" }}
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M14 2L7 9M14 2L9.5 14L7 9M14 2L2 6.5L7 9"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={canSend ? "#FFFFFF" : "#9CA3AF"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
                 </svg>
               </button>
-            )}
+            </div>
+            <div className="mt-2 text-center text-xs" style={{ color: "#9CA3AF" }}>
+              Scout is an AI assistant. For complex questions, contact{" "}
+              <a href="mailto:thomas.songer@gmail.com" style={{ color: "#6B7280" }}>Tom Songer</a>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Pulsing dots animation */}
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 1; }
-        }
-        .scout-markdown h1 { font-size: 1.125rem; font-weight: 700; margin: 12px 0 6px; }
-        .scout-markdown h2 { font-size: 1rem; font-weight: 600; margin: 10px 0 4px; color: #3B5A82; }
-        .scout-markdown h3 { font-size: 0.875rem; font-weight: 600; margin: 8px 0 4px; }
-        .scout-markdown p { margin: 4px 0; }
-        .scout-markdown ul { margin: 4px 0 8px; padding-left: 18px; list-style-type: disc; }
-        .scout-markdown ol { margin: 4px 0 8px; padding-left: 18px; list-style-type: decimal; }
-        .scout-markdown li { margin: 2px 0; }
-        .scout-markdown strong { font-weight: 600; color: #1E293B; }
-        .scout-markdown hr { border: none; border-top: 1px solid #E2E8F0; margin: 10px 0; }
-        .scout-markdown code { background: #F1F5F9; padding: 1px 5px; border-radius: 4px; font-size: 0.8125rem; }
-        .scout-markdown pre { background: #1E293B; color: #E2E8F0; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; }
-        .scout-markdown pre code { background: none; padding: 0; color: inherit; }
-        .scout-markdown > *:first-child { margin-top: 0; }
-        .scout-markdown > *:last-child { margin-bottom: 0; }
-      `}</style>
     </div>
+  )
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div />}>
+      <ChatPageInner />
+    </Suspense>
   )
 }
