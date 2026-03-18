@@ -151,7 +151,25 @@ function ChatPageInner() {
       ? "I'm Scout. I'm here to guide you through BearTeam Academy. Tell me where you're stuck and I'll point you to the right course."
       : context === "operations"
       ? "I'm Scout. I'm in ops mode — tell me where you are in the transaction and I'll give you the next step."
-      : "I'm Scout. I can tell you how Bear Team works, what the commission model looks like, and what joining actually means for your business."
+      : null // public greeting handled inline with buttons
+
+  const publicEntryButtons = [
+    {
+      label: "I'm a new agent",
+      subtext: "Just licensed or exploring your first brokerage",
+      prompt: "I just got my license and I'm exploring where to hang it. What should I know about Bear Team?",
+    },
+    {
+      label: "I'm stuck at my current brokerage",
+      subtext: "Fees too high, production stalled, or not feeling supported",
+      prompt: "I'm not happy at my current brokerage. Fees are eating into my commissions and I'm not getting real support. Tell me about Bear Team.",
+    },
+    {
+      label: "I'm a producing agent",
+      subtext: "Closing deals — want to know if the numbers work better here",
+      prompt: "I close deals regularly and I want to see how Bear Team's commission model compares to what I'm making now. Run the math.",
+    },
+  ]
 
   return (
     <div
@@ -214,14 +232,55 @@ function ChatPageInner() {
             style={{ height: isEmpty ? "auto" : "420px", minHeight: "120px" }}
           >
             {isEmpty ? (
-              <div className="py-8 text-center">
-                <div className="text-sm mb-1 font-medium" style={{ color: "#0B1D3A" }}>
-                  Hi, I&apos;m Scout.
+              context === "public" ? (
+                <div className="py-6">
+                  <div className="text-center mb-5">
+                    <div className="text-base font-semibold mb-1" style={{ color: "#0B1D3A" }}>
+                      Most agents overpay their brokerage by $4,000–$12,000 a year.
+                    </div>
+                    <div className="text-sm max-w-sm mx-auto" style={{ color: "#6B7280" }}>
+                      I&apos;m Scout. Tell me where you are — I&apos;ll show you what you&apos;d actually make here.
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {publicEntryButtons.map((btn) => (
+                      <button
+                        key={btn.label}
+                        onClick={() => handlePromptSelect(btn.prompt)}
+                        className="w-full text-left rounded-xl px-4 py-3 transition-all"
+                        style={{
+                          background: "#F9FAFB",
+                          border: "1px solid #E5E7EB",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = "#0B1D3A"
+                          e.currentTarget.style.background = "#F0F3F8"
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = "#E5E7EB"
+                          e.currentTarget.style.background = "#F9FAFB"
+                        }}
+                      >
+                        <div className="text-sm font-medium" style={{ color: "#0B1D3A" }}>
+                          {btn.label}
+                        </div>
+                        <div className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+                          {btn.subtext}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="text-sm max-w-md mx-auto" style={{ color: "#6B7280" }}>
-                  {greeting}
+              ) : (
+                <div className="py-8 text-center">
+                  <div className="text-sm mb-1 font-medium" style={{ color: "#0B1D3A" }}>
+                    Hi, I&apos;m Scout.
+                  </div>
+                  <div className="text-sm max-w-md mx-auto" style={{ color: "#6B7280" }}>
+                    {greeting}
+                  </div>
                 </div>
-              </div>
+              )
             ) : (
               <div className="space-y-4">
                 {messages.map((msg) => (
@@ -277,7 +336,7 @@ function ChatPageInner() {
             )}
           </div>
 
-          {isEmpty && (
+          {isEmpty && context !== "public" && (
             <div className="px-6 pb-4">
               <ScoutPromptTabs onSelectPrompt={handlePromptSelect} />
             </div>
