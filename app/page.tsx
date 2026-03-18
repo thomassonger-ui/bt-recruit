@@ -142,6 +142,7 @@ function ScoutCTA({ size = "lg", label = "Start with Scout" }: ScoutCTAProps) {
 
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll);
@@ -155,22 +156,23 @@ function Nav() {
         left: 0,
         right: 0,
         zIndex: 100,
-        padding: "0 40px",
-        height: "64px",
+        padding: "0 clamp(16px, 4vw, 40px)",
+        height: "60px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        background: scrolled ? "rgba(11,29,58,0.88)" : "rgba(11,29,58,0)",
-        backdropFilter: scrolled ? "blur(12px)" : "none",
+        background: scrolled ? "rgba(11,29,58,0.92)" : "rgba(11,29,58,0)",
+        backdropFilter: scrolled ? "blur(14px)" : "none",
         borderBottom: scrolled ? "1px solid rgba(255,255,255,0.08)" : "none",
         transition: "all 0.35s ease",
       }}
     >
-      <span style={{ color: "#fff", fontWeight: 700, fontSize: "1.1rem", letterSpacing: "0.04em" }}>
+      <a href="#top" style={{ color: "#fff", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.04em", textDecoration: "none" }}>
         Bear Team
-      </span>
-      <div style={{ display: "flex", gap: "32px", alignItems: "center" }}>
-        <a href="#system" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+      </a>
+      {/* Desktop links */}
+      <div style={{ display: "flex", gap: "28px", alignItems: "center" }} className="nav-desktop">
+        <a href="#systems" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
           The System
         </a>
         <a href="#proof" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
@@ -178,6 +180,25 @@ function Nav() {
         </a>
         <ScoutCTA size="sm" />
       </div>
+      {/* Mobile hamburger */}
+      <button
+        onClick={() => setMenuOpen(o => !o)}
+        style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "8px", color: "#fff" }}
+        className="nav-hamburger"
+        aria-label="Menu"
+      >
+        <div style={{ width: 22, height: 2, background: "#fff", marginBottom: 5, transition: "all 0.2s", transform: menuOpen ? "rotate(45deg) translate(5px,5px)" : "none" }} />
+        <div style={{ width: 22, height: 2, background: "#fff", marginBottom: 5, opacity: menuOpen ? 0 : 1, transition: "all 0.2s" }} />
+        <div style={{ width: 22, height: 2, background: "#fff", transition: "all 0.2s", transform: menuOpen ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
+      </button>
+      {/* Mobile dropdown */}
+      {menuOpen && (
+        <div style={{ position: "absolute", top: "60px", left: 0, right: 0, background: "rgba(11,29,58,0.97)", backdropFilter: "blur(14px)", padding: "20px 24px 28px", display: "flex", flexDirection: "column", gap: "20px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+          <a href="#systems" onClick={() => setMenuOpen(false)} style={{ color: "rgba(255,255,255,0.85)", textDecoration: "none", fontSize: "1rem", fontWeight: 600 }}>The System</a>
+          <a href="#proof" onClick={() => setMenuOpen(false)} style={{ color: "rgba(255,255,255,0.85)", textDecoration: "none", fontSize: "1rem", fontWeight: 600 }}>Track Record</a>
+          <div onClick={() => setMenuOpen(false)}><ScoutCTA size="sm" label="Start with Scout" /></div>
+        </div>
+      )}
     </nav>
   );
 }
@@ -573,10 +594,11 @@ function ScoutVisual() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = messagesContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages, loading]);
 
   async function send() {
@@ -615,7 +637,7 @@ function ScoutVisual() {
       </div>
 
       {/* Messages */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px 18px", display: "flex", flexDirection: "column", gap: "14px" }}>
+      <div ref={messagesContainerRef} style={{ flex: 1, overflowY: "auto", padding: "20px 18px", display: "flex", flexDirection: "column", gap: "14px" }}>
         {messages.map((msg, i) =>
           msg.role === "user" ? (
             <div key={i} style={{ display: "flex", justifyContent: "flex-end" }}>
@@ -644,7 +666,6 @@ function ScoutVisual() {
             </div>
           </div>
         )}
-        <div ref={bottomRef} />
       </div>
 
       {/* Suggested prompts — only show when just the greeting is visible */}
@@ -933,19 +954,20 @@ function SystemPanel({ label, title, description, href, external, visual, index 
       style={{ opacity }}
     >
       <div
+        className="system-panel-inner"
         style={{
-          minHeight: "88vh",
+          minHeight: "80vh",
           display: "flex",
           alignItems: "center",
-          padding: "80px clamp(24px, 6vw, 100px)",
-          gap: "clamp(32px, 5vw, 80px)",
+          padding: "clamp(40px,6vw,80px) clamp(20px, 6vw, 100px)",
+          gap: "clamp(28px, 5vw, 80px)",
           flexDirection: isEven ? "row" : "row-reverse",
           maxWidth: "1400px",
           margin: "0 auto",
         }}
       >
         {/* Text block */}
-        <motion.div style={{ y: textY, flex: "0 0 clamp(280px, 36%, 480px)" }}>
+        <motion.div className="system-panel-text" style={{ y: textY, flex: "0 0 clamp(240px, 36%, 480px)" }}>
           <div
             style={{
               fontSize: "0.68rem",
@@ -1035,10 +1057,11 @@ function SystemPanel({ label, title, description, href, external, visual, index 
 
         {/* Visual block */}
         <motion.div
+          className="system-panel-visual"
           style={{
             y: visualY,
             flex: 1,
-            minHeight: "clamp(360px, 50vh, 600px)",
+            minHeight: "clamp(300px, 50vh, 600px)",
             borderRadius: "20px",
             overflow: "hidden",
             boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
@@ -1179,12 +1202,43 @@ function SystemShowcase() {
 export default function HomePage() {
   return (
     <main
+      id="top"
       style={{
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         background: "#f0f1f3",
         color: "#1a1a1a",
       }}
     >
+      <style>{`
+        @media (max-width: 768px) {
+          .nav-desktop { display: none !important; }
+          .nav-hamburger { display: flex !important; flex-direction: column; justify-content: center; }
+        }
+        @media (min-width: 769px) {
+          .nav-hamburger { display: none !important; }
+        }
+        /* SystemPanel mobile stacking */
+        @media (max-width: 768px) {
+          .system-panel-inner {
+            flex-direction: column !important;
+            padding: 40px 20px !important;
+            min-height: unset !important;
+            gap: 32px !important;
+          }
+          .system-panel-text {
+            flex: none !important;
+            min-width: unset !important;
+            max-width: 100% !important;
+          }
+          .system-panel-visual {
+            min-height: 320px !important;
+            max-height: 380px !important;
+          }
+          .proof-grid { grid-template-columns: 1fr !important; }
+          .compare-grid { grid-template-columns: 1fr !important; }
+          .hero-card-grid { padding-left: 16px !important; padding-right: 16px !important; }
+        }
+      `}</style>
       <Nav />
 
       {/* ── HERO: Parallax ── */}
@@ -1194,7 +1248,7 @@ export default function HomePage() {
       <SystemShowcase />
 
       {/* ── PATTERN INTERRUPT ── */}
-      <section style={{ background: "#080f1e", padding: "120px 40px", textAlign: "center" }}>
+      <section style={{ background: "#080f1e", padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", textAlign: "center" }}>
         <Reveal>
           <p style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.4rem)", fontWeight: 700, color: "#ffffff", lineHeight: 1.4, maxWidth: "760px", margin: "0 auto" }}>
             The #1 reason agents plateau is not effort.
@@ -1205,7 +1259,7 @@ export default function HomePage() {
       </section>
 
       {/* ── PROBLEM ── */}
-      <section style={{ padding: "120px 40px", background: "#f0f1f3" }}>
+      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
         <div style={{ maxWidth: "760px", margin: "0 auto" }}>
           <Reveal>
             <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px" }}>The Problem</p>
@@ -1231,7 +1285,7 @@ export default function HomePage() {
       </section>
 
       {/* ── SOLUTION ── */}
-      <section id="system" style={{ padding: "120px 40px", background: "#0b1d3a" }}>
+      <section id="systems-text" style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#0b1d3a" }}>
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
           <Reveal>
             <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: "16px" }}>The Solution</p>
@@ -1261,7 +1315,7 @@ export default function HomePage() {
       </section>
 
       {/* ── SCOUT ENTRY ── */}
-      <section style={{ padding: "120px 40px", background: "#3f5f8a" }}>
+      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#3f5f8a" }}>
         <div style={{ maxWidth: "860px", margin: "0 auto" }}>
           <Reveal>
             <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>Meet Scout</p>
@@ -1295,7 +1349,7 @@ export default function HomePage() {
       </section>
 
       {/* ── DAY-TO-DAY ── */}
-      <section style={{ padding: "120px 40px", background: "#f0f1f3" }}>
+      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
         <div style={{ maxWidth: "760px", margin: "0 auto" }}>
           <Reveal>
             <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px" }}>How It Works</p>
@@ -1325,7 +1379,7 @@ export default function HomePage() {
       </section>
 
       {/* ── PROOF ── */}
-      <section id="proof" style={{ padding: "120px 40px", background: "#ffffff" }}>
+      <section id="proof" style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#ffffff" }}>
         <div style={{ maxWidth: "960px", margin: "0 auto" }}>
           <Reveal>
             <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px", textAlign: "center" }}>By The Numbers</p>
@@ -1335,7 +1389,7 @@ export default function HomePage() {
               The math speaks for itself.
             </h2>
           </Reveal>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px", marginBottom: "48px" }}>
+          <div className="proof-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px", marginBottom: "48px" }}>
             {[["$0", "Monthly cost to agent", "#81c784"], ["90/10", "Max split at 16+ deals", "#64b5f6"], ["$150", "Flat fee per closing", "#ffb74d"]].map(([stat, label, color]) => (
               <Reveal key={stat}>
                 <div style={{ padding: "36px 28px", background: "#f8f9fa", borderRadius: "12px", border: "1px solid #e5e7eb", textAlign: "center" }}>
@@ -1357,12 +1411,12 @@ export default function HomePage() {
       </section>
 
       {/* ── DIFFERENTIATION ── */}
-      <section style={{ padding: "120px 40px", background: "#f0f1f3" }}>
+      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
           <Reveal>
             <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center" }}>Traditional vs. Bear Team</h2>
           </Reveal>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+          <div className="compare-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
             <Reveal>
               <div style={{ padding: "36px", background: "#ffffff", borderRadius: "12px", border: "1px solid #e5e7eb" }}>
                 <div style={{ fontWeight: 700, marginBottom: "24px", color: "#6b7280", fontSize: "0.9rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>Traditional Brokerage</div>
@@ -1388,7 +1442,7 @@ export default function HomePage() {
       </section>
 
       {/* ── OBJECTION HANDLING ── */}
-      <section style={{ padding: "120px 40px", background: "#ffffff" }}>
+      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#ffffff" }}>
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
           <Reveal>
             <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center" }}>
@@ -1411,7 +1465,7 @@ export default function HomePage() {
       </section>
 
       {/* ── URGENCY ── */}
-      <section style={{ padding: "120px 40px", background: "linear-gradient(135deg, #060e1c 0%, #0b1d3a 100%)", textAlign: "center" }}>
+      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "linear-gradient(135deg, #060e1c 0%, #0b1d3a 100%)", textAlign: "center" }}>
         <Reveal>
           <h2 style={{ fontSize: "clamp(1.8rem, 3.5vw, 3rem)", fontWeight: 800, color: "#ffffff", marginBottom: "20px", lineHeight: 1.2 }}>
             Every month you wait costs you
@@ -1432,7 +1486,7 @@ export default function HomePage() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section style={{ padding: "120px 40px", background: "#f0f1f3", textAlign: "center" }}>
+      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3", textAlign: "center" }}>
         <Reveal>
           <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "16px", lineHeight: 1.15 }}>
             Stop Guessing. Start Producing.
@@ -1446,7 +1500,7 @@ export default function HomePage() {
         <Reveal delay={200}>
           <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
             <ScoutCTA size="lg" />
-            <a href="#system" style={{ padding: "14px 32px", fontSize: "1rem", fontWeight: 600, color: "#3b5a82", border: "2px solid #3b5a82", borderRadius: "8px", textDecoration: "none", display: "inline-block" }}>
+            <a href="#systems" style={{ padding: "14px 32px", fontSize: "1rem", fontWeight: 600, color: "#3b5a82", border: "2px solid #3b5a82", borderRadius: "8px", textDecoration: "none", display: "inline-block" }}>
               See How It Works
             </a>
           </div>
@@ -1460,7 +1514,7 @@ export default function HomePage() {
         <div style={{ display: "flex", gap: "32px", justifyContent: "center" }}>
           <a href="/chat" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Talk to Scout</a>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
-          <a href="#system" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>The System</a>
+          <a href="#systems" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>The System</a>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
           <a href="#proof" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Track Record</a>
         </div>
