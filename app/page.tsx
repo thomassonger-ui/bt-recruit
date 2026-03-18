@@ -368,37 +368,64 @@ function Card3_MyCourses() {
   );
 }
 
-// Card 4: "Bear Academy" lesson page with video + content
+// Card 4: "Bear Academy" — Welcome lesson with video thumbnail + Operating Philosophy
 function Card4_AcademyLesson() {
   return (
-    <div style={{ width:"100%", height:"100%", background:"#f3f4f6", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column" }}>
+    <div style={{ width:"100%", height:"100%", background:"#fff", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column" }}>
       {/* Header bar */}
-      <div style={{ background:"#1e3a5f", padding:"10px 16px", flexShrink:0 }}>
-        <div style={{ fontSize:"0.7rem", fontWeight:800, color:"#fff", marginBottom:1 }}>Bear Team Academy</div>
-        <div style={{ fontSize:"0.52rem", color:"rgba(255,255,255,0.65)" }}>Agent Onboarding — Course Layout</div>
+      <div style={{ background:"#1e3a5f", padding:"12px 18px", flexShrink:0 }}>
+        <div style={{ fontSize:"0.85rem", fontWeight:800, color:"#fff", marginBottom:2 }}>Bear Academy</div>
+        <div style={{ fontSize:"0.56rem", color:"rgba(255,255,255,0.65)" }}>Agent Onboarding</div>
       </div>
-      <div style={{ padding:"8px 16px 4px", background:"#fff", borderBottom:"1px solid #e5e7eb", fontSize:"0.52rem", color:"#374151", flexShrink:0 }}>
-        <span style={{ fontWeight:700 }}>Lesson:</span> Course Layout Overview
+      {/* Lesson label */}
+      <div style={{ padding:"8px 18px", background:"#f9fafb", borderBottom:"1px solid #e5e7eb", fontSize:"0.56rem", color:"#374151", flexShrink:0 }}>
+        <span style={{ fontWeight:700 }}>Lesson:</span> Welcome to Bear Academy
       </div>
-      <div style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column", gap:0 }}>
-        {/* Video thumbnail */}
-        <div style={{ background:"#1a1a1a", position:"relative", flexShrink:0, height:"44%" }}>
-          <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,0,0,0.9)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <span style={{ color:"#fff", fontSize:"0.7rem" }}>▶</span>
+      {/* Video thumbnail */}
+      <div style={{ position:"relative", background:"#d1d5db", flexShrink:0, height:"42%", overflow:"hidden" }}>
+        {/* Simulated video still — office background */}
+        <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle at 30% 60%, rgba(255,255,255,0.3) 0%, transparent 60%)" }} />
+          {/* Video title bar */}
+          <div style={{ position:"absolute", top:8, left:10, right:10, display:"flex", alignItems:"center", gap:6 }}>
+            <div style={{ width:16, height:16, borderRadius:"50%", background:"#e63946", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <span style={{ color:"#fff", fontSize:"0.38rem", fontWeight:700 }}>▶</span>
             </div>
-            <div style={{ fontSize:"0.48rem", color:"rgba(255,255,255,0.7)" }}>Bear Team Academy | Orientation: Culture &amp; Expectations</div>
+            <span style={{ fontSize:"0.46rem", color:"#1e293b", fontWeight:600 }}>Brokerage Vision &amp; Structure</span>
+            <div style={{ marginLeft:"auto", display:"flex", gap:10 }}>
+              <span style={{ fontSize:"0.42rem", color:"#475569" }}>⏱ Watch later</span>
+              <span style={{ fontSize:"0.42rem", color:"#475569" }}>↑ Share</span>
+            </div>
           </div>
-          <div style={{ position:"absolute", bottom:6, left:10, fontSize:"0.44rem", color:"rgba(255,255,255,0.6)", display:"flex", alignItems:"center", gap:4 }}>
-            <span>Watch on</span><span style={{ fontWeight:700, color:"#fff" }}>▶ YouTube</span>
+          {/* Play button */}
+          <div style={{ width:44, height:44, borderRadius:"50%", background:"rgba(220,38,38,0.92)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 16px rgba(0,0,0,0.3)" }}>
+            <span style={{ color:"#fff", fontSize:"0.9rem", marginLeft:3 }}>▶</span>
+          </div>
+          {/* BT watermark */}
+          <div style={{ position:"absolute", bottom:10, right:10, border:"1.5px solid rgba(255,255,255,0.6)", padding:"3px 7px", display:"flex", alignItems:"center", gap:4 }}>
+            <span style={{ fontSize:"0.44rem", color:"rgba(255,255,255,0.9)", fontWeight:800, letterSpacing:"0.06em" }}>BT</span>
+          </div>
+          {/* Watch on YouTube */}
+          <div style={{ position:"absolute", bottom:10, left:10, background:"rgba(0,0,0,0.5)", padding:"3px 8px", borderRadius:4, display:"flex", alignItems:"center", gap:4 }}>
+            <span style={{ fontSize:"0.42rem", color:"#fff" }}>Watch on</span>
+            <span style={{ fontSize:"0.42rem", color:"#fff", fontWeight:700 }}>▶ YouTube</span>
           </div>
         </div>
-        {/* Text content */}
-        <div style={{ flex:1, background:"#fff", padding:"10px 16px", overflow:"hidden" }}>
-          <div style={{ fontSize:"0.75rem", fontWeight:800, color:"#111", marginBottom:6 }}>Course Layout</div>
-          <div style={{ fontSize:"0.54rem", color:"#374151", lineHeight:1.6, marginBottom:5 }}>Your onboarding pathway is organized into sequential sections designed to align identity before execution.</div>
-          <div style={{ fontSize:"0.54rem", color:"#374151", lineHeight:1.6 }}>The course is structured so that each section builds on the previous one. This ensures that agents understand the Bear Team operating philosophy before moving into <span style={{ color:"#2563eb", textDecoration:"underline" }}>operational systems</span> and execution.</div>
+      </div>
+      {/* Text content */}
+      <div style={{ flex:1, padding:"12px 18px", overflow:"hidden" }}>
+        <div style={{ borderLeft:"3px solid #1e3a5f", paddingLeft:10, marginBottom:10 }}>
+          <div style={{ fontSize:"0.75rem", fontWeight:800, color:"#111", marginBottom:4 }}>Operating Philosophy</div>
+          <div style={{ fontSize:"0.54rem", color:"#374151", lineHeight:1.65, marginBottom:4 }}>Bear Team does not operate on improvisation. The brokerage operates through defined structure and disciplined execution.</div>
+          <div style={{ fontSize:"0.54rem", color:"#374151", lineHeight:1.65, marginBottom:6 }}>Top-performing agents do not &ldquo;wing it.&rdquo; They follow systems that guide movement through every stage of a transaction.</div>
         </div>
+        <div style={{ fontSize:"0.56rem", fontWeight:700, color:"#111", marginBottom:5 }}>Our operating philosophy is simple:</div>
+        {["Structure reduces friction","Systems create speed","Execution builds trust"].map((item, i) => (
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
+            <div style={{ width:5, height:5, borderRadius:"50%", background:"#1e3a5f", flexShrink:0 }} />
+            <span style={{ fontSize:"0.52rem", color:"#374151" }}>{item}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
