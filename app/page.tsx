@@ -189,34 +189,33 @@ function Nav() {
 function ParallaxCard({ card, translate }: { card: CardData; translate: MotionValue<number> }) {
   return (
     <motion.div
-      style={{ x: translate }}
-      whileHover={{ y: -16, scale: 1.02 }}
+      style={{ x: translate, flexShrink: 0 }}
+      whileHover={{ y: -8 }}
       transition={{ duration: 0.2 }}
-      className="group/card relative flex-shrink-0"
     >
       <Link href="/chat" style={{ display: "block", textDecoration: "none" }}>
         <div
           style={{
-            width: "320px",
-            height: "200px",
-            borderRadius: "12px",
+            width: "300px",
+            height: "220px",
+            borderRadius: "16px",
             background: card.bg,
-            border: "1px solid rgba(255,255,255,0.12)",
-            padding: "28px 24px",
+            border: "1px solid rgba(255,255,255,0.1)",
+            padding: "24px 22px",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
             position: "relative",
             overflow: "hidden",
             cursor: "pointer",
           }}
         >
-          <div style={{ position: "absolute", top: -40, right: -40, width: 120, height: 120, borderRadius: "50%", background: card.accent, opacity: 0.15, filter: "blur(40px)" }} />
-          <div style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: card.accent }}>Bear Team</div>
+          <div style={{ position: "absolute", top: -30, right: -30, width: 100, height: 100, borderRadius: "50%", background: card.accent, opacity: 0.12, filter: "blur(30px)" }} />
+          <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: card.accent, opacity: 0.9 }}>Bear Team</div>
           <div>
-            <div style={{ fontSize: "1.15rem", fontWeight: 700, color: "#fff", lineHeight: 1.3, marginBottom: "6px" }}>{card.title}</div>
-            <div style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>{card.subtitle}</div>
+            <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", lineHeight: 1.3, marginBottom: "6px" }}>{card.title}</div>
+            <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>{card.subtitle}</div>
           </div>
         </div>
       </Link>
@@ -240,7 +239,7 @@ const heroCards: CardData[] = [
   { title: "Tier 1: Deals 1–5", subtitle: "60/40 split while you build momentum and confidence", accent: "#64b5f6", bg: "linear-gradient(135deg, #182438 0%, #0e1826 100%)" },
   { title: "Tier 2: Deals 6–9", subtitle: "Promote to 70/30 — automatically, no asking required", accent: "#81c784", bg: "linear-gradient(135deg, #182a1e 0%, #0e1e14 100%)" },
   { title: "Tier 3: Deals 10–15", subtitle: "80/20 split for consistent producers", accent: "#ffb74d", bg: "linear-gradient(135deg, #362212 0%, #221608 100%)" },
-  { title: "Team Lead: 16+", subtitle: "90/10 — top producers keep the lion's share", accent: "#ce93d8", bg: "linear-gradient(135deg, #26163a 0%, #180e24 100%)" },
+  { title: "Team Lead: 16+", subtitle: "90/10 — top producers keep the lion&rsquo;s share", accent: "#ce93d8", bg: "linear-gradient(135deg, #26163a 0%, #180e24 100%)" },
   { title: "joinbearteam.com", subtitle: "Start the conversation with Scout — no commitment", accent: "#ef9a9a", bg: "linear-gradient(135deg, #3a1a20 0%, #240d14 100%)" },
 ];
 
@@ -254,64 +253,80 @@ function HeroParallax() {
   const translateX = useSpring(useTransform(scrollYProgress, [0, 1], [0, 1000]), springConfig);
   const translateXReverse = useSpring(useTransform(scrollYProgress, [0, 1], [0, -1000]), springConfig);
   const rotateX = useSpring(useTransform(scrollYProgress, [0, 0.2], [15, 0]), springConfig);
-  const opacity = useSpring(useTransform(scrollYProgress, [0, 0.2], [0.2, 1]), springConfig);
+  const opacity = useSpring(useTransform(scrollYProgress, [0, 0.2], [0.3, 1]), springConfig);
   const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [20, 0]), springConfig);
-  const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [0, 500]), springConfig);
+  const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-300, 500]), springConfig);
 
   return (
     <div
       ref={ref}
       style={{
         height: "300vh",
-        paddingTop: "160px",
-        paddingBottom: "160px",
         overflow: "hidden",
+        antialiased: "true",
         position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        background: "linear-gradient(180deg, #060e1c 0%, #0b1d3a 40%, #0d2040 100%)",
+        background: "linear-gradient(180deg, #060e1c 0%, #0b1d3a 50%, #0d2040 100%)",
       }}
     >
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(59,90,130,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(59,90,130,0.07) 1px, transparent 1px)", backgroundSize: "60px 60px", zIndex: 0 }} />
-      <div style={{ position: "absolute", top: "20%", left: "50%", transform: "translateX(-50%)", width: "800px", height: "400px", background: "radial-gradient(ellipse, rgba(59,90,130,0.25) 0%, transparent 70%)", zIndex: 0, pointerEvents: "none" }} />
-      <div style={{ maxWidth: "860px", margin: "0 auto", padding: "0 32px", position: "relative", zIndex: 10, textAlign: "center" }}>
-        <HeroFade delay={100}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", background: "rgba(59,90,130,0.2)", border: "1px solid rgba(59,90,130,0.4)", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)", marginBottom: "28px" }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#81c784", display: "inline-block", boxShadow: "0 0 6px #81c784" }} />
-            Orlando, FL · Independent Brokerage
-          </div>
-        </HeroFade>
-        <HeroFade delay={200}>
-          <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#ffffff", marginBottom: "20px", letterSpacing: "-0.02em" }}>
-            A Real Estate System
-            <br />
-            <span style={{ background: "linear-gradient(90deg, #64b5f6, #81c784)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              That Tells You What To Do Next
-            </span>
-          </h1>
-        </HeroFade>
-        <HeroFade delay={350}>
-          <p style={{ fontSize: "1.15rem", color: "rgba(255,255,255,0.62)", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.65 }}>
-            Most agents guess. Bear Team removes that. Zero fees, progressive splits, and Scout AI working for you from day one.
-          </p>
-        </HeroFade>
-        <HeroFade delay={500}>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <ScoutCTA size="lg" />
-          </div>
-        </HeroFade>
+      {/* Grid texture */}
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(59,90,130,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(59,90,130,0.06) 1px, transparent 1px)", backgroundSize: "60px 60px", zIndex: 0, pointerEvents: "none" }} />
+      {/* Radial glow */}
+      <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: "900px", height: "500px", background: "radial-gradient(ellipse, rgba(59,90,130,0.2) 0%, transparent 70%)", zIndex: 0, pointerEvents: "none" }} />
+
+      {/* Sticky hero text */}
+      <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none" }}>
+        <div style={{ maxWidth: "860px", padding: "0 32px", textAlign: "center", pointerEvents: "all" }}>
+          <HeroFade delay={100}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", background: "rgba(59,90,130,0.2)", border: "1px solid rgba(59,90,130,0.4)", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)", marginBottom: "28px" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#81c784", display: "inline-block", boxShadow: "0 0 6px #81c784" }} />
+              Orlando, FL · Independent Brokerage
+            </div>
+          </HeroFade>
+          <HeroFade delay={200}>
+            <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#ffffff", marginBottom: "20px", letterSpacing: "-0.02em" }}>
+              A Real Estate System
+              <br />
+              <span style={{ background: "linear-gradient(90deg, #64b5f6, #81c784)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                That Tells You What To Do Next
+              </span>
+            </h1>
+          </HeroFade>
+          <HeroFade delay={350}>
+            <p style={{ fontSize: "1.15rem", color: "rgba(255,255,255,0.62)", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.65 }}>
+              Most agents guess. Bear Team removes that. Zero fees, progressive splits, and Scout AI working for you from day one.
+            </p>
+          </HeroFade>
+          <HeroFade delay={500}>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <ScoutCTA size="lg" />
+            </div>
+          </HeroFade>
+        </div>
       </div>
-      <motion.div style={{ rotateX, rotateZ, translateY, opacity, transformStyle: "preserve-3d", perspective: "1000px" }}>
-        <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "20px", marginBottom: "20px", padding: "0 40px" }}>
-          {firstRow.map((card) => <ParallaxCard key={card.title} card={card} translate={translateX} />)}
+
+      {/* 3D card grid — scrolls behind sticky text */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 5 }}>
+        <motion.div
+          style={{
+            rotateX,
+            rotateZ,
+            translateY,
+            opacity,
+            transformStyle: "preserve-3d",
+            paddingTop: "60vh",
+          }}
+        >
+          <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "20px", marginBottom: "20px", paddingLeft: "40px", paddingRight: "40px" }}>
+            {firstRow.map((card) => <ParallaxCard key={card.title} card={card} translate={translateX} />)}
+          </motion.div>
+          <motion.div style={{ display: "flex", flexDirection: "row", gap: "20px", marginBottom: "20px", paddingLeft: "40px", paddingRight: "40px" }}>
+            {secondRow.map((card) => <ParallaxCard key={card.title} card={card} translate={translateXReverse} />)}
+          </motion.div>
+          <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "20px", paddingLeft: "40px", paddingRight: "40px" }}>
+            {thirdRow.map((card) => <ParallaxCard key={card.title} card={card} translate={translateX} />)}
+          </motion.div>
         </motion.div>
-        <motion.div style={{ display: "flex", flexDirection: "row", gap: "20px", marginBottom: "20px", padding: "0 40px" }}>
-          {secondRow.map((card) => <ParallaxCard key={card.title} card={card} translate={translateXReverse} />)}
-        </motion.div>
-        <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "20px", padding: "0 40px" }}>
-          {thirdRow.map((card) => <ParallaxCard key={card.title} card={card} translate={translateX} />)}
-        </motion.div>
-      </motion.div>
+      </div>
     </div>
   );
 }
