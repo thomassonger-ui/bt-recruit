@@ -1168,7 +1168,7 @@ function SystemShowcase() {
       <div style={{ position: "relative", zIndex: 1 }}>
         <SystemPanel
           index={0}
-          label="AI Recruiting Assistant"
+          label="AI Assistant"
           title="Scout"
           description="Your 24/7 AI guide to Bear Team. Ask about splits, fees, the cap model, onboarding — Scout gives you real answers, real math, no sales pressure."
           href="/chat"
