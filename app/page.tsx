@@ -1277,7 +1277,7 @@ export default function HomePage() {
       <SystemShowcase />
 
       {/* ── PATTERN INTERRUPT ── */}
-      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+
         <section style={{ background: "#080f1e", padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", textAlign: "center" }}>
           <p style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.4rem)", fontWeight: 700, color: "#ffffff", lineHeight: 1.4, maxWidth: "760px", margin: "0 auto" }}>
             The #1 reason agents plateau is not effort.
@@ -1285,10 +1285,10 @@ export default function HomePage() {
             <span style={{ color: "#64b5f6" }}>It&rsquo;s operating without a system.</span>
           </p>
         </section>
-      </SlideSection>
+
 
       {/* ── PROBLEM ── */}
-      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
           <div style={{ maxWidth: "760px", margin: "0 auto" }}>
             <Reveal>
@@ -1313,10 +1313,10 @@ export default function HomePage() {
             ))}
           </div>
         </section>
-      </SlideSection>
+
 
       {/* ── SOLUTION ── */}
-      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+
         <section id="systems-text" style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#0b1d3a" }}>
           <div style={{ maxWidth: "800px", margin: "0 auto" }}>
             <Reveal>
@@ -1345,10 +1345,10 @@ export default function HomePage() {
             ))}
           </div>
         </section>
-      </SlideSection>
+
 
       {/* ── SCOUT ENTRY ── */}
-      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#3f5f8a" }}>
           <div style={{ maxWidth: "860px", margin: "0 auto" }}>
             <Reveal>
@@ -1381,10 +1381,10 @@ export default function HomePage() {
             </Reveal>
           </div>
         </section>
-      </SlideSection>
+
 
       {/* ── DAY-TO-DAY ── */}
-      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
           <div style={{ maxWidth: "760px", margin: "0 auto" }}>
             <Reveal>
@@ -1413,10 +1413,10 @@ export default function HomePage() {
             ))}
           </div>
         </section>
-      </SlideSection>
+
 
       {/* ── PROOF ── */}
-      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+
         <section id="proof" style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#ffffff" }}>
           <div style={{ maxWidth: "960px", margin: "0 auto" }}>
             <Reveal>
@@ -1447,10 +1447,10 @@ export default function HomePage() {
             </Reveal>
           </div>
         </section>
-      </SlideSection>
+
 
       {/* ── DIFFERENTIATION ── */}
-      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
           <div style={{ maxWidth: "900px", margin: "0 auto" }}>
             <Reveal>
@@ -1480,10 +1480,10 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-      </SlideSection>
+
 
       {/* ── OBJECTION HANDLING ── */}
-      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#ffffff" }}>
           <div style={{ maxWidth: "800px", margin: "0 auto" }}>
             <Reveal>
@@ -1505,10 +1505,10 @@ export default function HomePage() {
             ))}
           </div>
         </section>
-      </SlideSection>
+
 
       {/* ── URGENCY ── */}
-      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "linear-gradient(135deg, #060e1c 0%, #0b1d3a 100%)", textAlign: "center" }}>
           <Reveal>
             <h2 style={{ fontSize: "clamp(1.8rem, 3.5vw, 3rem)", fontWeight: 800, color: "#ffffff", marginBottom: "20px", lineHeight: 1.2 }}>
@@ -1528,10 +1528,10 @@ export default function HomePage() {
             </div>
           </Reveal>
         </section>
-      </SlideSection>
+
 
       {/* ── FINAL CTA ── */}
-      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3", textAlign: "center" }}>
           <Reveal>
             <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "16px", lineHeight: 1.15 }}>
@@ -1552,7 +1552,7 @@ export default function HomePage() {
             </div>
           </Reveal>
         </section>
-      </SlideSection>
+
 
       {/* ── FOOTER ── */}
       <footer style={{ background: "#060e1c", padding: "60px 40px", textAlign: "center" }}>
