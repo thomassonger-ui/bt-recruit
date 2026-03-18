@@ -587,13 +587,35 @@ function useCountUp(target: number, duration = 1400, start = 0) {
 function BearTeamOSVisual() {
   // Live-ticking agent deals
   const [agentDeals, setAgentDeals] = useState([19, 12, 7, 3]);
-  const [progress, setProgress] = useState(67);
-  const [closings, setClosings] = useState(38);
+  const [progress, setProgress] = useState(0);
+  const [closings, setClosings] = useState(0);
   const [flash, setFlash] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Trigger animations after mount
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setMounted(true);
+      setProgress(67);
+      setClosings(38);
+    }, 200);
+    return () => clearTimeout(t);
+  }, []);
 
   // Count-up on mount
-  const agents = useCountUp(14, 1200, 0);
-  const rev = useCountUp(67, 1600, 0);
+  const agents = useCountUp(mounted ? 14 : 0, 1200, 0);
+  const rev = useCountUp(mounted ? 67 : 0, 1600, 0);
+
+  // Smoothly grow progress bar continuously
+  useEffect(() => {
+    const id = setInterval(() => {
+      setProgress(p => {
+        const next = p + 0.18;
+        return next >= 100 ? 67 : next; // loop back to 67 when it hits 100
+      });
+    }, 80);
+    return () => clearInterval(id);
+  }, []);
 
   // Tick a random agent's deal count every 2.8s
   useEffect(() => {
@@ -605,7 +627,6 @@ function BearTeamOSVisual() {
         return next;
       });
       setClosings(c => c + 1);
-      setProgress(p => Math.min(p + 0.4, 99));
       setFlash(idx);
       setTimeout(() => setFlash(null), 600);
     }, 2800);
@@ -638,7 +659,7 @@ function BearTeamOSVisual() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
           {[
             { label: "Active Agents", value: agents.toString(), change: "+3", color: "#81c784" },
-            { label: "Q1 Closings", value: closings.toString(), change: "+live", color: "#64b5f6" },
+            { label: "Q1 Closings", value: closings.toString(), change: "↑ live", color: "#64b5f6" },
             { label: "Avg Split", value: "74%", change: "+4%", color: "#ffb74d" },
             { label: "Brokerage Rev", value: `$${rev}K`, change: "on track", color: "#ce93d8" },
           ].map(kpi => (
@@ -673,13 +694,18 @@ function BearTeamOSVisual() {
         <div style={{ padding: "11px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
             <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)" }}>Year 1 Growth Target</span>
-            <span style={{ fontSize: "0.7rem", color: "#81c784", fontWeight: 600 }}>{progress.toFixed(1)}% complete</span>
+            <motion.span
+              style={{ fontSize: "0.7rem", color: "#81c784", fontWeight: 600 }}
+              animate={{ opacity: 1 }}
+              key={progress.toFixed(1)}
+            >{progress.toFixed(1)}% complete</motion.span>
           </div>
-          <div style={{ height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 3 }}>
+          <div style={{ height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 3, overflow: "hidden" }}>
             <motion.div
               style={{ height: "100%", background: "linear-gradient(90deg, #3b5a82, #81c784)", borderRadius: 3 }}
+              initial={{ width: "0%" }}
               animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 1.4, ease: "easeOut" }}
             />
           </div>
         </div>
@@ -689,10 +715,38 @@ function BearTeamOSVisual() {
 }
 
 function AcademyVisual() {
+  const [w3Progress, setW3Progress] = useState(0);
+  const [certPct, setCertPct] = useState(0);
+  const [modulesComplete, setModulesComplete] = useState(0);
+
+  useEffect(() => {
+    // Animate in from 0 on mount
+    const t = setTimeout(() => {
+      setW3Progress(65);
+      setCertPct(40);
+      setModulesComplete(2);
+    }, 300);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Slowly tick the in-progress bar forward
+  useEffect(() => {
+    const id = setInterval(() => {
+      setW3Progress(p => {
+        const next = p + 0.5;
+        if (next >= 80) { setCertPct(c => Math.min(c + 0.4, 48)); }
+        return next > 80 ? 65 : next; // loop back to 65 to keep it looping visually
+      });
+    }, 120);
+    return () => clearInterval(id);
+  }, []);
+
+  const certPctDisplay = useCountUp(certPct, 800, 0);
+
   return (
     <div style={{ width: "100%", height: "100%", background: "#1a1200", borderRadius: "16px", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" }}>
       {/* Top bar */}
-      <div style={{ padding: "0 24px", height: "52px", borderBottom: "1px solid rgba(255,200,80,0.15)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#120d00" }}>
+      <div style={{ padding: "0 24px", height: "52px", borderBottom: "1px solid rgba(255,200,80,0.15)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#120d00", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: 26, height: 26, borderRadius: "6px", background: "linear-gradient(135deg, #ffb74d, #e65100)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", fontWeight: 800, color: "#fff" }}>BA</div>
           <span style={{ color: "#fff", fontWeight: 700, fontSize: "0.85rem" }}>Bear Academy</span>
@@ -704,35 +758,40 @@ function AcademyVisual() {
         </div>
       </div>
       {/* Body */}
-      <div style={{ flex: 1, padding: "22px 24px", display: "flex", flexDirection: "column", gap: "14px" }}>
+      <div style={{ flex: 1, padding: "18px 22px", display: "flex", flexDirection: "column", gap: "12px", overflowY: "hidden" }}>
         <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,183,77,0.5)" }}>30-60-90 Day Certification Track</div>
         {/* Course list */}
         {[
           { title: "Week 1: MLS Systems & Listing Agreements", progress: 100, badge: "Complete", color: "#81c784" },
           { title: "Week 2: Bear Team Commission Model Deep Dive", progress: 100, badge: "Complete", color: "#81c784" },
-          { title: "Week 3: Buyer Consultation & Pipeline Setup", progress: 65, badge: "In Progress", color: "#64b5f6" },
+          { title: "Week 3: Buyer Consultation & Pipeline Setup", progress: w3Progress, badge: "In Progress", color: "#64b5f6" },
           { title: "Week 4: Negotiation & Closing Workflows", progress: 0, badge: "Upcoming", color: "rgba(255,255,255,0.3)" },
           { title: "Week 5: Scout AI — Advanced Use", progress: 0, badge: "Upcoming", color: "rgba(255,255,255,0.3)" },
         ].map((course, i) => (
-          <div key={i} style={{ padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: `1px solid ${i < 2 ? "rgba(129,199,132,0.2)" : i === 2 ? "rgba(100,181,246,0.2)" : "rgba(255,255,255,0.06)"}`, borderRadius: "10px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: course.progress > 0 && course.progress < 100 ? "10px" : "0" }}>
-              <span style={{ fontSize: "0.78rem", color: i < 3 ? "rgba(255,255,255,0.82)" : "rgba(255,255,255,0.35)", fontWeight: 500, paddingRight: "12px" }}>{course.title}</span>
-              <span style={{ fontSize: "0.62rem", color: course.color, fontWeight: 700, whiteSpace: "nowrap", padding: "3px 8px", background: `${course.color}18`, borderRadius: "6px" }}>{course.badge}</span>
+          <div key={i} style={{ padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: `1px solid ${i < 2 ? "rgba(129,199,132,0.2)" : i === 2 ? "rgba(100,181,246,0.2)" : "rgba(255,255,255,0.06)"}`, borderRadius: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: course.progress > 0 && course.progress < 100 ? "8px" : "0" }}>
+              <span style={{ fontSize: "0.76rem", color: i < 3 ? "rgba(255,255,255,0.82)" : "rgba(255,255,255,0.35)", fontWeight: 500, paddingRight: "12px" }}>{course.title}</span>
+              <span style={{ fontSize: "0.6rem", color: course.color, fontWeight: 700, whiteSpace: "nowrap", padding: "3px 8px", background: `${course.color}18`, borderRadius: "6px" }}>{course.badge}</span>
             </div>
             {course.progress > 0 && course.progress < 100 && (
-              <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2 }}>
-                <div style={{ height: "100%", width: `${course.progress}%`, background: "linear-gradient(90deg, #3b5a82, #64b5f6)", borderRadius: 2 }} />
+              <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
+                <motion.div
+                  style={{ height: "100%", background: "linear-gradient(90deg, #3b5a82, #64b5f6)", borderRadius: 2 }}
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${course.progress}%` }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
               </div>
             )}
           </div>
         ))}
         {/* XP bar */}
-        <div style={{ padding: "12px 16px", background: "rgba(255,183,77,0.05)", border: "1px solid rgba(255,183,77,0.15)", borderRadius: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ padding: "10px 14px", background: "rgba(255,183,77,0.05)", border: "1px solid rgba(255,183,77,0.15)", borderRadius: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: "0.65rem", color: "rgba(255,183,77,0.6)", marginBottom: "2px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Certification Progress</div>
-            <div style={{ fontSize: "0.78rem", color: "#ffb74d", fontWeight: 600 }}>2 of 5 modules complete</div>
+            <div style={{ fontSize: "0.76rem", color: "#ffb74d", fontWeight: 600 }}>{modulesComplete} of 5 modules complete</div>
           </div>
-          <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#ffb74d" }}>40%</div>
+          <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#ffb74d" }}>{Math.round(certPct)}%</div>
         </div>
       </div>
     </div>
@@ -1004,26 +1063,6 @@ function SystemShowcase() {
         />
       </div>
 
-      {/* Bottom CTA */}
-      <div
-        style={{
-          textAlign: "center",
-          padding: "80px 40px 120px",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <Reveal>
-          <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.35)", marginBottom: "24px" }}>
-            All three are available to you from day one. No fees. No waiting.
-          </p>
-        </Reveal>
-        <Reveal delay={100}>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <ScoutCTA label="Start the Conversation" />
-          </div>
-        </Reveal>
-      </div>
     </section>
   );
 }
