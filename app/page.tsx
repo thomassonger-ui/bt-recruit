@@ -161,21 +161,29 @@ function Nav() {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        background: scrolled ? "rgba(11,29,58,0.92)" : "rgba(11,29,58,0)",
+        background: scrolled ? "rgba(255,255,255,0.96)" : "rgba(255,255,255,0)",
         backdropFilter: scrolled ? "blur(14px)" : "none",
-        borderBottom: scrolled ? "1px solid rgba(255,255,255,0.08)" : "none",
+        borderBottom: scrolled ? "1px solid rgba(0,0,0,0.08)" : "none",
         transition: "all 0.35s ease",
       }}
     >
-      <a href="#top" style={{ color: "#fff", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.04em", textDecoration: "none" }}>
-        Bear Team
+      <a href="#top" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+        {/* BT Logo — double-bordered square */}
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="32" height="32" rx="1" stroke="#1a1a1a" strokeWidth="2" fill="none"/>
+          <rect x="4" y="4" width="26" height="26" rx="0.5" stroke="#1a1a1a" strokeWidth="1.5" fill="none"/>
+          <text x="17" y="22.5" textAnchor="middle" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontWeight="800" fontSize="12" fill="#1a1a1a" letterSpacing="0.5">BT</text>
+        </svg>
+        <span style={{ color: "#1a1a1a", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.04em" }}>
+          Bear Team
+        </span>
       </a>
       {/* Desktop links */}
       <div style={{ display: "flex", gap: "28px", alignItems: "center" }} className="nav-desktop">
-        <a href="#systems" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+        <a href="#systems" style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
           The System
         </a>
-        <a href="#proof" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+        <a href="#proof" style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
           Track Record
         </a>
         <ScoutCTA size="sm" />
@@ -183,19 +191,19 @@ function Nav() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMenuOpen(o => !o)}
-        style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "8px", color: "#fff" }}
+        style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "8px", color: "#1a1a1a" }}
         className="nav-hamburger"
         aria-label="Menu"
       >
-        <div style={{ width: 22, height: 2, background: "#fff", marginBottom: 5, transition: "all 0.2s", transform: menuOpen ? "rotate(45deg) translate(5px,5px)" : "none" }} />
-        <div style={{ width: 22, height: 2, background: "#fff", marginBottom: 5, opacity: menuOpen ? 0 : 1, transition: "all 0.2s" }} />
-        <div style={{ width: 22, height: 2, background: "#fff", transition: "all 0.2s", transform: menuOpen ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
+        <div style={{ width: 22, height: 2, background: "#1a1a1a", marginBottom: 5, transition: "all 0.2s", transform: menuOpen ? "rotate(45deg) translate(5px,5px)" : "none" }} />
+        <div style={{ width: 22, height: 2, background: "#1a1a1a", marginBottom: 5, opacity: menuOpen ? 0 : 1, transition: "all 0.2s" }} />
+        <div style={{ width: 22, height: 2, background: "#1a1a1a", transition: "all 0.2s", transform: menuOpen ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
       </button>
       {/* Mobile dropdown */}
       {menuOpen && (
-        <div style={{ position: "absolute", top: "60px", left: 0, right: 0, background: "rgba(11,29,58,0.97)", backdropFilter: "blur(14px)", padding: "20px 24px 28px", display: "flex", flexDirection: "column", gap: "20px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-          <a href="#systems" onClick={() => setMenuOpen(false)} style={{ color: "rgba(255,255,255,0.85)", textDecoration: "none", fontSize: "1rem", fontWeight: 600 }}>The System</a>
-          <a href="#proof" onClick={() => setMenuOpen(false)} style={{ color: "rgba(255,255,255,0.85)", textDecoration: "none", fontSize: "1rem", fontWeight: 600 }}>Track Record</a>
+        <div style={{ position: "absolute", top: "60px", left: 0, right: 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(14px)", padding: "20px 24px 28px", display: "flex", flexDirection: "column", gap: "20px", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
+          <a href="#systems" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600 }}>The System</a>
+          <a href="#proof" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600 }}>Track Record</a>
           <div onClick={() => setMenuOpen(false)}><ScoutCTA size="sm" label="Start with Scout" /></div>
         </div>
       )}
@@ -535,12 +543,6 @@ function HeroParallax() {
       {/* Sticky hero text */}
       <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none" }}>
         <div style={{ maxWidth: "860px", padding: "0 32px", textAlign: "center", pointerEvents: "all" }}>
-          <HeroFade delay={100}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", background: "rgba(59,90,130,0.1)", border: "1px solid rgba(59,90,130,0.25)", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#3b5a82", marginBottom: "28px" }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
-              Orlando, FL · Independent Brokerage
-            </div>
-          </HeroFade>
           <HeroFade delay={200}>
             <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#1a1a1a", marginBottom: "20px", letterSpacing: "-0.02em" }}>
               A Real Estate System
