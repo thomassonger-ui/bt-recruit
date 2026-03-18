@@ -591,7 +591,7 @@ function ScoutVisual() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      content: "Hey — I'm Scout, Bear Team's AI recruiting assistant. Ask me about splits, fees, the cap model, or how Bear Team compares to your current brokerage. What's on your mind?",
+      content: "Hey — I'm Scout, Bear Team's AI assistant. Ask me about splits, fees, the cap model, or how Bear Team compares to your current brokerage. What's on your mind?",
     },
   ]);
   const [input, setInput] = useState("");
