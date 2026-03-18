@@ -568,11 +568,61 @@ function ScoutVisual() {
   );
 }
 
+function useCountUp(target: number, duration = 1400, start = 0) {
+  const [value, setValue] = useState(start);
+  useEffect(() => {
+    let startTime: number | null = null;
+    const step = (ts: number) => {
+      if (!startTime) startTime = ts;
+      const progress = Math.min((ts - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(start + (target - start) * eased));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration, start]);
+  return value;
+}
+
 function BearTeamOSVisual() {
+  // Live-ticking agent deals
+  const [agentDeals, setAgentDeals] = useState([19, 12, 7, 3]);
+  const [progress, setProgress] = useState(67);
+  const [closings, setClosings] = useState(38);
+  const [flash, setFlash] = useState<number | null>(null);
+
+  // Count-up on mount
+  const agents = useCountUp(14, 1200, 0);
+  const rev = useCountUp(67, 1600, 0);
+
+  // Tick a random agent's deal count every 2.8s
+  useEffect(() => {
+    const id = setInterval(() => {
+      const idx = Math.floor(Math.random() * 4);
+      setAgentDeals(prev => {
+        const next = [...prev];
+        next[idx] = next[idx] + 1;
+        return next;
+      });
+      setClosings(c => c + 1);
+      setProgress(p => Math.min(p + 0.4, 99));
+      setFlash(idx);
+      setTimeout(() => setFlash(null), 600);
+    }, 2800);
+    return () => clearInterval(id);
+  }, []);
+
+  const agentRows = [
+    { name: "M. Rodriguez", tier: "Team Lead", split: "90/10", color: "#ce93d8" },
+    { name: "S. Thompson",  tier: "Tier 3",    split: "80/20", color: "#ffb74d" },
+    { name: "J. Williams",  tier: "Tier 2",    split: "70/30", color: "#64b5f6" },
+    { name: "A. Patel",     tier: "Tier 1",    split: "60/40", color: "#81c784" },
+  ];
+
   return (
     <div style={{ width: "100%", height: "100%", background: "#0b1d3a", borderRadius: "16px", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" }}>
       {/* Nav bar */}
-      <div style={{ padding: "0 28px", height: "54px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#060e1c" }}>
+      <div style={{ padding: "0 28px", height: "54px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#060e1c", flexShrink: 0 }}>
         <span style={{ color: "#fff", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.04em" }}>BearTeamOS™</span>
         <div style={{ display: "flex", gap: "24px" }}>
           {["Dashboard", "Agents", "Transactions", "Academy"].map(item => (
@@ -582,50 +632,55 @@ function BearTeamOSVisual() {
         <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #3b5a82, #1a2a4a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.65rem", color: "#fff", fontWeight: 700 }}>BT</div>
       </div>
       {/* Dashboard content */}
-      <div style={{ flex: 1, padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={{ flex: 1, padding: "20px 24px", display: "flex", flexDirection: "column", gap: "14px", overflowY: "hidden" }}>
         <div style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Q1 2026 · Bear Team Real Estate</div>
         {/* KPI row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
           {[
-            { label: "Active Agents", value: "14", change: "+3", color: "#81c784" },
-            { label: "Q1 Closings", value: "38", change: "+12", color: "#64b5f6" },
+            { label: "Active Agents", value: agents.toString(), change: "+3", color: "#81c784" },
+            { label: "Q1 Closings", value: closings.toString(), change: "+live", color: "#64b5f6" },
             { label: "Avg Split", value: "74%", change: "+4%", color: "#ffb74d" },
-            { label: "Brokerage Rev", value: "$67K", change: "on track", color: "#ce93d8" },
+            { label: "Brokerage Rev", value: `$${rev}K`, change: "on track", color: "#ce93d8" },
           ].map(kpi => (
-            <div key={kpi.label} style={{ padding: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px" }}>
-              <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>{kpi.label}</div>
-              <div style={{ fontSize: "1.3rem", fontWeight: 800, color: "#fff", marginBottom: "4px" }}>{kpi.value}</div>
-              <div style={{ fontSize: "0.65rem", color: kpi.color, fontWeight: 600 }}>↑ {kpi.change}</div>
+            <div key={kpi.label} style={{ padding: "12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px" }}>
+              <div style={{ fontSize: "0.62rem", color: "rgba(255,255,255,0.4)", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.08em" }}>{kpi.label}</div>
+              <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff", marginBottom: "3px", transition: "color 0.3s" }}>{kpi.value}</div>
+              <div style={{ fontSize: "0.62rem", color: kpi.color, fontWeight: 600 }}>↑ {kpi.change}</div>
             </div>
           ))}
         </div>
         {/* Agent tier table */}
         <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", overflow: "hidden" }}>
-          <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "8px" }}>
-            {["Agent", "Tier", "Deals", "Split"].map(h => <span key={h} style={{ fontSize: "0.62rem", color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>)}
+          <div style={{ padding: "9px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "8px" }}>
+            {["Agent", "Tier", "Deals", "Split"].map(h => <span key={h} style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>)}
           </div>
-          {[
-            { name: "M. Rodriguez", tier: "Team Lead", deals: "19", split: "90/10", color: "#ce93d8" },
-            { name: "S. Thompson", tier: "Tier 3", deals: "12", split: "80/20", color: "#ffb74d" },
-            { name: "J. Williams", tier: "Tier 2", deals: "7", split: "70/30", color: "#64b5f6" },
-            { name: "A. Patel", tier: "Tier 1", deals: "3", split: "60/40", color: "#81c784" },
-          ].map((agent, i) => (
-            <div key={i} style={{ padding: "10px 14px", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "8px", alignItems: "center" }}>
-              <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{agent.name}</span>
-              <span style={{ fontSize: "0.65rem", color: agent.color, fontWeight: 600, padding: "2px 6px", background: `${agent.color}18`, borderRadius: "4px", display: "inline-block" }}>{agent.tier}</span>
-              <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.6)" }}>{agent.deals}</span>
-              <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{agent.split}</span>
+          {agentRows.map((agent, i) => (
+            <div key={i} style={{ padding: "9px 14px", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "8px", alignItems: "center", background: flash === i ? "rgba(255,255,255,0.04)" : "transparent", transition: "background 0.4s" }}>
+              <span style={{ fontSize: "0.74rem", color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{agent.name}</span>
+              <span style={{ fontSize: "0.63rem", color: agent.color, fontWeight: 600, padding: "2px 6px", background: `${agent.color}18`, borderRadius: "4px", display: "inline-block" }}>{agent.tier}</span>
+              <motion.span
+                key={agentDeals[i]}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                style={{ fontSize: "0.74rem", color: flash === i ? "#81c784" : "rgba(255,255,255,0.6)", fontWeight: flash === i ? 700 : 400, transition: "color 0.4s" }}
+              >{agentDeals[i]}</motion.span>
+              <span style={{ fontSize: "0.74rem", color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{agent.split}</span>
             </div>
           ))}
         </div>
         {/* Progress bar */}
-        <div style={{ padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px" }}>
+        <div style={{ padding: "11px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
             <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)" }}>Year 1 Growth Target</span>
-            <span style={{ fontSize: "0.7rem", color: "#81c784", fontWeight: 600 }}>67% complete</span>
+            <span style={{ fontSize: "0.7rem", color: "#81c784", fontWeight: 600 }}>{progress.toFixed(1)}% complete</span>
           </div>
           <div style={{ height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 3 }}>
-            <div style={{ height: "100%", width: "67%", background: "linear-gradient(90deg, #3b5a82, #81c784)", borderRadius: 3 }} />
+            <motion.div
+              style={{ height: "100%", background: "linear-gradient(90deg, #3b5a82, #81c784)", borderRadius: 3 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            />
           </div>
         </div>
       </div>
