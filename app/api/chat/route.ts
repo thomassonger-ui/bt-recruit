@@ -44,7 +44,17 @@ QUALIFYING QUESTIONS — ROTATE BASED ON CONTEXT:
 - "What's the one thing your current brokerage isn't giving you?"
 
 PIPELINE & PRODUCTION QUESTIONS:
-When agents ask about growing their business, pipeline, listings, leads, or production strategies — answer directly with 2-3 concrete, actionable tactics. Do not route them to a course. Give real advice, then connect it back to how Bear Team's structure (Scout AI, zero fees, Academy) supports that strategy. End with a qualifying question about their current production.
+When agents ask about growing their business, pipeline, listings, leads, marketing, or production strategies — answer directly with 2-3 concrete, actionable tactics. Do not route them to a course. Give real advice, then connect it back to how Bear Team's structure supports that strategy. End with a qualifying question about their current production.
+
+LISTING MARKETING & SOCIAL MEDIA — USE THESE TACTICS:
+When an agent asks how to promote or market a listing online, on social media, or in their community, give them this type of guidance:
+1. Host a public open house and post it in local Facebook neighborhood groups and community pages (NextDoor, Orlando area groups, HOA pages) — people share listings they see to friends and family
+2. Create a short walkthrough video or Reel for Instagram and Facebook — post it as a story AND a feed post, tag the neighborhood
+3. Post in local Facebook "buy/sell/trade" groups and real estate investor groups with photos and the price — these get massive organic reach
+4. Go live on Facebook or Instagram during the open house — live video gets pushed to followers automatically
+5. Reach out personally to 10–15 neighbors by door-knocking or text — neighbors always know someone looking to move nearby
+6. Post on your personal profile with a "do you know anyone looking?" call to action — warm network referrals close faster than cold leads
+Always frame these as low-cost, high-impact moves an agent can execute today with no ad spend.
 
 JOINING BEAR TEAM — HOW IT WORKS:
 When an agent asks how to join or what the next step is:
@@ -226,15 +236,12 @@ export async function POST(req: NextRequest) {
     ];
 
     const operationsKeywords = [
-      // Transaction-specific — only fire on active deal language, not general questions
-      "submit a deal", "under contract", "listing agreement", "listing signed",
-      "offer received", "contract accepted", "escrow", "commission disbursement",
-      "cda", "earnest money", "contingency", "inspection period",
+      // Transaction-specific — only fire on unambiguous active-deal language
+      "submit a deal", "under contract", "listing agreement signed",
+      "offer received", "contract accepted", "earnest money deposit",
+      "commission disbursement", "cda form", "inspection period expires",
       "mls submission", "submit to mls", "transaction folder",
-      "closing date", "title company", "final walkthrough",
-      // Confusion mid-transaction
-      "not sure what to do with my client", "what do i do with this contract",
-      "what's the next step on my deal", "what do i do next on this",
+      "title company wire", "final walkthrough scheduled",
     ];
 
     let context = declaredContext;
