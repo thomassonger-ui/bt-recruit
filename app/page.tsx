@@ -433,8 +433,8 @@ function HeroParallax() {
   const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [8, 0]), springConfig);
   const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-100, 400]), springConfig);
 
-  const row1 = [<Card1_MoodleCourse />, <Card2_ScoutChat />, <Card3_MyCourses />, <Card4_AcademyLesson />];
-  const row2 = [<Card2_ScoutChat />, <Card4_AcademyLesson />, <Card1_MoodleCourse />, <Card3_MyCourses />];
+  const row1 = [<Card1_MoodleCourse />, <Card2_ScoutChat />, <Card3_MyCourses />];
+  const row2 = [<Card4_AcademyLesson />, <Card2_ScoutChat />, <Card1_MoodleCourse />];
 
   return (
     <div
