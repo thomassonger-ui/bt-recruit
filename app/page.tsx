@@ -1266,25 +1266,38 @@ export default function HomePage() {
 
       {/* ── PATTERN INTERRUPT ── */}
 
-        <section style={{ background: "#080f1e", padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", textAlign: "center" }}>
-          <p style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.4rem)", fontWeight: 700, color: "#ffffff", lineHeight: 1.4, maxWidth: "760px", margin: "0 auto" }}>
-            The #1 reason agents plateau is not effort.
-            <br />
-            <span style={{ color: "#64b5f6" }}>It&rsquo;s operating without a system.</span>
-          </p>
+        <section style={{ background: "#080f1e", padding: "clamp(56px,9vw,96px) clamp(20px,5vw,40px)", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          {/* Glow line top */}
+          <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "1px", background: "linear-gradient(90deg, transparent, rgba(100,181,246,0.5), transparent)" }} />
+          {/* Glow line bottom */}
+          <div style={{ position: "absolute", bottom: 0, left: "10%", right: "10%", height: "1px", background: "linear-gradient(90deg, transparent, rgba(100,181,246,0.3), transparent)" }} />
+          {/* Radial glow behind text */}
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "600px", height: "200px", background: "radial-gradient(ellipse at center, rgba(59,90,130,0.25) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <Reveal>
+            <p style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.4rem)", fontWeight: 700, color: "#ffffff", lineHeight: 1.45, maxWidth: "760px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+              The #1 reason agents plateau is not effort.
+              <br />
+              <span style={{ color: "#64b5f6" }}>It&rsquo;s operating without a system.</span>
+            </p>
+          </Reveal>
         </section>
 
 
       {/* ── PROBLEM ── */}
 
-        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
-          <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+        <section style={{ padding: "clamp(48px,8vw,100px) clamp(20px,5vw,40px)", background: "#f0f1f3", position: "relative", overflow: "hidden" }}>
+          {/* Ghost number background */}
+          <div style={{ position: "absolute", right: "clamp(-20px, 2vw, 40px)", top: "50%", transform: "translateY(-50%)", fontSize: "clamp(180px, 22vw, 320px)", fontWeight: 900, color: "rgba(220,38,38,0.04)", lineHeight: 1, pointerEvents: "none", userSelect: "none", letterSpacing: "-0.06em" }}>01</div>
+          <div style={{ maxWidth: "760px", margin: "0 auto", position: "relative", zIndex: 1 }}>
             <Reveal>
-              <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px" }}>The Problem</p>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+                <div style={{ width: "32px", height: "3px", background: "#dc2626", borderRadius: "2px" }} />
+                <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#dc2626", margin: 0 }}>The Problem</p>
+              </div>
             </Reveal>
             <Reveal delay={100}>
-              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, lineHeight: 1.2, marginBottom: "48px", color: "#0b1d3a" }}>
-                Most agents don&rsquo;t fail because they lack talent.
+              <h2 style={{ fontSize: "clamp(2rem, 3.5vw, 3rem)", fontWeight: 800, lineHeight: 1.15, marginBottom: "52px", color: "#0b1d3a", letterSpacing: "-0.02em" }}>
+                Most agents don&rsquo;t fail<br />because they lack talent.
               </h2>
             </Reveal>
             {[
@@ -1292,52 +1305,83 @@ export default function HomePage() {
               "They&rsquo;re paying their brokerage hundreds a month and getting nothing back.",
               "They hit a ceiling and can&rsquo;t figure out why. No visibility. No structure. No next step.",
             ].map((text, i) => (
-              <Reveal key={i} delay={150 + i * 100}>
-                <div style={{ display: "flex", gap: "16px", alignItems: "flex-start", marginBottom: "28px" }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b5a82", marginTop: "8px", flexShrink: 0 }} />
-                  <p style={{ fontSize: "1.05rem", lineHeight: 1.65, color: "#374151" }} dangerouslySetInnerHTML={{ __html: text }} />
+              <Reveal key={i} delay={150 + i * 120}>
+                <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", marginBottom: "32px", paddingBottom: "32px", borderBottom: i < 2 ? "1px solid rgba(0,0,0,0.06)" : "none" }}>
+                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#dc2626", marginTop: "7px", flexShrink: 0, boxShadow: "0 0 0 3px rgba(220,38,38,0.12)" }} />
+                  <p style={{ fontSize: "1.1rem", lineHeight: 1.7, color: "#374151", margin: 0 }} dangerouslySetInnerHTML={{ __html: text }} />
                 </div>
               </Reveal>
             ))}
+            <Reveal delay={550}>
+              <div style={{ marginTop: "8px", borderLeft: "3px solid #dc2626", paddingLeft: "24px" }}>
+                <p style={{ fontSize: "1rem", fontStyle: "italic", color: "#6b7280", lineHeight: 1.65, margin: 0 }}>
+                  The brokerage isn&rsquo;t the problem. The absence of a system is.
+                </p>
+              </div>
+            </Reveal>
           </div>
         </section>
 
 
       {/* ── SOLUTION ── */}
 
-        <section id="systems-text" style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#0b1d3a" }}>
-          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+        <section id="systems-text" style={{ padding: "clamp(60px,10vw,120px) clamp(20px,5vw,40px)", background: "#0b1d3a", position: "relative", overflow: "hidden" }}>
+          {/* Ghost number */}
+          <div style={{ position: "absolute", left: "clamp(-20px, 2vw, 20px)", top: "50%", transform: "translateY(-50%)", fontSize: "clamp(180px, 22vw, 320px)", fontWeight: 900, color: "rgba(100,181,246,0.04)", lineHeight: 1, pointerEvents: "none", userSelect: "none", letterSpacing: "-0.06em" }}>02</div>
+          <div style={{ maxWidth: "860px", margin: "0 auto", position: "relative", zIndex: 1 }}>
             <Reveal>
-              <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: "16px" }}>The Solution</p>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+                <div style={{ width: "32px", height: "3px", background: "#64b5f6", borderRadius: "2px" }} />
+                <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#64b5f6", margin: 0 }}>The Solution</p>
+              </div>
             </Reveal>
-            <Reveal delay={100}>
-              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, lineHeight: 1.2, marginBottom: "56px", color: "#ffffff" }}>
-                BearTeamOS — a brokerage built like a system.
+            <Reveal delay={80}>
+              <h2 style={{ fontSize: "clamp(2.2rem, 4vw, 3.6rem)", fontWeight: 800, lineHeight: 1.1, marginBottom: "16px", color: "#ffffff", letterSpacing: "-0.025em" }}>
+                BearTeamOS.
+              </h2>
+              <h2 style={{ fontSize: "clamp(1.4rem, 2.5vw, 2.2rem)", fontWeight: 600, lineHeight: 1.2, marginBottom: "64px", color: "rgba(255,255,255,0.45)", letterSpacing: "-0.01em" }}>
+                A brokerage engineered like a system.
               </h2>
             </Reveal>
             {[
-              ["01", "Scout AI", "Your always-on assistant that knows your pipeline, your commissions, and your next move."],
-              ["02", "Progressive Splits", "Start at 60/40. Earn your way to 90/10 by producing — not by waiting."],
-              ["03", "Zero Fees", "No monthly, no desk, no tech. E&O covered. $150 flat per close. That&rsquo;s it."],
-              ["04", "BearTeam Academy", "Free training from day one. Structure, mentorship, and a real 30-60-90 day plan."],
-            ].map(([num, title, desc]) => (
-              <Reveal key={num} delay={parseInt(num) * 80}>
-                <div style={{ display: "flex", gap: "24px", marginBottom: "40px", alignItems: "flex-start" }}>
-                  <span style={{ fontSize: "2rem", fontWeight: 800, color: "rgba(100,181,246,0.35)", lineHeight: 1, minWidth: "40px", letterSpacing: "-0.03em" }}>{num}</span>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: "1.1rem", color: "#ffffff", marginBottom: "6px" }}>{title}</div>
-                    <div style={{ fontSize: "0.95rem", color: "rgba(255,255,255,0.58)", lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: desc }} />
+              { num: "01", title: "Scout AI", desc: "Your always-on assistant that knows your pipeline, your commissions, and your next move.", accent: "#64b5f6" },
+              { num: "02", title: "Progressive Splits", desc: "Start at 60/40. Earn your way to 90/10 by producing — not by waiting.", accent: "#81c784" },
+              { num: "03", title: "Zero Fees", desc: "No monthly, no desk, no tech. E&O covered. $150 flat per close. That&rsquo;s it.", accent: "#ffb74d" },
+              { num: "04", title: "BearTeam Academy", desc: "Free training from day one. Structure, mentorship, and a real 30-60-90 day plan.", accent: "#ce93d8" },
+            ].map(({ num, title, desc, accent }, i) => (
+              <Reveal key={num} delay={100 + i * 100}>
+                <div style={{ display: "flex", gap: "0", marginBottom: "16px", borderRadius: "12px", overflow: "hidden", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", transition: "background 0.2s" }}>
+                  <div style={{ width: "4px", background: accent, flexShrink: 0 }} />
+                  <div style={{ padding: "24px 28px", display: "flex", gap: "20px", alignItems: "center", flex: 1 }}>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 800, color: accent, opacity: 0.55, minWidth: "28px", letterSpacing: "0.08em" }}>{num}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: "1.1rem", color: "#ffffff", marginBottom: "4px" }}>{title}</div>
+                      <div style={{ fontSize: "0.92rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: desc }} />
+                    </div>
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${accent}18`, border: `1px solid ${accent}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke={accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
                   </div>
                 </div>
               </Reveal>
             ))}
+            <Reveal delay={500}>
+              <div style={{ marginTop: "40px", padding: "28px 32px", background: "rgba(100,181,246,0.06)", border: "1px solid rgba(100,181,246,0.2)", borderRadius: "12px", display: "flex", gap: "20px", alignItems: "center" }}>
+                <div style={{ fontSize: "2rem" }}>→</div>
+                <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.75)", lineHeight: 1.65, margin: 0 }}>
+                  Every piece of this runs on day one. You don&rsquo;t build it — you walk into it.
+                </p>
+              </div>
+            </Reveal>
           </div>
         </section>
 
 
       {/* ── SCOUT ENTRY ── */}
 
-        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#3f5f8a" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#3f5f8a", position: "relative" }}>
+          {/* Transition glow from above */}
+          <div style={{ position: "absolute", top: 0, left: "15%", right: "15%", height: "1px", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)" }} />
           <div style={{ maxWidth: "860px", margin: "0 auto" }}>
             <Reveal>
               <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>Meet Scout</p>
@@ -1373,32 +1417,42 @@ export default function HomePage() {
 
       {/* ── DAY-TO-DAY ── */}
 
-        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
-          <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+        <section style={{ padding: "clamp(60px,9vw,100px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
+          <div style={{ maxWidth: "860px", margin: "0 auto" }}>
             <Reveal>
-              <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px" }}>How It Works</p>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+                <div style={{ width: "32px", height: "3px", background: "#3b5a82", borderRadius: "2px" }} />
+                <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3b5a82", margin: 0 }}>How It Works</p>
+              </div>
             </Reveal>
-            <Reveal delay={100}>
-              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", lineHeight: 1.2 }}>
+            <Reveal delay={80}>
+              <h2 style={{ fontSize: "clamp(2rem, 3.5vw, 2.8rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
                 Your day-to-day, simplified.
               </h2>
             </Reveal>
             {[
-              ["01", "Scout surfaces your next deal", "AI-assisted pipeline visibility — Scout tells you who to follow up with and when."],
-              ["02", "System tracks your tier progress", "See exactly where you are on the graduation path. No guessing."],
-              ["03", "Transactions handled by TC", "Our coordinator manages paperwork and timelines so you stay in front of clients."],
-              ["04", "You close and graduate", "Every deal moves you up the split ladder — automatically."],
-            ].map(([num, title, desc]) => (
-              <Reveal key={num} delay={parseInt(num) * 80}>
-                <div style={{ display: "flex", gap: "20px", marginBottom: "36px" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#0b1d3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "0.75rem", fontWeight: 700, color: "#64b5f6" }}>{num}</div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0b1d3a", marginBottom: "4px" }}>{title}</div>
-                    <div style={{ fontSize: "0.9rem", color: "#6b7280", lineHeight: 1.6 }}>{desc}</div>
+              { num: "01", title: "Scout surfaces your next deal", desc: "AI-assisted pipeline visibility — Scout tells you who to follow up with and when.", bg: "#0b1d3a", accent: "#64b5f6" },
+              { num: "02", title: "System tracks your tier progress", desc: "See exactly where you are on the graduation path. No guessing.", bg: "#ffffff", accent: "#3b5a82" },
+              { num: "03", title: "Transactions handled by TC", desc: "Our coordinator manages paperwork and timelines so you stay in front of clients.", bg: "#0b1d3a", accent: "#81c784" },
+              { num: "04", title: "You close and graduate", desc: "Every deal moves you up the split ladder — automatically.", bg: "#ffffff", accent: "#3b5a82" },
+            ].map(({ num, title, desc, bg, accent }, i) => {
+              const isDark = bg === "#0b1d3a";
+              return (
+                <Reveal key={num} delay={100 + i * 100}>
+                  <div style={{ display: "flex", gap: "0", marginBottom: "12px", borderRadius: "14px", overflow: "hidden", border: isDark ? "none" : "1px solid #e5e7eb", boxShadow: isDark ? "0 4px 20px rgba(11,29,58,0.18)" : "0 1px 6px rgba(0,0,0,0.04)" }}>
+                    {/* Number tab */}
+                    <div style={{ width: "72px", background: accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: "1rem", fontWeight: 800, color: isDark ? "#0b1d3a" : "#fff", letterSpacing: "0.04em" }}>{num}</span>
+                    </div>
+                    {/* Content */}
+                    <div style={{ flex: 1, padding: "22px 28px", background: bg }}>
+                      <div style={{ fontWeight: 700, fontSize: "1.05rem", color: isDark ? "#ffffff" : "#0b1d3a", marginBottom: "6px" }}>{title}</div>
+                      <div style={{ fontSize: "0.9rem", color: isDark ? "rgba(255,255,255,0.55)" : "#6b7280", lineHeight: 1.65 }}>{desc}</div>
+                    </div>
                   </div>
-                </div>
-              </Reveal>
-            ))}
+                </Reveal>
+              );
+            })}
           </div>
         </section>
 
