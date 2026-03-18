@@ -1,16 +1,39 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
+// ─── Types ───────────────────────────────────────────────────────────────────
+interface RevealProps {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}
+
+interface HeroFadeProps {
+  children: React.ReactNode;
+  delay?: number;
+}
+
+interface ScoutCTAProps {
+  size?: "sm" | "lg";
+  label?: string;
+}
+
+// ─── Scroll-reveal hook ──────────────────────────────────────────────────────
 function useReveal(threshold = 0.15) {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          obs.disconnect();
+        }
+      },
       { threshold }
     );
     obs.observe(el);
@@ -19,7 +42,8 @@ function useReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
-function Reveal({ children, delay = 0, className = "" }) {
+// ─── Reveal wrapper ──────────────────────────────────────────────────────────
+function Reveal({ children, delay = 0, className = "" }: RevealProps) {
   const { ref, visible } = useReveal();
   return (
     <div
@@ -36,9 +60,13 @@ function Reveal({ children, delay = 0, className = "" }) {
   );
 }
 
-function HeroFade({ children, delay = 0 }) {
+// ─── Hero fade-in ────────────────────────────────────────────────────────────
+function HeroFade({ children, delay = 0 }: HeroFadeProps) {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setMounted(true), delay); return () => clearTimeout(t); }, [delay]);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
   return (
     <div
       style={{
@@ -52,29 +80,46 @@ function HeroFade({ children, delay = 0 }) {
   );
 }
 
-function ScoutCTA({ size = "lg", label = "Start with Scout" }) {
-  const base = "inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]";
-  const sz = size === "lg" ? "px-8 py-4 text-base gap-2" : "px-6 py-3 text-sm gap-1.5";
+// ─── Scout CTA button ────────────────────────────────────────────────────────
+function ScoutCTA({ size = "lg", label = "Start with Scout" }: ScoutCTAProps) {
+  const base =
+    "inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]";
+  const sz = size === "lg" ? "px-8 py-4 text-base" : "px-6 py-3 text-sm";
   return (
     <Link
       href="/chat"
       className={`${base} ${sz}`}
-      style={{ background: "var(--color-primary)", color: "#fff", boxShadow: "0 4px 14px rgba(59,90,130,0.35)", display: "inline-flex", alignItems: "center" }}
+      style={{
+        background: "var(--color-primary)",
+        color: "#fff",
+        boxShadow: "0 4px 14px rgba(59,90,130,0.35)",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        textDecoration: "none",
+      }}
     >
       {label}
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ marginLeft: 8 }}>
-        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path
+          d="M3 8h10M9 4l4 4-4 4"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </Link>
   );
 }
 
+// ─── Nav ─────────────────────────────────────────────────────────────────────
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", h, { passive: true });
-    return () => window.removeEventListener("scroll", h);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
   return (
     <nav
@@ -87,14 +132,25 @@ function Nav() {
     >
       <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-4">
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-          <div style={{ width: 36, height: 36, border: "2px solid rgba(255,255,255,0.8)", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 4 }}>
+          <div
+            style={{
+              width: 36, height: 36,
+              border: "2px solid rgba(255,255,255,0.8)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              borderRadius: 4,
+            }}
+          >
             <span style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.9)", letterSpacing: "-0.5px" }}>BT</span>
           </div>
           <span style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>Bear Team</span>
         </Link>
         <div className="hidden md:flex items-center gap-6">
-          <a href="#system" style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, textDecoration: "none" }} className="transition-colors hover:text-white">The System</a>
-          <a href="#proof" style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, textDecoration: "none" }} className="transition-colors hover:text-white">Track Record</a>
+          <a href="#system" style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, textDecoration: "none" }} className="transition-colors hover:text-white">
+            The System
+          </a>
+          <a href="#proof" style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, textDecoration: "none" }} className="transition-colors hover:text-white">
+            Track Record
+          </a>
           <ScoutCTA size="sm" />
         </div>
       </div>
@@ -102,7 +158,43 @@ function Nav() {
   );
 }
 
+// ─── Homepage ────────────────────────────────────────────────────────────────
 export default function HomePage() {
+  const problems = [
+    "You're not sure what to do next.",
+    "Every deal feels different.",
+    "You're figuring it out as you go.",
+  ];
+
+  const systemSteps = [
+    { num: "01", label: "Learn", sub: "Bear Academy — structured training for every stage" },
+    { num: "02", label: "Get Guidance", sub: "Scout — your AI that tells you exactly what to do next" },
+    { num: "03", label: "Execute", sub: "BearTeamOS — checklists and workflows for every deal" },
+    { num: "04", label: "Join", sub: "Work inside the system from day one" },
+  ];
+
+  const dayItems = [
+    { trigger: "New listing", action: "Scout guides your next step — pricing strategy, workflow, and marketing sequence." },
+    { trigger: "Writing an offer", action: "Follow the structured workflow — every term reviewed, nothing missed." },
+    { trigger: "Client changes terms", action: "Confirm in writing immediately — Scout flags exactly what needs to be documented." },
+    { trigger: "Closing", action: "Checklist-driven execution — final walkthrough, wire verification, CDA submitted." },
+  ];
+
+  const metrics = [
+    { stat: "40+", label: "Years Experience" },
+    { stat: "$4B+", label: "Volume Closed" },
+    { stat: "7,000+", label: "Homes Sold" },
+  ];
+
+  const traditional = ["Guessing what to do next", "Inconsistent support", "High splits, unclear value"];
+  const bearTeam = ["Structured system — always know the next step", "Real-time guidance from Scout", "Clear execution, measurable production"];
+
+  const objections = [
+    { icon: "◈", text: "A structured brokerage system designed for execution, not theory." },
+    { icon: "◉", text: "You keep full control of your business and your clients." },
+    { icon: "◎", text: "The system supports your execution — it doesn't replace you." },
+  ];
+
   return (
     <div style={{ fontFamily: "Arial, Helvetica, sans-serif", background: "var(--color-background)", color: "var(--color-foreground)", overflowX: "hidden" }}>
       <Nav />
@@ -134,15 +226,19 @@ export default function HomePage() {
             </h1>
           </HeroFade>
           <HeroFade delay={240}>
-            <p style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)", color: "rgba(255,255,255,0.55)", lineHeight: 1.65, marginBottom: 40, maxWidth: 480, margin: "0 auto 40px" }}>
+            <p style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)", color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 480, margin: "0 auto 40px" }}>
               Most agents guess. This system removes that.
             </p>
           </HeroFade>
           <HeroFade delay={360}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
               <ScoutCTA size="lg" />
-              <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, marginTop: 4 }}>Start with Scout → get guided → see how the system works → then decide.</p>
-              <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>No commitment. You're not joining today — you're exploring.</p>
+              <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, marginTop: 4 }}>
+                Start with Scout → get guided → see how the system works → then decide.
+              </p>
+              <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>
+                No commitment. You&rsquo;re not joining today — you&rsquo;re exploring.
+              </p>
             </div>
           </HeroFade>
         </div>
@@ -157,12 +253,12 @@ export default function HomePage() {
         <div style={{ maxWidth: 780, padding: "60px 32px", textAlign: "center" }}>
           <Reveal>
             <p style={{ fontSize: "clamp(1.7rem, 3.5vw + 0.5rem, 2.9rem)", fontWeight: 700, color: "rgba(255,255,255,0.85)", lineHeight: 1.25, letterSpacing: "-0.02em", marginBottom: 12 }}>
-              Most agents don't fail because they lack effort.
+              Most agents don&rsquo;t fail because they lack effort.
             </p>
           </Reveal>
           <Reveal delay={220}>
             <p style={{ fontSize: "clamp(1.7rem, 3.5vw + 0.5rem, 2.9rem)", fontWeight: 700, lineHeight: 1.25, letterSpacing: "-0.02em", color: "var(--color-primary-light)" }}>
-              They fail because they don't have a system.
+              They fail because they don&rsquo;t have a system.
             </p>
           </Reveal>
         </div>
@@ -172,17 +268,17 @@ export default function HomePage() {
       <section style={{ minHeight: "70vh", display: "flex", alignItems: "center", background: "var(--color-background)", padding: "100px 32px" }}>
         <div style={{ maxWidth: 680, margin: "0 auto", width: "100%" }}>
           <Reveal>
-            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--color-muted)", marginBottom: 52 }}>Sound familiar?</p>
+            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--color-muted)", marginBottom: 52 }}>
+              Sound familiar?
+            </p>
           </Reveal>
-          {[
-            "You're not sure what to do next.",
-            "Every deal feels different.",
-            "You're figuring it out as you go.",
-          ].map((text, i) => (
+          {problems.map((text, i) => (
             <Reveal key={i} delay={i * 160}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 36 }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--color-primary)", marginTop: 12, flexShrink: 0 }} />
-                <p style={{ fontSize: "clamp(1.4rem, 2.5vw, 2rem)", fontWeight: 600, color: "var(--color-foreground)", lineHeight: 1.3, letterSpacing: "-0.01em" }}>{text}</p>
+                <p style={{ fontSize: "clamp(1.4rem, 2.5vw, 2rem)", fontWeight: 600, color: "var(--color-foreground)", lineHeight: 1.3, letterSpacing: "-0.01em" }}>
+                  {text}
+                </p>
               </div>
             </Reveal>
           ))}
@@ -197,12 +293,7 @@ export default function HomePage() {
               Bear Team gives you a system.
             </h2>
           </Reveal>
-          {[
-            { num: "01", label: "Learn", sub: "Bear Academy — structured training for every stage" },
-            { num: "02", label: "Get Guidance", sub: "Scout — your AI that tells you exactly what to do next" },
-            { num: "03", label: "Execute", sub: "BearTeamOS — checklists and workflows for every deal" },
-            { num: "04", label: "Join", sub: "Work inside the system from day one" },
-          ].map((item, i) => (
+          {systemSteps.map((item, i) => (
             <Reveal key={i} delay={i * 120}>
               <div style={{ display: "flex", alignItems: "center", gap: 24, padding: "20px 0", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-primary-light)", letterSpacing: "0.1em", minWidth: 24 }}>{item.num}</span>
@@ -220,7 +311,9 @@ export default function HomePage() {
       <section style={{ background: "var(--color-panel-blue)", padding: "120px 32px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
           <Reveal>
-            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>The entry point</p>
+            <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>
+              The entry point
+            </p>
           </Reveal>
           <Reveal delay={100}>
             <h2 style={{ fontSize: "clamp(2rem, 3.5vw, 3rem)", fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", marginBottom: 20 }}>
@@ -252,7 +345,7 @@ export default function HomePage() {
                   <p style={{ fontSize: 14, color: "#fff", lineHeight: 1.5, margin: 0 }}>I just accepted an offer — what do I do first?</p>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+              <div style={{ display: "flex", gap: 10 }}>
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(59,90,130,0.35)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: "#fff" }}>S</span>
                 </div>
@@ -278,14 +371,11 @@ export default function HomePage() {
             <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--color-muted)", marginBottom: 16 }}>Day to day</p>
           </Reveal>
           <Reveal delay={100}>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "var(--color-foreground)", letterSpacing: "-0.02em", marginBottom: 56 }}>What This Looks Like</h2>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "var(--color-foreground)", letterSpacing: "-0.02em", marginBottom: 56 }}>
+              What This Looks Like
+            </h2>
           </Reveal>
-          {[
-            { trigger: "New listing", action: "Scout guides your next step — pricing strategy, workflow, and marketing sequence." },
-            { trigger: "Writing an offer", action: "Follow the structured workflow — every term reviewed, nothing missed." },
-            { trigger: "Client changes terms", action: "Confirm in writing immediately — Scout flags exactly what needs to be documented." },
-            { trigger: "Closing", action: "Checklist-driven execution — final walkthrough, wire verification, CDA submitted on time." },
-          ].map((item, i) => (
+          {dayItems.map((item, i) => (
             <Reveal key={i} delay={i * 100}>
               <div style={{ display: "flex", gap: 20, padding: "28px 0", borderBottom: "1px solid var(--color-border)" }}>
                 <div style={{ paddingTop: 2, flexShrink: 0 }}>
@@ -307,11 +397,7 @@ export default function HomePage() {
       <section id="proof" style={{ background: "var(--color-card)", padding: "100px 32px" }}>
         <div style={{ maxWidth: 920, margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4, marginBottom: 64 }}>
-            {[
-              { stat: "40+", label: "Years Experience" },
-              { stat: "$4B+", label: "Volume Closed" },
-              { stat: "7,000+", label: "Homes Sold" },
-            ].map((m, i) => (
+            {metrics.map((m, i) => (
               <Reveal key={i} delay={i * 120}>
                 <div style={{ padding: "32px 16px", textAlign: "center" }}>
                   <p style={{ fontSize: "clamp(2rem, 4vw, 2.8rem)", fontWeight: 800, color: "var(--color-primary)", letterSpacing: "-0.04em", lineHeight: 1, marginBottom: 8 }}>{m.stat}</p>
@@ -326,7 +412,7 @@ export default function HomePage() {
                 <path d="M0 22V13C0 5.82 4.48 1.23 13.43 0l1.07 2.13C9.96 3.02 7.73 5.2 7.2 8.8H12V22H0zm16 0V13C16 5.82 20.48 1.23 29.43 0l1.07 2.13C25.96 3.02 23.73 5.2 23.2 8.8H28V22H16z" fill="currentColor" />
               </svg>
               <p style={{ fontSize: "1.15rem", color: "var(--color-foreground)", lineHeight: 1.7, fontStyle: "italic", marginBottom: 24 }}>
-                "This is the first time I've had a system that actually tells me what to do next."
+                &ldquo;This is the first time I&rsquo;ve had a system that actually tells me what to do next.&rdquo;
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -346,13 +432,17 @@ export default function HomePage() {
       <section style={{ background: "var(--color-background)", padding: "100px 32px" }}>
         <div style={{ maxWidth: 880, margin: "0 auto" }}>
           <Reveal>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "var(--color-foreground)", letterSpacing: "-0.02em", marginBottom: 56, textAlign: "center" }}>Why This Works</h2>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "var(--color-foreground)", letterSpacing: "-0.02em", marginBottom: 56, textAlign: "center" }}>
+              Why This Works
+            </h2>
           </Reveal>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <Reveal>
               <div style={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 16, padding: "36px 32px", height: "100%" }}>
-                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-muted)", marginBottom: 24 }}>Traditional Brokerage</p>
-                {["Guessing what to do next", "Inconsistent support", "High splits, unclear value"].map((item, i) => (
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-muted)", marginBottom: 24 }}>
+                  Traditional Brokerage
+                </p>
+                {traditional.map((item, i) => (
                   <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 16 }}>
                     <span style={{ color: "#ef4444", fontSize: 15, lineHeight: 1, marginTop: 2, flexShrink: 0 }}>✕</span>
                     <p style={{ fontSize: 15, color: "var(--color-muted)", lineHeight: 1.5, margin: 0 }}>{item}</p>
@@ -362,8 +452,10 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={160}>
               <div style={{ background: "var(--color-panel-dark)", border: "1px solid rgba(63,95,138,0.5)", borderRadius: 16, padding: "36px 32px", height: "100%" }}>
-                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-primary-light)", marginBottom: 24 }}>Bear Team</p>
-                {["Structured system — always know the next step", "Real-time guidance from Scout", "Clear execution, measurable production"].map((item, i) => (
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-primary-light)", marginBottom: 24 }}>
+                  Bear Team
+                </p>
+                {bearTeam.map((item, i) => (
                   <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 16 }}>
                     <span style={{ color: "#4ade80", fontSize: 15, lineHeight: 1, marginTop: 2, flexShrink: 0 }}>✓</span>
                     <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.5, margin: 0 }}>{item}</p>
@@ -379,16 +471,16 @@ export default function HomePage() {
       <section style={{ background: "var(--color-card)", padding: "100px 32px" }}>
         <div style={{ maxWidth: 620, margin: "0 auto", textAlign: "center" }}>
           <Reveal>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "var(--color-foreground)", letterSpacing: "-0.02em", marginBottom: 12 }}>What This Actually Is</h2>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "var(--color-foreground)", letterSpacing: "-0.02em", marginBottom: 12 }}>
+              What This Actually Is
+            </h2>
           </Reveal>
           <Reveal delay={100}>
-            <p style={{ fontSize: "1rem", color: "var(--color-muted)", marginBottom: 48, lineHeight: 1.65 }}>Not a franchise. Not a training program. A structured brokerage system built for execution.</p>
+            <p style={{ fontSize: "1rem", color: "var(--color-muted)", marginBottom: 48, lineHeight: 1.65 }}>
+              Not a franchise. Not a training program. A structured brokerage system built for execution.
+            </p>
           </Reveal>
-          {[
-            { icon: "◈", text: "A structured brokerage system designed for execution, not theory." },
-            { icon: "◉", text: "You keep full control of your business and your clients." },
-            { icon: "◎", text: "The system supports your execution — it doesn't replace you." },
-          ].map((item, i) => (
+          {objections.map((item, i) => (
             <Reveal key={i} delay={i * 130}>
               <div style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 24, textAlign: "left" }}>
                 <span style={{ fontSize: 20, color: "var(--color-primary)", flexShrink: 0, marginTop: 1 }}>{item.icon}</span>
@@ -428,7 +520,7 @@ export default function HomePage() {
           </Reveal>
           <Reveal delay={150}>
             <p style={{ fontSize: "1rem", color: "var(--color-muted)", marginBottom: 40, lineHeight: 1.65 }}>
-              You're not joining today — you're seeing how the system works first.
+              You&rsquo;re not joining today — you&rsquo;re seeing how the system works first.
             </p>
           </Reveal>
           <Reveal delay={260}>
@@ -447,7 +539,9 @@ export default function HomePage() {
             <span style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>Bear Team Real Estate</span>
           </div>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)" }}>Central Florida</p>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.18)", maxWidth: 380, lineHeight: 1.5 }}>Structured systems. Real execution. Measurable production.</p>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.18)", maxWidth: 380, lineHeight: 1.5 }}>
+            Structured systems. Real execution. Measurable production.
+          </p>
         </div>
       </footer>
     </div>
