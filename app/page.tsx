@@ -501,7 +501,7 @@ function ScoutVisual() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      content: "Hey — I&apos;m Scout, Bear Team&apos;s AI recruiting assistant. Ask me about splits, fees, the cap model, or how Bear Team compares to your current brokerage. What&apos;s on your mind?",
+      content: "Hey — I'm Scout, Bear Team's AI recruiting assistant. Ask me about splits, fees, the cap model, or how Bear Team compares to your current brokerage. What's on your mind?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -583,7 +583,7 @@ function ScoutVisual() {
       {/* Suggested prompts — only show when just the greeting is visible */}
       {messages.length === 1 && (
         <div style={{ padding: "0 18px 12px", display: "flex", gap: "8px", flexWrap: "wrap", flexShrink: 0 }}>
-          {["What&apos;s my split at 8 deals?", "How do I compare to KW?", "What does joining cost?"].map(q => (
+          {["What's my split at 8 deals?", "How do I compare to KW?", "What does joining cost?"].map(q => (
             <button key={q} onClick={() => { setInput(q); }} style={{ padding: "6px 12px", background: "rgba(59,90,130,0.2)", border: "1px solid rgba(59,90,130,0.4)", borderRadius: "20px", color: "rgba(255,255,255,0.65)", fontSize: "0.72rem", cursor: "pointer", whiteSpace: "nowrap" }}>
               {q}
             </button>
