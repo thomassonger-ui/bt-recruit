@@ -124,7 +124,7 @@ function ScoutCTA({ size = "lg", label = "Start with Scout" }: ScoutCTAProps) {
   const pad = size === "lg" ? "14px 32px" : "10px 22px";
   const fontSize = size === "lg" ? "1rem" : "0.875rem";
   return (
-    <Link href="/chat" style={{ display: "inline-block" }}>
+    <Link href="https://www.joinbearteam.com/scout" style={{ display: "inline-block" }}>
       <button
         style={{
           padding: pad,
