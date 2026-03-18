@@ -43,6 +43,9 @@ QUALIFYING QUESTIONS — ROTATE BASED ON CONTEXT:
 - "What would need to be true for you to make a move in the next 90 days?"
 - "What's the one thing your current brokerage isn't giving you?"
 
+PIPELINE & PRODUCTION QUESTIONS:
+When agents ask about growing their business, pipeline, listings, leads, or production strategies — answer directly with 2-3 concrete, actionable tactics. Do not route them to a course. Give real advice, then connect it back to how Bear Team's structure (Scout AI, zero fees, Academy) supports that strategy. End with a qualifying question about their current production.
+
 JOINING BEAR TEAM — HOW IT WORKS:
 When an agent asks how to join or what the next step is:
 - Direct them to www.joinbearteam.com to start the conversation
@@ -223,15 +226,15 @@ export async function POST(req: NextRequest) {
     ];
 
     const operationsKeywords = [
-      // Transaction-specific
-      "offer", "contract", "listing", "closing", "escrow", "transaction",
-      "inspection", "mls", "commission disbursement", "cda", "earnest",
-      "contingency", "submit a deal", "under contract",
-      // Confusion / uncertainty signals — route to operations stage selection
-      "not sure what", "don't know what to do", "what should i do",
-      "what do i do", "don't know where", "confused",
-      "supposed to be doing", "what am i supposed", "what's next",
-      "whats next", "next step", "lost", "not sure what to",
+      // Transaction-specific — only fire on active deal language, not general questions
+      "submit a deal", "under contract", "listing agreement", "listing signed",
+      "offer received", "contract accepted", "escrow", "commission disbursement",
+      "cda", "earnest money", "contingency", "inspection period",
+      "mls submission", "submit to mls", "transaction folder",
+      "closing date", "title company", "final walkthrough",
+      // Confusion mid-transaction
+      "not sure what to do with my client", "what do i do with this contract",
+      "what's the next step on my deal", "what do i do next on this",
     ];
 
     let context = declaredContext;
