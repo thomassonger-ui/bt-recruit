@@ -369,7 +369,7 @@ function Card4_ScoutChat() {
 function ScreenCard({ children, translate }: { children: React.ReactNode; translate: MotionValue<number> }) {
   return (
     <motion.div
-      style={{ x: translate, flexShrink: 0, width: "380px", height: "260px" }}
+      style={{ x: translate, flexShrink: 0, width: "760px", height: "520px" }}
       whileHover={{ y: -8, scale: 1.02 }}
       transition={{ duration: 0.2 }}
     >
@@ -393,13 +393,13 @@ function HeroParallax() {
   const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [8, 0]), springConfig);
   const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-100, 400]), springConfig);
 
-  const row1 = [<Card1_MoodleCourse />, <Card2_ScoutTryIt />, <Card3_WhyAgentsFail />, <Card4_ScoutChat />, <Card1_MoodleCourse />];
-  const row2 = [<Card3_WhyAgentsFail />, <Card4_ScoutChat />, <Card1_MoodleCourse />, <Card2_ScoutTryIt />, <Card3_WhyAgentsFail />];
+  const row1 = [<Card1_MoodleCourse />, <Card2_ScoutTryIt />, <Card3_WhyAgentsFail />, <Card4_ScoutChat />];
+  const row2 = [<Card2_ScoutTryIt />, <Card3_WhyAgentsFail />, <Card4_ScoutChat />, <Card1_MoodleCourse />];
 
   return (
     <div
       ref={ref}
-      style={{ height: "280vh", overflow: "hidden", position: "relative", background: "#F0F1F3" }}
+      style={{ height: "200vh", overflow: "hidden", position: "relative", background: "#F0F1F3" }}
     >
       {/* Blueprint grid background matching /scout */}
       <BlueprintGrid />
@@ -437,7 +437,7 @@ function HeroParallax() {
 
       {/* 3D card grid */}
       <div style={{ position: "absolute", inset: 0, zIndex: 5 }}>
-        <motion.div style={{ rotateX, rotateZ, translateY, opacity, transformStyle: "preserve-3d", paddingTop: "55vh" }}>
+        <motion.div style={{ rotateX, rotateZ, translateY, opacity, transformStyle: "preserve-3d", paddingTop: "45vh" }}>
           <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "24px", marginBottom: "24px", paddingLeft: "40px", paddingRight: "40px" }}>
             {row1.map((child, i) => <ScreenCard key={i} translate={translateX}>{child}</ScreenCard>)}
           </motion.div>
