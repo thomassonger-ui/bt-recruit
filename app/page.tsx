@@ -241,40 +241,52 @@ function BlueprintGrid() {
   return <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} aria-hidden="true" />;
 }
 
-// ─── Screenshot Mockup Cards (4 unique) ───────────────────────────────────────
+// ─── Screenshot Mockup Cards (6 unique) ───────────────────────────────────────
 
 // Card 1: "1 – Agent Onboarding" Moodle course with accordion modules
-function Card1_MoodleCourse() {
+// Card 1: Bear Academy Welcome lesson — video + Operating Philosophy
+function Card1_AcademyWelcome() {
   return (
     <div style={{ width:"100%", height:"100%", background:"#fff", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column" }}>
-      <div style={{ height:32, background:"#fff", borderBottom:"1px solid #e5e7eb", display:"flex", alignItems:"center", padding:"0 16px", gap:20, flexShrink:0 }}>
-        {["Home","Dashboard","My courses","Site administration"].map((t,i) => (
-          <span key={t} style={{ fontSize:"0.55rem", color: i===2 ? "#1d4ed8":"#374151", fontWeight: i===2 ? 700:400, borderBottom: i===2 ? "2px solid #1d4ed8":"none", paddingBottom:2 }}>{t}</span>
-        ))}
+      <div style={{ background:"#1e3a5f", padding:"14px 20px", flexShrink:0 }}>
+        <div style={{ fontSize:"1rem", fontWeight:800, color:"#fff", marginBottom:2 }}>Bear Academy</div>
+        <div style={{ fontSize:"0.6rem", color:"rgba(255,255,255,0.65)" }}>Agent Onboarding</div>
       </div>
-      <div style={{ padding:"16px 20px 0", flexShrink:0 }}>
-        <div style={{ fontSize:"1rem", fontWeight:800, color:"#111", marginBottom:10 }}>1 – Agent Onboarding – How We Think</div>
-        <div style={{ display:"flex", gap:18, borderBottom:"1px solid #e5e7eb", paddingBottom:8, marginBottom:14 }}>
-          {["Course","Settings","Participants","Grades","Activities","More ∨"].map((t,i) => (
-            <span key={t} style={{ fontSize:"0.55rem", color: i===0 ? "#1d4ed8":"#6b7280", fontWeight: i===0 ? 700:400, borderBottom: i===0 ? "2px solid #1d4ed8":"none", paddingBottom:5 }}>{t}</span>
-          ))}
+      <div style={{ padding:"10px 20px", background:"#f9fafb", borderBottom:"1px solid #e5e7eb", fontSize:"0.6rem", color:"#374151", flexShrink:0 }}>
+        <span style={{ fontWeight:700 }}>Lesson:</span> Welcome to Bear Academy
+      </div>
+      <div style={{ position:"relative", flexShrink:0, height:"45%", background:"#b0bec5", overflow:"hidden" }}>
+        <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, #b0bec5 0%, #78909c 100%)" }} />
+        <div style={{ position:"absolute", top:10, left:12, right:12, display:"flex", alignItems:"center", gap:8 }}>
+          <div style={{ width:18, height:18, borderRadius:"50%", background:"#e63946", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ color:"#fff", fontSize:"0.45rem" }}>▶</span></div>
+          <span style={{ fontSize:"0.52rem", color:"#fff", fontWeight:600 }}>Brokerage Vision &amp; Structure</span>
+          <div style={{ marginLeft:"auto", display:"flex", gap:12 }}>
+            <span style={{ fontSize:"0.46rem", color:"rgba(255,255,255,0.8)" }}>⏱ Watch later</span>
+            <span style={{ fontSize:"0.46rem", color:"rgba(255,255,255,0.8)" }}>↑ Share</span>
+          </div>
+        </div>
+        <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ width:52, height:52, borderRadius:"50%", background:"rgba(220,38,38,0.92)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 20px rgba(0,0,0,0.4)" }}>
+            <span style={{ color:"#fff", fontSize:"1.1rem", marginLeft:4 }}>▶</span>
+          </div>
+        </div>
+        <div style={{ position:"absolute", bottom:8, right:10, border:"1.5px solid rgba(255,255,255,0.7)", padding:"3px 8px" }}>
+          <span style={{ fontSize:"0.48rem", color:"#fff", fontWeight:800 }}>BT</span>
+        </div>
+        <div style={{ position:"absolute", bottom:8, left:10, background:"rgba(0,0,0,0.55)", padding:"3px 8px", borderRadius:4 }}>
+          <span style={{ fontSize:"0.46rem", color:"#fff" }}>Watch on <strong>▶ YouTube</strong></span>
         </div>
       </div>
-      <div style={{ flex:1, padding:"0 20px 14px", overflow:"hidden", display:"flex", flexDirection:"column", gap:6 }}>
-        {[
-          ["Who We Are", true],
-          ["What We Believe", false],
-          ["Why Structure Matters 🔒", false],
-          ["What Defines the Bear Team Model", false],
-          ["What Agents Can Expect", false],
-          ["Completion", false],
-        ].map(([m, first], i) => (
-          <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", background:"#fff", border:"1px solid #e5e7eb", borderRadius:10 }}>
-            <div style={{ width:20, height:20, borderRadius:5, background:"#eff6ff", border:"1px solid #bfdbfe", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-              <span style={{ fontSize:"0.55rem", color:"#1d4ed8", fontWeight:700 }}>›</span>
-            </div>
-            <span style={{ fontSize:"0.62rem", color:"#111", fontWeight:500 }}>{m as string}</span>
-            {first && <span style={{ marginLeft:"auto", fontSize:"0.5rem", color:"#1d4ed8", fontWeight:600, whiteSpace:"nowrap" }}>Collapse all</span>}
+      <div style={{ flex:1, padding:"14px 20px", overflow:"hidden" }}>
+        <div style={{ borderLeft:"3px solid #1e3a5f", paddingLeft:12, marginBottom:10 }}>
+          <div style={{ fontSize:"0.82rem", fontWeight:800, color:"#111", marginBottom:5 }}>Operating Philosophy</div>
+          <div style={{ fontSize:"0.58rem", color:"#374151", lineHeight:1.65, marginBottom:5 }}>Bear Team does not operate on improvisation. The brokerage operates through defined structure and disciplined execution.</div>
+        </div>
+        <div style={{ fontSize:"0.6rem", fontWeight:700, color:"#111", marginBottom:6 }}>Our operating philosophy is simple:</div>
+        {["Structure reduces friction","Systems create speed","Execution builds trust"].map((item,i) => (
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:7, marginBottom:5 }}>
+            <div style={{ width:6, height:6, borderRadius:"50%", background:"#1e3a5f", flexShrink:0 }} />
+            <span style={{ fontSize:"0.58rem", color:"#374151" }}>{item}</span>
           </div>
         ))}
       </div>
@@ -282,47 +294,8 @@ function Card1_MoodleCourse() {
   );
 }
 
-// Card 2: "Scout in Action" chat with full conversation thread
-function Card2_ScoutChat() {
-  return (
-    <div style={{ width:"100%", height:"100%", background:"#f0f1f3", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column", padding:"20px" }}>
-      <div style={{ fontSize:"0.5rem", fontWeight:700, letterSpacing:"0.14em", textTransform:"uppercase", color:"#6b7280", marginBottom:4 }}>AI-POWERED</div>
-      <div style={{ fontSize:"1.1rem", fontWeight:800, color:"#111", marginBottom:3 }}>Scout in Action</div>
-      <div style={{ fontSize:"0.55rem", color:"#6b7280", marginBottom:14 }}>Scout assists agents with marketing, communication, and daily workflow tasks.</div>
-      <div style={{ flex:1, background:"#fff", borderRadius:12, border:"1px solid #e5e7eb", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
-        {/* Chat header */}
-        <div style={{ padding:"10px 14px", borderBottom:"1px solid #f3f4f6", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-          <div style={{ width:22, height:22, borderRadius:"50%", background:"#3b5a82", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.5rem", color:"#fff", fontWeight:700 }}>S</div>
-          <div><div style={{ fontSize:"0.6rem", fontWeight:700, color:"#111" }}>Scout</div><div style={{ fontSize:"0.48rem", color:"#9ca3af" }}>BearTeam AI Assistant</div></div>
-          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:3 }}><div style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e" }}/><span style={{ fontSize:"0.48rem", color:"#22c55e", fontWeight:600 }}>Online</span></div>
-        </div>
-        {/* Messages */}
-        <div style={{ flex:1, padding:"12px 14px", display:"flex", flexDirection:"column", gap:8, overflow:"hidden" }}>
-          <div style={{ display:"flex", justifyContent:"flex-end" }}>
-            <div style={{ maxWidth:"72%", padding:"8px 12px", background:"#3b5a82", borderRadius:"12px 12px 3px 12px", color:"#fff", fontSize:"0.56rem", lineHeight:1.5 }}>Scout, write a listing description for a 3 bedroom home in Winter Park.</div>
-          </div>
-          <div style={{ display:"flex", justifyContent:"flex-start" }}>
-            <div style={{ maxWidth:"76%", padding:"8px 12px", background:"#f3f4f6", borderRadius:"12px 12px 12px 3px", color:"#374151", fontSize:"0.56rem", lineHeight:1.5 }}>Elegant 3-bedroom residence in the heart of Winter Park featuring updated interiors, natural light throughout, and a spacious backyard ideal for entertaining. Move-in ready with modern finishes and a prime location near shops and dining.</div>
-          </div>
-          <div style={{ display:"flex", justifyContent:"flex-end" }}>
-            <div style={{ maxWidth:"65%", padding:"8px 12px", background:"#3b5a82", borderRadius:"12px 12px 3px 12px", color:"#fff", fontSize:"0.56rem", lineHeight:1.5 }}>What pricing strategy would you recommend?</div>
-          </div>
-          <div style={{ display:"flex", justifyContent:"flex-start" }}>
-            <div style={{ maxWidth:"78%", padding:"8px 12px", background:"#f3f4f6", borderRadius:"12px 12px 12px 3px", color:"#374151", fontSize:"0.56rem", lineHeight:1.5 }}>Based on 14 comparable sales within 0.8 miles over the past 90 days, a competitive listing range would be $410,000–$425,000. At $415k you&rsquo;d be positioned to generate multiple offers within 18 days on market.</div>
-          </div>
-        </div>
-        {/* Input */}
-        <div style={{ padding:"8px 12px", borderTop:"1px solid #f3f4f6", display:"flex", gap:8, alignItems:"center", flexShrink:0 }}>
-          <div style={{ flex:1, background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"6px 10px", fontSize:"0.52rem", color:"#9ca3af" }}>Ask Scout anything...</div>
-          <div style={{ width:26, height:26, borderRadius:8, background:"#3b5a82", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ color:"#fff", fontSize:"0.5rem" }}>➤</span></div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Card 3: "My Courses" Moodle grid with 6 course cards
-function Card3_MyCourses() {
+// Card 2: My courses grid
+function Card2_MyCourses() {
   const courses = [
     { title:"0 – Starting with Moodle", pct:"100% complete", color:"#16a34a", hasImg:true },
     { title:"1 – Agent Onboarding – How We Think", pct:"100% complete", color:"#16a34a", hasImg:false },
@@ -333,33 +306,32 @@ function Card3_MyCourses() {
   ];
   return (
     <div style={{ width:"100%", height:"100%", background:"#fff", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column" }}>
-      <div style={{ padding:"14px 18px 8px", flexShrink:0 }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
-          <div style={{ fontSize:"0.9rem", fontWeight:800, color:"#111" }}>My courses</div>
-          <div style={{ display:"flex", gap:6 }}>
-            <div style={{ padding:"3px 8px", border:"1px solid #d1d5db", borderRadius:5, fontSize:"0.48rem", color:"#374151" }}>Manage courses</div>
-            <div style={{ padding:"3px 8px", background:"#2563eb", borderRadius:5, fontSize:"0.48rem", color:"#fff", fontWeight:600 }}>Create course</div>
+      <div style={{ padding:"16px 20px 10px", flexShrink:0 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+          <div style={{ fontSize:"1rem", fontWeight:800, color:"#111" }}>My courses</div>
+          <div style={{ display:"flex", gap:8 }}>
+            <div style={{ padding:"4px 10px", border:"1px solid #d1d5db", borderRadius:6, fontSize:"0.52rem", color:"#374151" }}>Manage courses</div>
+            <div style={{ padding:"4px 10px", background:"#2563eb", borderRadius:6, fontSize:"0.52rem", color:"#fff", fontWeight:600 }}>Create course</div>
           </div>
         </div>
-        <div style={{ fontSize:"0.55rem", color:"#374151", marginBottom:10 }}>Course overview</div>
+        <div style={{ fontSize:"0.6rem", color:"#374151", marginBottom:10 }}>Course overview</div>
         <div style={{ display:"flex", gap:6, marginBottom:10 }}>
-          <div style={{ padding:"3px 8px", border:"1px solid #d1d5db", borderRadius:5, fontSize:"0.48rem", color:"#374151" }}>All ∨</div>
-          <div style={{ flex:1, padding:"3px 8px", border:"1px solid #d1d5db", borderRadius:5, fontSize:"0.48rem", color:"#9ca3af" }}>Search</div>
-          <div style={{ padding:"3px 8px", border:"1px solid #d1d5db", borderRadius:5, fontSize:"0.48rem", color:"#374151" }}>Sort by course name ∨</div>
-          <div style={{ padding:"3px 8px", border:"1px solid #d1d5db", borderRadius:5, fontSize:"0.48rem", color:"#374151" }}>Card ∨</div>
+          {["All ∨","Search","Sort by course name ∨","Card ∨"].map((t,i) => (
+            <div key={i} style={{ padding:"3px 8px", border:"1px solid #d1d5db", borderRadius:5, fontSize:"0.5rem", color: i===1 ? "#9ca3af":"#374151", flex: i===1 ? 1:0 }}>{t}</div>
+          ))}
         </div>
       </div>
-      <div style={{ flex:1, padding:"0 18px 10px", display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, overflow:"hidden" }}>
+      <div style={{ flex:1, padding:"0 20px 12px", display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, overflow:"hidden" }}>
         {courses.map((c,i) => (
           <div key={i} style={{ border:"1px solid #e5e7eb", borderRadius:8, overflow:"hidden", display:"flex", flexDirection:"column" }}>
-            <div style={{ height:40, background: c.hasImg ? "#f0e8d8" : "#111", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-              {c.hasImg ? <span style={{ fontSize:"0.6rem" }}>📋</span> : <div style={{ textAlign:"center" }}><div style={{ fontSize:"0.42rem", color:"rgba(255,255,255,0.5)", letterSpacing:"0.08em" }}>BT |</div><div style={{ fontSize:"0.44rem", color:"#fff", fontWeight:700, letterSpacing:"0.06em" }}>BEAR TEAM</div><div style={{ fontSize:"0.38rem", color:"rgba(255,255,255,0.5)", letterSpacing:"0.12em" }}>— ACADEMY —</div></div>}
+            <div style={{ height:44, background: c.hasImg ? "#e8dcc8":"#111", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              {c.hasImg ? <span style={{ fontSize:"0.7rem" }}>📋</span> : <div style={{ textAlign:"center" }}><div style={{ fontSize:"0.44rem", color:"rgba(255,255,255,0.5)" }}>BT |</div><div style={{ fontSize:"0.46rem", color:"#fff", fontWeight:700 }}>BEAR TEAM</div><div style={{ fontSize:"0.4rem", color:"rgba(255,255,255,0.4)" }}>— ACADEMY —</div></div>}
             </div>
-            <div style={{ padding:"5px 6px", flex:1 }}>
-              <div style={{ fontSize:"0.46rem", color:"#2563eb", fontWeight:600, lineHeight:1.3, marginBottom:2 }}>{c.title}</div>
-              <div style={{ fontSize:"0.42rem", color:"#6b7280", marginBottom:3 }}>Category 1</div>
-              {c.badge && <div style={{ display:"inline-block", padding:"1px 5px", background:"#0891b2", borderRadius:4, fontSize:"0.38rem", color:"#fff", marginBottom:2 }}>{c.badge}</div>}
-              {c.pct && <div style={{ fontSize:"0.42rem", color:c.color, fontWeight:600 }}>{c.pct}</div>}
+            <div style={{ padding:"6px 7px", flex:1 }}>
+              <div style={{ fontSize:"0.48rem", color:"#2563eb", fontWeight:600, lineHeight:1.3, marginBottom:2 }}>{c.title}</div>
+              <div style={{ fontSize:"0.44rem", color:"#6b7280", marginBottom:3 }}>Category 1</div>
+              {c.badge && <div style={{ display:"inline-block", padding:"1px 5px", background:"#0891b2", borderRadius:4, fontSize:"0.4rem", color:"#fff", marginBottom:2 }}>{c.badge}</div>}
+              {c.pct && <div style={{ fontSize:"0.44rem", color:c.color, fontWeight:600 }}>{c.pct}</div>}
             </div>
           </div>
         ))}
@@ -368,64 +340,132 @@ function Card3_MyCourses() {
   );
 }
 
-// Card 4: "Bear Academy" — Welcome lesson with video thumbnail + Operating Philosophy
-function Card4_AcademyLesson() {
+// Card 3: "Introducing Scout" — Scout page with chat preview
+function Card3_IntroducingScout() {
   return (
-    <div style={{ width:"100%", height:"100%", background:"#fff", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column" }}>
-      {/* Header bar */}
-      <div style={{ background:"#1e3a5f", padding:"12px 18px", flexShrink:0 }}>
-        <div style={{ fontSize:"0.85rem", fontWeight:800, color:"#fff", marginBottom:2 }}>Bear Academy</div>
-        <div style={{ fontSize:"0.56rem", color:"rgba(255,255,255,0.65)" }}>Agent Onboarding</div>
-      </div>
-      {/* Lesson label */}
-      <div style={{ padding:"8px 18px", background:"#f9fafb", borderBottom:"1px solid #e5e7eb", fontSize:"0.56rem", color:"#374151", flexShrink:0 }}>
-        <span style={{ fontWeight:700 }}>Lesson:</span> Welcome to Bear Academy
-      </div>
-      {/* Video thumbnail */}
-      <div style={{ position:"relative", background:"#d1d5db", flexShrink:0, height:"42%", overflow:"hidden" }}>
-        {/* Simulated video still — office background */}
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle at 30% 60%, rgba(255,255,255,0.3) 0%, transparent 60%)" }} />
-          {/* Video title bar */}
-          <div style={{ position:"absolute", top:8, left:10, right:10, display:"flex", alignItems:"center", gap:6 }}>
-            <div style={{ width:16, height:16, borderRadius:"50%", background:"#e63946", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <span style={{ color:"#fff", fontSize:"0.38rem", fontWeight:700 }}>▶</span>
-            </div>
-            <span style={{ fontSize:"0.46rem", color:"#1e293b", fontWeight:600 }}>Brokerage Vision &amp; Structure</span>
-            <div style={{ marginLeft:"auto", display:"flex", gap:10 }}>
-              <span style={{ fontSize:"0.42rem", color:"#475569" }}>⏱ Watch later</span>
-              <span style={{ fontSize:"0.42rem", color:"#475569" }}>↑ Share</span>
-            </div>
-          </div>
-          {/* Play button */}
-          <div style={{ width:44, height:44, borderRadius:"50%", background:"rgba(220,38,38,0.92)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 16px rgba(0,0,0,0.3)" }}>
-            <span style={{ color:"#fff", fontSize:"0.9rem", marginLeft:3 }}>▶</span>
-          </div>
-          {/* BT watermark */}
-          <div style={{ position:"absolute", bottom:10, right:10, border:"1.5px solid rgba(255,255,255,0.6)", padding:"3px 7px", display:"flex", alignItems:"center", gap:4 }}>
-            <span style={{ fontSize:"0.44rem", color:"rgba(255,255,255,0.9)", fontWeight:800, letterSpacing:"0.06em" }}>BT</span>
-          </div>
-          {/* Watch on YouTube */}
-          <div style={{ position:"absolute", bottom:10, left:10, background:"rgba(0,0,0,0.5)", padding:"3px 8px", borderRadius:4, display:"flex", alignItems:"center", gap:4 }}>
-            <span style={{ fontSize:"0.42rem", color:"#fff" }}>Watch on</span>
-            <span style={{ fontSize:"0.42rem", color:"#fff", fontWeight:700 }}>▶ YouTube</span>
-          </div>
+    <div style={{ width:"100%", height:"100%", background:"#f0f1f3", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column", position:"relative" }}>
+      <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(107,114,128,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(107,114,128,0.08) 1px, transparent 1px)", backgroundSize:"40px 40px" }} />
+      <div style={{ position:"relative", zIndex:1, padding:"28px 24px 20px", flex:1, display:"flex", flexDirection:"column" }}>
+        <div style={{ fontSize:"1.4rem", fontWeight:800, color:"#111", marginBottom:4 }}>Introducing Scout</div>
+        <div style={{ fontSize:"0.65rem", color:"#3b5a82", fontWeight:600, marginBottom:10 }}>BearTeam AI Assistant</div>
+        <div style={{ fontSize:"0.62rem", color:"#374151", lineHeight:1.6, marginBottom:14 }}>Most agents don&rsquo;t lose deals because of skill.<br />They lose them because of broken systems.</div>
+        <div style={{ background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"8px 12px", display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+          <span style={{ fontSize:"0.56rem", color:"#9ca3af", flex:1 }}>Ask Scout anything about real estate...</span>
+          <div style={{ width:24, height:24, borderRadius:6, background:"#3b5a82", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ color:"#fff", fontSize:"0.5rem" }}>➤</span></div>
+        </div>
+        {[
+          "Write a listing description for a 3-bedroom home in Winter Park",
+          "Create a social media post for a new listing",
+          "Draft a follow-up message to a buyer",
+        ].map((p,i) => (
+          <div key={i} style={{ fontSize:"0.52rem", color:"#6b7280", padding:"4px 8px", background:"rgba(255,255,255,0.7)", borderRadius:5, marginBottom:4, border:"1px solid #e5e7eb" }}>{p}</div>
+        ))}
+        <div style={{ display:"flex", gap:8, marginTop:4, flexWrap:"wrap" }}>
+          {["Summarize the Orlando housing market","Prepare a showing checklist for a buyer client"].map((p,i) => (
+            <div key={i} style={{ fontSize:"0.52rem", color:"#6b7280", padding:"4px 8px", background:"rgba(255,255,255,0.7)", borderRadius:5, border:"1px solid #e5e7eb" }}>{p}</div>
+          ))}
         </div>
       </div>
-      {/* Text content */}
-      <div style={{ flex:1, padding:"12px 18px", overflow:"hidden" }}>
-        <div style={{ borderLeft:"3px solid #1e3a5f", paddingLeft:10, marginBottom:10 }}>
-          <div style={{ fontSize:"0.75rem", fontWeight:800, color:"#111", marginBottom:4 }}>Operating Philosophy</div>
-          <div style={{ fontSize:"0.54rem", color:"#374151", lineHeight:1.65, marginBottom:4 }}>Bear Team does not operate on improvisation. The brokerage operates through defined structure and disciplined execution.</div>
-          <div style={{ fontSize:"0.54rem", color:"#374151", lineHeight:1.65, marginBottom:6 }}>Top-performing agents do not &ldquo;wing it.&rdquo; They follow systems that guide movement through every stage of a transaction.</div>
+    </div>
+  );
+}
+
+// Card 4: "Scout in Action" — AI-Powered chat section
+function Card4_ScoutInAction() {
+  return (
+    <div style={{ width:"100%", height:"100%", background:"#fff", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column", padding:"22px 24px" }}>
+      <div style={{ fontSize:"0.5rem", fontWeight:700, letterSpacing:"0.14em", textTransform:"uppercase", color:"#9ca3af", marginBottom:5 }}>AI-POWERED</div>
+      <div style={{ fontSize:"1.2rem", fontWeight:800, color:"#111", marginBottom:4 }}>Scout in Action</div>
+      <div style={{ fontSize:"0.6rem", color:"#6b7280", marginBottom:16 }}>Scout assists agents with marketing, communication, and daily workflow tasks.</div>
+      <div style={{ flex:1, background:"#fff", borderRadius:14, border:"1px solid #e5e7eb", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 2px 16px rgba(0,0,0,0.07)" }}>
+        <div style={{ padding:"12px 16px", borderBottom:"1px solid #f3f4f6", display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
+          <div style={{ width:26, height:26, borderRadius:"50%", background:"#3b5a82", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.55rem", color:"#fff", fontWeight:700 }}>S</div>
+          <div><div style={{ fontSize:"0.65rem", fontWeight:700, color:"#111" }}>Scout</div><div style={{ fontSize:"0.5rem", color:"#9ca3af" }}>BearTeam AI Assistant</div></div>
+          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:4 }}><div style={{ width:7, height:7, borderRadius:"50%", background:"#22c55e" }}/><span style={{ fontSize:"0.5rem", color:"#22c55e", fontWeight:600 }}>Online</span></div>
         </div>
-        <div style={{ fontSize:"0.56rem", fontWeight:700, color:"#111", marginBottom:5 }}>Our operating philosophy is simple:</div>
-        {["Structure reduces friction","Systems create speed","Execution builds trust"].map((item, i) => (
-          <div key={i} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
-            <div style={{ width:5, height:5, borderRadius:"50%", background:"#1e3a5f", flexShrink:0 }} />
-            <span style={{ fontSize:"0.52rem", color:"#374151" }}>{item}</span>
+        <div style={{ flex:1, padding:"14px 16px", display:"flex", flexDirection:"column", gap:10, overflow:"hidden" }}>
+          <div style={{ display:"flex", justifyContent:"flex-end" }}>
+            <div style={{ maxWidth:"70%", padding:"10px 14px", background:"#3b5a82", borderRadius:"14px 14px 4px 14px", color:"#fff", fontSize:"0.58rem", lineHeight:1.5 }}>Scout, write a listing description for a 3 bedroom home in Winter Park.</div>
+          </div>
+          <div style={{ display:"flex", justifyContent:"flex-start" }}>
+            <div style={{ maxWidth:"74%", padding:"10px 14px", background:"#f3f4f6", borderRadius:"14px 14px 14px 4px", color:"#374151", fontSize:"0.58rem", lineHeight:1.55 }}>Elegant 3-bedroom residence in the heart of Winter Park featuring updated interiors, natural light throughout, and a spacious backyard ideal for entertaining. Move-in ready with modern finishes.</div>
+          </div>
+          <div style={{ display:"flex", justifyContent:"flex-end" }}>
+            <div style={{ maxWidth:"62%", padding:"10px 14px", background:"#3b5a82", borderRadius:"14px 14px 4px 14px", color:"#fff", fontSize:"0.58rem", lineHeight:1.5 }}>What pricing strategy would you recommend?</div>
+          </div>
+          <div style={{ display:"flex", justifyContent:"flex-start" }}>
+            <div style={{ maxWidth:"74%", padding:"10px 14px", background:"#f3f4f6", borderRadius:"14px 14px 14px 4px", color:"#374151", fontSize:"0.58rem", lineHeight:1.55 }}>Based on 14 comparable sales within 0.8 miles, a competitive range is $410,000–$425,000. At $415k you&rsquo;d generate multiple offers within 18 days.</div>
+          </div>
+        </div>
+        <div style={{ padding:"10px 14px", borderTop:"1px solid #f3f4f6", display:"flex", gap:8, flexShrink:0 }}>
+          <div style={{ flex:1, background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"8px 12px", fontSize:"0.55rem", color:"#9ca3af" }}>Ask Scout anything...</div>
+          <div style={{ width:30, height:30, borderRadius:8, background:"#3b5a82", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ color:"#fff", fontSize:"0.55rem" }}>➤</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Card 5: "See What Scout Can Do" — Try It Now task picker
+function Card5_ScoutTryIt() {
+  return (
+    <div style={{ width:"100%", height:"100%", background:"#fff", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 30px" }}>
+      <div style={{ fontSize:"0.55rem", color:"#9ca3af", fontWeight:600, letterSpacing:"0.14em", textTransform:"uppercase", marginBottom:8 }}>TRY IT NOW</div>
+      <div style={{ fontSize:"1.3rem", fontWeight:800, color:"#111", marginBottom:6, textAlign:"center" }}>See What Scout Can Do</div>
+      <div style={{ fontSize:"0.6rem", color:"#6b7280", marginBottom:22, textAlign:"center" }}>Click generate and watch Scout write a listing description in seconds.</div>
+      <div style={{ width:"100%", background:"#fff", border:"1px solid #e5e7eb", borderRadius:12, padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+          <div style={{ width:22, height:22, borderRadius:"50%", background:"#f3f4f6", border:"1px solid #e5e7eb", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <span style={{ fontSize:"0.5rem" }}>⚙</span>
+          </div>
+          <span style={{ fontSize:"0.62rem", fontWeight:600, color:"#374151" }}>Scout AI</span>
+        </div>
+        <div style={{ fontSize:"0.58rem", color:"#6b7280", marginBottom:12 }}>Choose a task to see Scout in action:</div>
+        {["Write a listing description","Draft a follow-up message","Organize my daily workflow"].map((task,i) => (
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", background:"#f3f4f6", borderRadius:10, marginBottom:8 }}>
+            <div style={{ width:8, height:8, borderRadius:"50%", background:"#3b5a82", flexShrink:0 }} />
+            <span style={{ fontSize:"0.6rem", color:"#374151" }}>{task}</span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// Card 6: Scout full UI — "Hi, I'm Scout" with tabs + prompt grid
+function Card6_ScoutFull() {
+  return (
+    <div style={{ width:"100%", height:"100%", background:"#f3f4f6", fontFamily:"-apple-system,sans-serif", display:"flex", alignItems:"center", justifyContent:"center", padding:"16px" }}>
+      <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e5e7eb", width:"100%", height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 2px 20px rgba(0,0,0,0.08)" }}>
+        <div style={{ padding:"14px 18px", borderBottom:"1px solid #f3f4f6", display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
+          <div style={{ width:28, height:28, borderRadius:"50%", background:"#3b5a82", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.6rem", color:"#fff", fontWeight:700 }}>S</div>
+          <div><div style={{ fontSize:"0.68rem", fontWeight:700, color:"#111" }}>Scout</div><div style={{ fontSize:"0.52rem", color:"#9ca3af" }}>Bear Team AI Assistant</div></div>
+          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:4 }}><div style={{ width:7, height:7, borderRadius:"50%", background:"#22c55e" }}/><span style={{ fontSize:"0.52rem", color:"#22c55e", fontWeight:600 }}>Online</span></div>
+        </div>
+        <div style={{ padding:"16px 18px 10px", textAlign:"center", flexShrink:0 }}>
+          <div style={{ fontSize:"0.78rem", fontWeight:700, color:"#111", marginBottom:4 }}>Hi, I&rsquo;m Scout.</div>
+          <div style={{ fontSize:"0.55rem", color:"#6b7280", lineHeight:1.55 }}>I can tell you how Bear Team works, what the commission model looks like, and what joining actually means for your business.</div>
+        </div>
+        <div style={{ padding:"0 18px 10px", display:"flex", gap:6, flexWrap:"wrap", flexShrink:0 }}>
+          {["Listing Marketing","Client Communication","Market Insights","Transaction Support","Agent Growth"].map((t,i) => (
+            <span key={t} style={{ fontSize:"0.48rem", padding:"4px 10px", borderRadius:20, background: i===0 ? "#3b5a82":"#f3f4f6", color: i===0 ? "#fff":"#6b7280", fontWeight: i===0 ? 700:400 }}>{t}</span>
+          ))}
+        </div>
+        <div style={{ flex:1, padding:"0 18px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, overflow:"hidden" }}>
+          {[
+            "Scout, write an MLS listing for a 3-bed in Winter Park with an updated kitchen.",
+            "Scout, create a social media post announcing a new listing in Baldwin Park.",
+            "Scout, summarize the key selling points so I can present to buyers quickly.",
+            "Scout, write an email introducing this listing to potential buyers.",
+          ].map((p,i) => (
+            <div key={i} style={{ background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"8px 10px", fontSize:"0.5rem", color:"#374151", lineHeight:1.5 }}>{p}</div>
+          ))}
+        </div>
+        <div style={{ padding:"10px 18px 12px", display:"flex", gap:8, alignItems:"center", flexShrink:0 }}>
+          <div style={{ flex:1, background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"8px 12px", fontSize:"0.55rem", color:"#9ca3af" }}>Ask Scout anything...</div>
+          <div style={{ width:28, height:28, borderRadius:8, background:"#f3f4f6", border:"1px solid #e5e7eb", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ fontSize:"0.52rem", color:"#9ca3af" }}>➤</span></div>
+        </div>
+        <div style={{ textAlign:"center", fontSize:"0.46rem", color:"#9ca3af", paddingBottom:10 }}>Scout is an AI assistant. For complex questions, contact <span style={{ color:"#3b5a82" }}>Tom Songer</span></div>
       </div>
     </div>
   );
@@ -460,8 +500,8 @@ function HeroParallax() {
   const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [8, 0]), springConfig);
   const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-100, 400]), springConfig);
 
-  const row1 = [<Card1_MoodleCourse />, <Card2_ScoutChat />, <Card3_MyCourses />];
-  const row2 = [<Card4_AcademyLesson />, <Card2_ScoutChat />, <Card1_MoodleCourse />];
+  const row1 = [<Card1_AcademyWelcome />, <Card2_MyCourses />, <Card3_IntroducingScout />];
+  const row2 = [<Card4_ScoutInAction />, <Card5_ScoutTryIt />, <Card6_ScoutFull />];
 
   return (
     <div
