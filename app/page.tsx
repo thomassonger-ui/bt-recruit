@@ -1161,7 +1161,7 @@ export default function HomePage() {
           </Reveal>
           <Reveal delay={100}>
             <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#ffffff", marginBottom: "48px", lineHeight: 1.2 }}>
-              Your AI recruiter. Available 24/7.
+              Your AI Assistant. Available 24/7.
               <br />No pressure. Just answers.
             </h2>
           </Reveal>
