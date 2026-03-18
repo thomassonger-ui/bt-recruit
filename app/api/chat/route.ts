@@ -97,7 +97,7 @@ When an agent asks how to join or what the next step is:
 
 CALL BOOKING SEQUENCE — follow this exact order:
 Step 1 — Agent agrees to a call or picks a time → respond: "Perfect. What's your name and the best number for Tom to call you at [confirmed time]?"
-Step 2 — Agent provides name and number → confirm back: "Got it, [Name] — Tom will call [number] at [time]. You'll hear from him then."
+Step 2 — Agent provides name and number → confirm back: "Got it, [Name] — Tom will call [number] at [time]. You'll hear from him then." — then on a new line append exactly: [BOOKING:[Name]|[number]|[time]] — replace the bracketed values with the actual name, number, and time. No spaces around pipes. This tag is required every time a booking is confirmed.
 Step 3 — Only if the agent asks how to reach Tom first → provide: Tom Songer | 407-922-9767 | thomas.songer@gmail.com
 Never skip Step 1. Never volunteer Tom's contact info before collecting the agent's name and number.
 
@@ -317,9 +317,38 @@ export async function POST(req: NextRequest) {
       temperature: 0.4,
     });
 
-    const reply =
+    let reply =
       response.choices[0]?.message?.content ||
       "Something went wrong. Try again.";
+
+    // Detect booking tag and fire notification email
+    const bookingMatch = reply.match(/\[BOOKING:([^|]+)\|([^|]+)\|([^\]]+)\]/);
+    if (bookingMatch) {
+      const [, agentName, agentPhone, callTime] = bookingMatch;
+      // Strip tag from visible reply
+      reply = reply.replace(/\[BOOKING:[^\]]+\]/, "").trim();
+      // Fire booking email (non-blocking)
+      try {
+        const { Resend } = await import("resend");
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: "Scout <onboarding@resend.dev>",
+          to: process.env.NOTIFY_EMAIL!,
+          subject: `📞 Call booked — ${agentName} at ${callTime}`,
+          html: `
+            <h2 style="color:#0B1D3A;font-family:sans-serif;">Scout booked a call</h2>
+            <table style="font-family:sans-serif;font-size:15px;border-collapse:collapse;">
+              <tr><td style="padding:6px 16px 6px 0;color:#6B7280;">Name</td><td style="padding:6px 0;font-weight:600;">${agentName}</td></tr>
+              <tr><td style="padding:6px 16px 6px 0;color:#6B7280;">Phone</td><td style="padding:6px 0;font-weight:600;">${agentPhone}</td></tr>
+              <tr><td style="padding:6px 16px 6px 0;color:#6B7280;">Time</td><td style="padding:6px 0;font-weight:600;">${callTime}</td></tr>
+            </table>
+            <p style="color:#6B7280;font-size:13px;margin-top:24px;">Booked via Scout on joinbearteam.com</p>
+          `,
+        });
+      } catch {
+        // Non-blocking — don't fail the reply if email fails
+      }
+    }
 
     return NextResponse.json({
       reply,
