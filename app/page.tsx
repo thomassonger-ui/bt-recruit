@@ -452,48 +452,117 @@ function HeroParallax() {
 
 // ─── System Panel Visuals ──────────────────────────────────────────────────────
 
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 function ScoutVisual() {
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: "assistant",
+      content: "Hey — I&apos;m Scout, Bear Team&apos;s AI recruiting assistant. Ask me about splits, fees, the cap model, or how Bear Team compares to your current brokerage. What&apos;s on your mind?",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  async function send() {
+    const text = input.trim();
+    if (!text || loading) return;
+    const next: ChatMessage[] = [...messages, { role: "user", content: text }];
+    setMessages(next);
+    setInput("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next }),
+      });
+      const data = await res.json();
+      setMessages([...next, { role: "assistant", content: data.reply || "Something went wrong." }]);
+    } catch {
+      setMessages([...next, { role: "assistant", content: "Connection error — try again." }]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleKey(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  }
+
   return (
     <div style={{ width: "100%", height: "100%", background: "#0b1220", borderRadius: "16px", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" }}>
       {/* Top bar */}
-      <div style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: "12px", background: "#0e1628" }}>
-        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#81c784", boxShadow: "0 0 8px #81c784" }} />
-        <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.82rem", fontWeight: 600, letterSpacing: "0.06em" }}>Scout · Bear Team AI</span>
-        <div style={{ marginLeft: "auto", padding: "4px 10px", background: "rgba(100,181,246,0.12)", border: "1px solid rgba(100,181,246,0.25)", borderRadius: "12px", fontSize: "0.68rem", color: "#64b5f6", fontWeight: 600 }}>LIVE</div>
+      <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: "10px", background: "#0e1628", flexShrink: 0 }}>
+        <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#81c784", boxShadow: "0 0 7px #81c784" }} />
+        <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.8rem", fontWeight: 600, letterSpacing: "0.06em" }}>Scout · Bear Team AI</span>
+        <div style={{ marginLeft: "auto", padding: "3px 9px", background: "rgba(100,181,246,0.12)", border: "1px solid rgba(100,181,246,0.25)", borderRadius: "10px", fontSize: "0.65rem", color: "#64b5f6", fontWeight: 600 }}>LIVE</div>
       </div>
-      {/* Chat messages */}
-      <div style={{ flex: 1, padding: "28px 24px", display: "flex", flexDirection: "column", gap: "18px", overflowY: "hidden" }}>
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <div style={{ maxWidth: "70%", padding: "12px 16px", background: "rgba(59,90,130,0.5)", borderRadius: "16px 16px 4px 16px", color: "#fff", fontSize: "0.88rem", lineHeight: 1.5 }}>
-            What would my commission look like at 8 deals a year?
+
+      {/* Messages */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px 18px", display: "flex", flexDirection: "column", gap: "14px" }}>
+        {messages.map((msg, i) =>
+          msg.role === "user" ? (
+            <div key={i} style={{ display: "flex", justifyContent: "flex-end" }}>
+              <div style={{ maxWidth: "75%", padding: "10px 14px", background: "rgba(59,90,130,0.55)", borderRadius: "14px 14px 4px 14px", color: "#fff", fontSize: "0.84rem", lineHeight: 1.5 }}>
+                {msg.content}
+              </div>
+            </div>
+          ) : (
+            <div key={i} style={{ display: "flex", gap: "9px", alignItems: "flex-start" }}>
+              <div style={{ width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg, #3b5a82, #1a2a4a)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.58rem", fontWeight: 700, color: "#64b5f6", marginTop: 2 }}>S</div>
+              <div style={{ maxWidth: "80%", padding: "12px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "14px 14px 14px 4px", color: "rgba(255,255,255,0.88)", fontSize: "0.84rem", lineHeight: 1.6 }}>
+                {msg.content}
+              </div>
+            </div>
+          )
+        )}
+        {loading && (
+          <div style={{ display: "flex", gap: "9px", alignItems: "flex-start" }}>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg, #3b5a82, #1a2a4a)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.58rem", fontWeight: 700, color: "#64b5f6" }}>S</div>
+            <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "14px 14px 14px 4px", display: "flex", gap: "5px", alignItems: "center" }}>
+              {[0,1,2].map(n => (
+                <motion.div key={n} style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.4)" }}
+                  animate={{ opacity: [0.3, 1, 0.3], y: [0, -4, 0] }}
+                  transition={{ duration: 0.9, repeat: Infinity, delay: n * 0.18 }} />
+              ))}
+            </div>
           </div>
-        </div>
-        <div style={{ display: "flex", justifyContent: "flex-start", gap: "10px", alignItems: "flex-end" }}>
-          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #3b5a82, #1a2a4a)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", fontWeight: 700, color: "#64b5f6" }}>S</div>
-          <div style={{ maxWidth: "75%", padding: "14px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px 16px 16px 4px", color: "rgba(255,255,255,0.88)", fontSize: "0.88rem", lineHeight: 1.6 }}>
-            At 8 deals on a $415K average, your GCI is <span style={{ color: "#81c784", fontWeight: 700 }}>$83,000</span>. At Tier 1 (60/40) you net <span style={{ color: "#64b5f6", fontWeight: 700 }}>$49,800</span> — with <span style={{ color: "#ffb74d", fontWeight: 700 }}>zero monthly fees</span>. After deal 5 you graduate to 70/30 automatically.
-          </div>
-        </div>
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <div style={{ maxWidth: "60%", padding: "12px 16px", background: "rgba(59,90,130,0.5)", borderRadius: "16px 16px 4px 16px", color: "#fff", fontSize: "0.88rem", lineHeight: 1.5 }}>
-            What about compared to KW?
-          </div>
-        </div>
-        <div style={{ display: "flex", justifyContent: "flex-start", gap: "10px", alignItems: "flex-end" }}>
-          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #3b5a82, #1a2a4a)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", fontWeight: 700, color: "#64b5f6" }}>S</div>
-          <div style={{ maxWidth: "75%", padding: "14px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px 16px 16px 4px", color: "rgba(255,255,255,0.88)", fontSize: "0.88rem", lineHeight: 1.6 }}>
-            KW charges $200–$300/month plus their split. That&rsquo;s $2,400–$3,600/year before a single deal. Bear Team is <span style={{ color: "#81c784", fontWeight: 700 }}>$0/month</span>. How many deals are you currently closing?
-          </div>
-        </div>
+        )}
+        <div ref={bottomRef} />
       </div>
+
+      {/* Suggested prompts — only show when just the greeting is visible */}
+      {messages.length === 1 && (
+        <div style={{ padding: "0 18px 12px", display: "flex", gap: "8px", flexWrap: "wrap", flexShrink: 0 }}>
+          {["What&apos;s my split at 8 deals?", "How do I compare to KW?", "What does joining cost?"].map(q => (
+            <button key={q} onClick={() => { setInput(q); }} style={{ padding: "6px 12px", background: "rgba(59,90,130,0.2)", border: "1px solid rgba(59,90,130,0.4)", borderRadius: "20px", color: "rgba(255,255,255,0.65)", fontSize: "0.72rem", cursor: "pointer", whiteSpace: "nowrap" }}>
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Input bar */}
-      <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(255,255,255,0.08)", background: "#0e1628", display: "flex", gap: "10px", alignItems: "center" }}>
-        <div style={{ flex: 1, padding: "10px 16px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", fontSize: "0.82rem", color: "rgba(255,255,255,0.35)" }}>
-          Ask Scout anything about Bear Team...
-        </div>
-        <div style={{ width: 36, height: 36, borderRadius: "8px", background: "linear-gradient(135deg, #3b5a82, #2c4a72)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        </div>
+      <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.08)", background: "#0e1628", display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder="Ask Scout anything about Bear Team..."
+          style={{ flex: 1, padding: "9px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", fontSize: "0.8rem", color: "#fff", outline: "none" }}
+        />
+        <button onClick={send} disabled={loading || !input.trim()} style={{ width: 34, height: 34, borderRadius: "8px", background: loading || !input.trim() ? "rgba(59,90,130,0.3)" : "linear-gradient(135deg, #3b5a82, #2c4a72)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: loading || !input.trim() ? "default" : "pointer", flexShrink: 0, transition: "background 0.2s" }}>
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
       </div>
     </div>
   );
