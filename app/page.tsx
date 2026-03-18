@@ -81,6 +81,22 @@ function Reveal({ children, delay = 0, className = "" }: RevealProps) {
   );
 }
 
+// ─── SlideSection — slides in from left or right on scroll ───────────────────
+
+function SlideSection({ children, direction = "left", style = {} }: { children: React.ReactNode; direction?: "left" | "right"; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 0.25"] });
+  const x = useTransform(scrollYProgress, [0, 1], [direction === "left" ? -80 : 80, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [0, 1]);
+  const xSpring = useSpring(x, { stiffness: 60, damping: 20 });
+  const opacitySpring = useSpring(opacity, { stiffness: 60, damping: 20 });
+  return (
+    <motion.div ref={ref} style={{ x: xSpring, opacity: opacitySpring, ...style }}>
+      {children}
+    </motion.div>
+  );
+}
+
 // ─── HeroFade ─────────────────────────────────────────────────────────────────
 
 function HeroFade({ children, delay = 0 }: HeroFadeProps) {
@@ -1261,264 +1277,282 @@ export default function HomePage() {
       <SystemShowcase />
 
       {/* ── PATTERN INTERRUPT ── */}
-      <section style={{ background: "#080f1e", padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", textAlign: "center" }}>
-        <Reveal>
+      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+        <section style={{ background: "#080f1e", padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", textAlign: "center" }}>
           <p style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.4rem)", fontWeight: 700, color: "#ffffff", lineHeight: 1.4, maxWidth: "760px", margin: "0 auto" }}>
             The #1 reason agents plateau is not effort.
             <br />
             <span style={{ color: "#64b5f6" }}>It&rsquo;s operating without a system.</span>
           </p>
-        </Reveal>
-      </section>
+        </section>
+      </SlideSection>
 
       {/* ── PROBLEM ── */}
-      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
-        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
-          <Reveal>
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px" }}>The Problem</p>
-          </Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, lineHeight: 1.2, marginBottom: "48px", color: "#0b1d3a" }}>
-              Most agents don&rsquo;t fail because they lack talent.
-            </h2>
-          </Reveal>
-          {[
-            "They fail because they don&rsquo;t have a system — they&rsquo;re making it up deal by deal.",
-            "They&rsquo;re paying their brokerage hundreds a month and getting nothing back.",
-            "They hit a ceiling and can&rsquo;t figure out why. No visibility. No structure. No next step.",
-          ].map((text, i) => (
-            <Reveal key={i} delay={150 + i * 100}>
-              <div style={{ display: "flex", gap: "16px", alignItems: "flex-start", marginBottom: "28px" }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b5a82", marginTop: "8px", flexShrink: 0 }} />
-                <p style={{ fontSize: "1.05rem", lineHeight: 1.65, color: "#374151" }} dangerouslySetInnerHTML={{ __html: text }} />
-              </div>
+      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
+          <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+            <Reveal>
+              <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px" }}>The Problem</p>
             </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ── SOLUTION ── */}
-      <section id="systems-text" style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#0b1d3a" }}>
-        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-          <Reveal>
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: "16px" }}>The Solution</p>
-          </Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, lineHeight: 1.2, marginBottom: "56px", color: "#ffffff" }}>
-              BearTeamOS — a brokerage built like a system.
-            </h2>
-          </Reveal>
-          {[
-            ["01", "Scout AI", "Your always-on assistant that knows your pipeline, your commissions, and your next move."],
-            ["02", "Progressive Splits", "Start at 60/40. Earn your way to 90/10 by producing — not by waiting."],
-            ["03", "Zero Fees", "No monthly, no desk, no tech. E&O covered. $150 flat per close. That&rsquo;s it."],
-            ["04", "BearTeam Academy", "Free training from day one. Structure, mentorship, and a real 30-60-90 day plan."],
-          ].map(([num, title, desc]) => (
-            <Reveal key={num} delay={parseInt(num) * 80}>
-              <div style={{ display: "flex", gap: "24px", marginBottom: "40px", alignItems: "flex-start" }}>
-                <span style={{ fontSize: "2rem", fontWeight: 800, color: "rgba(100,181,246,0.35)", lineHeight: 1, minWidth: "40px", letterSpacing: "-0.03em" }}>{num}</span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: "1.1rem", color: "#ffffff", marginBottom: "6px" }}>{title}</div>
-                  <div style={{ fontSize: "0.95rem", color: "rgba(255,255,255,0.58)", lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: desc }} />
-                </div>
-              </div>
+            <Reveal delay={100}>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, lineHeight: 1.2, marginBottom: "48px", color: "#0b1d3a" }}>
+                Most agents don&rsquo;t fail because they lack talent.
+              </h2>
             </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ── SCOUT ENTRY ── */}
-      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#3f5f8a" }}>
-        <div style={{ maxWidth: "860px", margin: "0 auto" }}>
-          <Reveal>
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>Meet Scout</p>
-          </Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#ffffff", marginBottom: "48px", lineHeight: 1.2 }}>
-              Your AI Assistant. Available 24/7.
-              <br />No pressure. Just answers.
-            </h2>
-          </Reveal>
-          <Reveal delay={200}>
-            <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "16px", padding: "32px", backdropFilter: "blur(8px)", marginBottom: "36px" }}>
-              {[
-                { from: "agent", text: "What does the commission structure look like?" },
-                { from: "scout", text: "You start at 60/40. Once Bear Team collects $16K from your deals, you automatically graduate to 70/30 — no conversation needed. Keep producing and you move through 80/20 all the way to 90/10. How many deals are you doing right now?" },
-                { from: "agent", text: "About 8-10 a year." },
-                { from: "scout", text: "At 8 deals on a $415K average, you&rsquo;d net roughly $87K+ at current splits — with zero fees coming out. That&rsquo;s the math. Want me to run your specific numbers?" },
-              ].map((msg, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: msg.from === "agent" ? "flex-end" : "flex-start", marginBottom: "16px" }}>
-                  <div style={{ maxWidth: "72%", padding: "12px 16px", borderRadius: msg.from === "agent" ? "16px 16px 4px 16px" : "16px 16px 16px 4px", background: msg.from === "agent" ? "rgba(255,255,255,0.15)" : "rgba(59,90,130,0.5)", color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.55 }} dangerouslySetInnerHTML={{ __html: msg.text }} />
-                </div>
-              ))}
-            </div>
-          </Reveal>
-          <Reveal delay={300}>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <ScoutCTA label="Talk to Scout" />
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ── DAY-TO-DAY ── */}
-      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
-        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
-          <Reveal>
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px" }}>How It Works</p>
-          </Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", lineHeight: 1.2 }}>
-              Your day-to-day, simplified.
-            </h2>
-          </Reveal>
-          {[
-            ["01", "Scout surfaces your next deal", "AI-assisted pipeline visibility — Scout tells you who to follow up with and when."],
-            ["02", "System tracks your tier progress", "See exactly where you are on the graduation path. No guessing."],
-            ["03", "Transactions handled by TC", "Our coordinator manages paperwork and timelines so you stay in front of clients."],
-            ["04", "You close and graduate", "Every deal moves you up the split ladder — automatically."],
-          ].map(([num, title, desc]) => (
-            <Reveal key={num} delay={parseInt(num) * 80}>
-              <div style={{ display: "flex", gap: "20px", marginBottom: "36px" }}>
-                <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#0b1d3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "0.75rem", fontWeight: 700, color: "#64b5f6" }}>{num}</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0b1d3a", marginBottom: "4px" }}>{title}</div>
-                  <div style={{ fontSize: "0.9rem", color: "#6b7280", lineHeight: 1.6 }}>{desc}</div>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ── PROOF ── */}
-      <section id="proof" style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#ffffff" }}>
-        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-          <Reveal>
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px", textAlign: "center" }}>By The Numbers</p>
-          </Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center", lineHeight: 1.2 }}>
-              The math speaks for itself.
-            </h2>
-          </Reveal>
-          <div className="proof-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px", marginBottom: "48px" }}>
-            {[["$0", "Monthly cost to agent", "#81c784"], ["90/10", "Max split at 16+ deals", "#64b5f6"], ["$150", "Flat fee per closing", "#ffb74d"]].map(([stat, label, color]) => (
-              <Reveal key={stat}>
-                <div style={{ padding: "36px 28px", background: "#f8f9fa", borderRadius: "12px", border: "1px solid #e5e7eb", textAlign: "center" }}>
-                  <div style={{ fontSize: "2.4rem", fontWeight: 800, color, marginBottom: "8px" }}>{stat}</div>
-                  <div style={{ fontSize: "0.85rem", color: "#6b7280" }}>{label}</div>
+            {[
+              "They fail because they don&rsquo;t have a system — they&rsquo;re making it up deal by deal.",
+              "They&rsquo;re paying their brokerage hundreds a month and getting nothing back.",
+              "They hit a ceiling and can&rsquo;t figure out why. No visibility. No structure. No next step.",
+            ].map((text, i) => (
+              <Reveal key={i} delay={150 + i * 100}>
+                <div style={{ display: "flex", gap: "16px", alignItems: "flex-start", marginBottom: "28px" }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b5a82", marginTop: "8px", flexShrink: 0 }} />
+                  <p style={{ fontSize: "1.05rem", lineHeight: 1.65, color: "#374151" }} dangerouslySetInnerHTML={{ __html: text }} />
                 </div>
               </Reveal>
             ))}
           </div>
-          <Reveal delay={200}>
-            <div style={{ background: "#0b1d3a", borderRadius: "12px", padding: "36px 40px", color: "#fff" }}>
-              <p style={{ fontSize: "1.05rem", lineHeight: 1.7, color: "rgba(255,255,255,0.85)", marginBottom: "16px" }}>
-                &ldquo;I was at a big box paying $200/month and getting nothing. Bear Team has no fees, Scout keeps me on track, and I graduated to 70/30 after my sixth close. The system actually works.&rdquo;
-              </p>
-              <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.45)", fontWeight: 600, letterSpacing: "0.06em" }}>— Bear Team Agent, Orlando FL</div>
+        </section>
+      </SlideSection>
+
+      {/* ── SOLUTION ── */}
+      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+        <section id="systems-text" style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#0b1d3a" }}>
+          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+            <Reveal>
+              <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: "16px" }}>The Solution</p>
+            </Reveal>
+            <Reveal delay={100}>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, lineHeight: 1.2, marginBottom: "56px", color: "#ffffff" }}>
+                BearTeamOS — a brokerage built like a system.
+              </h2>
+            </Reveal>
+            {[
+              ["01", "Scout AI", "Your always-on assistant that knows your pipeline, your commissions, and your next move."],
+              ["02", "Progressive Splits", "Start at 60/40. Earn your way to 90/10 by producing — not by waiting."],
+              ["03", "Zero Fees", "No monthly, no desk, no tech. E&O covered. $150 flat per close. That&rsquo;s it."],
+              ["04", "BearTeam Academy", "Free training from day one. Structure, mentorship, and a real 30-60-90 day plan."],
+            ].map(([num, title, desc]) => (
+              <Reveal key={num} delay={parseInt(num) * 80}>
+                <div style={{ display: "flex", gap: "24px", marginBottom: "40px", alignItems: "flex-start" }}>
+                  <span style={{ fontSize: "2rem", fontWeight: 800, color: "rgba(100,181,246,0.35)", lineHeight: 1, minWidth: "40px", letterSpacing: "-0.03em" }}>{num}</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "1.1rem", color: "#ffffff", marginBottom: "6px" }}>{title}</div>
+                    <div style={{ fontSize: "0.95rem", color: "rgba(255,255,255,0.58)", lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: desc }} />
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      </SlideSection>
+
+      {/* ── SCOUT ENTRY ── */}
+      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#3f5f8a" }}>
+          <div style={{ maxWidth: "860px", margin: "0 auto" }}>
+            <Reveal>
+              <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>Meet Scout</p>
+            </Reveal>
+            <Reveal delay={100}>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#ffffff", marginBottom: "48px", lineHeight: 1.2 }}>
+                Your AI Assistant. Available 24/7.
+                <br />No pressure. Just answers.
+              </h2>
+            </Reveal>
+            <Reveal delay={200}>
+              <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "16px", padding: "32px", backdropFilter: "blur(8px)", marginBottom: "36px" }}>
+                {[
+                  { from: "agent", text: "What does the commission structure look like?" },
+                  { from: "scout", text: "You start at 60/40. Once Bear Team collects $16K from your deals, you automatically graduate to 70/30 — no conversation needed. Keep producing and you move through 80/20 all the way to 90/10. How many deals are you doing right now?" },
+                  { from: "agent", text: "About 8-10 a year." },
+                  { from: "scout", text: "At 8 deals on a $415K average, you&rsquo;d net roughly $87K+ at current splits — with zero fees coming out. That&rsquo;s the math. Want me to run your specific numbers?" },
+                ].map((msg, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: msg.from === "agent" ? "flex-end" : "flex-start", marginBottom: "16px" }}>
+                    <div style={{ maxWidth: "72%", padding: "12px 16px", borderRadius: msg.from === "agent" ? "16px 16px 4px 16px" : "16px 16px 16px 4px", background: msg.from === "agent" ? "rgba(255,255,255,0.15)" : "rgba(59,90,130,0.5)", color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.55 }} dangerouslySetInnerHTML={{ __html: msg.text }} />
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+            <Reveal delay={300}>
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <ScoutCTA label="Talk to Scout" />
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      </SlideSection>
+
+      {/* ── DAY-TO-DAY ── */}
+      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
+          <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+            <Reveal>
+              <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px" }}>How It Works</p>
+            </Reveal>
+            <Reveal delay={100}>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", lineHeight: 1.2 }}>
+                Your day-to-day, simplified.
+              </h2>
+            </Reveal>
+            {[
+              ["01", "Scout surfaces your next deal", "AI-assisted pipeline visibility — Scout tells you who to follow up with and when."],
+              ["02", "System tracks your tier progress", "See exactly where you are on the graduation path. No guessing."],
+              ["03", "Transactions handled by TC", "Our coordinator manages paperwork and timelines so you stay in front of clients."],
+              ["04", "You close and graduate", "Every deal moves you up the split ladder — automatically."],
+            ].map(([num, title, desc]) => (
+              <Reveal key={num} delay={parseInt(num) * 80}>
+                <div style={{ display: "flex", gap: "20px", marginBottom: "36px" }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#0b1d3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "0.75rem", fontWeight: 700, color: "#64b5f6" }}>{num}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0b1d3a", marginBottom: "4px" }}>{title}</div>
+                    <div style={{ fontSize: "0.9rem", color: "#6b7280", lineHeight: 1.6 }}>{desc}</div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      </SlideSection>
+
+      {/* ── PROOF ── */}
+      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+        <section id="proof" style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#ffffff" }}>
+          <div style={{ maxWidth: "960px", margin: "0 auto" }}>
+            <Reveal>
+              <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px", textAlign: "center" }}>By The Numbers</p>
+            </Reveal>
+            <Reveal delay={100}>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center", lineHeight: 1.2 }}>
+                The math speaks for itself.
+              </h2>
+            </Reveal>
+            <div className="proof-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px", marginBottom: "48px" }}>
+              {[["$0", "Monthly cost to agent", "#81c784"], ["90/10", "Max split at 16+ deals", "#64b5f6"], ["$150", "Flat fee per closing", "#ffb74d"]].map(([stat, label, color]) => (
+                <Reveal key={stat}>
+                  <div style={{ padding: "36px 28px", background: "#f8f9fa", borderRadius: "12px", border: "1px solid #e5e7eb", textAlign: "center" }}>
+                    <div style={{ fontSize: "2.4rem", fontWeight: 800, color, marginBottom: "8px" }}>{stat}</div>
+                    <div style={{ fontSize: "0.85rem", color: "#6b7280" }}>{label}</div>
+                  </div>
+                </Reveal>
+              ))}
             </div>
-          </Reveal>
-        </div>
-      </section>
+            <Reveal delay={200}>
+              <div style={{ background: "#0b1d3a", borderRadius: "12px", padding: "36px 40px", color: "#fff" }}>
+                <p style={{ fontSize: "1.05rem", lineHeight: 1.7, color: "rgba(255,255,255,0.85)", marginBottom: "16px" }}>
+                  &ldquo;I was at a big box paying $200/month and getting nothing. Bear Team has no fees, Scout keeps me on track, and I graduated to 70/30 after my sixth close. The system actually works.&rdquo;
+                </p>
+                <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.45)", fontWeight: 600, letterSpacing: "0.06em" }}>— Bear Team Agent, Orlando FL</div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      </SlideSection>
 
       {/* ── DIFFERENTIATION ── */}
-      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
-        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-          <Reveal>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center" }}>Traditional vs. Bear Team</h2>
-          </Reveal>
-          <div className="compare-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
+          <div style={{ maxWidth: "900px", margin: "0 auto" }}>
             <Reveal>
-              <div style={{ padding: "36px", background: "#ffffff", borderRadius: "12px", border: "1px solid #e5e7eb" }}>
-                <div style={{ fontWeight: 700, marginBottom: "24px", color: "#6b7280", fontSize: "0.9rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>Traditional Brokerage</div>
-                {["Flat split — no graduation path", "$100–$300/month in fees", "Sink or swim onboarding", "You figure out your own pipeline", "E&O comes out of your pocket"].map((item) => (
-                  <div key={item} style={{ display: "flex", gap: "10px", marginBottom: "14px", fontSize: "0.9rem", color: "#9ca3af" }}>
-                    <span style={{ color: "#ef4444", fontWeight: 700 }}>✕</span>{item}
-                  </div>
-                ))}
-              </div>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center" }}>Traditional vs. Bear Team</h2>
             </Reveal>
-            <Reveal delay={150}>
-              <div style={{ padding: "36px", background: "#0b1d3a", borderRadius: "12px", border: "1px solid rgba(100,181,246,0.2)" }}>
-                <div style={{ fontWeight: 700, marginBottom: "24px", color: "#64b5f6", fontSize: "0.9rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>Bear Team</div>
-                {["60/40 → 70/30 → 80/20 → 90/10", "$0/month — always", "30-60-90 day structured plan", "Scout AI surfaces your next step", "E&O paid by Bear Team"].map((item) => (
-                  <div key={item} style={{ display: "flex", gap: "10px", marginBottom: "14px", fontSize: "0.9rem", color: "rgba(255,255,255,0.8)" }}>
-                    <span style={{ color: "#81c784", fontWeight: 700 }}>✓</span>{item}
-                  </div>
-                ))}
-              </div>
-            </Reveal>
+            <div className="compare-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+              <Reveal>
+                <div style={{ padding: "36px", background: "#ffffff", borderRadius: "12px", border: "1px solid #e5e7eb" }}>
+                  <div style={{ fontWeight: 700, marginBottom: "24px", color: "#6b7280", fontSize: "0.9rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>Traditional Brokerage</div>
+                  {["Flat split — no graduation path", "$100–$300/month in fees", "Sink or swim onboarding", "You figure out your own pipeline", "E&O comes out of your pocket"].map((item) => (
+                    <div key={item} style={{ display: "flex", gap: "10px", marginBottom: "14px", fontSize: "0.9rem", color: "#9ca3af" }}>
+                      <span style={{ color: "#ef4444", fontWeight: 700 }}>✕</span>{item}
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
+              <Reveal delay={150}>
+                <div style={{ padding: "36px", background: "#0b1d3a", borderRadius: "12px", border: "1px solid rgba(100,181,246,0.2)" }}>
+                  <div style={{ fontWeight: 700, marginBottom: "24px", color: "#64b5f6", fontSize: "0.9rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>Bear Team</div>
+                  {["60/40 → 70/30 → 80/20 → 90/10", "$0/month — always", "30-60-90 day structured plan", "Scout AI surfaces your next step", "E&O paid by Bear Team"].map((item) => (
+                    <div key={item} style={{ display: "flex", gap: "10px", marginBottom: "14px", fontSize: "0.9rem", color: "rgba(255,255,255,0.8)" }}>
+                      <span style={{ color: "#81c784", fontWeight: 700 }}>✓</span>{item}
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </SlideSection>
 
       {/* ── OBJECTION HANDLING ── */}
-      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#ffffff" }}>
-        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-          <Reveal>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center" }}>
-              Common questions, straight answers.
-            </h2>
-          </Reveal>
-          {[
-            { q: "Is this an MLM or revenue share model?", a: "No. Zero. You earn by producing deals — not by recruiting other agents. No downlines, no referral bonuses, no pyramid." },
-            { q: "What if I&rsquo;m new and only do 3–4 deals a year?", a: "You start at Tier 1 (60/40) with no monthly costs. BearTeam Academy and Scout are yours from day one. Low volume doesn&rsquo;t mean low support." },
-            { q: "What does &ldquo;boutique brokerage&rdquo; actually mean?", a: "It means you know who Beth and Tom are, they know your deals, and you&rsquo;re not a number in a national franchise. Real support from real people." },
-          ].map(({ q, a }, i) => (
-            <Reveal key={i} delay={i * 100}>
-              <div style={{ marginBottom: "36px" }}>
-                <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0b1d3a", marginBottom: "8px" }} dangerouslySetInnerHTML={{ __html: q }} />
-                <div style={{ fontSize: "0.95rem", color: "#6b7280", lineHeight: 1.65 }} dangerouslySetInnerHTML={{ __html: a }} />
-              </div>
+      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#ffffff" }}>
+          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+            <Reveal>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center" }}>
+                Common questions, straight answers.
+              </h2>
             </Reveal>
-          ))}
-        </div>
-      </section>
+            {[
+              { q: "Is this an MLM or revenue share model?", a: "No. Zero. You earn by producing deals — not by recruiting other agents. No downlines, no referral bonuses, no pyramid." },
+              { q: "What if I&rsquo;m new and only do 3–4 deals a year?", a: "You start at Tier 1 (60/40) with no monthly costs. BearTeam Academy and Scout are yours from day one. Low volume doesn&rsquo;t mean low support." },
+              { q: "What does &ldquo;boutique brokerage&rdquo; actually mean?", a: "It means you know who Beth and Tom are, they know your deals, and you&rsquo;re not a number in a national franchise. Real support from real people." },
+            ].map(({ q, a }, i) => (
+              <Reveal key={i} delay={i * 100}>
+                <div style={{ marginBottom: "36px" }}>
+                  <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0b1d3a", marginBottom: "8px" }} dangerouslySetInnerHTML={{ __html: q }} />
+                  <div style={{ fontSize: "0.95rem", color: "#6b7280", lineHeight: 1.65 }} dangerouslySetInnerHTML={{ __html: a }} />
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      </SlideSection>
 
       {/* ── URGENCY ── */}
-      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "linear-gradient(135deg, #060e1c 0%, #0b1d3a 100%)", textAlign: "center" }}>
-        <Reveal>
-          <h2 style={{ fontSize: "clamp(1.8rem, 3.5vw, 3rem)", fontWeight: 800, color: "#ffffff", marginBottom: "20px", lineHeight: 1.2 }}>
-            Every month you wait costs you
-            <br />
-            <span style={{ color: "#64b5f6" }}>a tier graduation.</span>
-          </h2>
-        </Reveal>
-        <Reveal delay={150}>
-          <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.55)", maxWidth: "480px", margin: "0 auto 40px", lineHeight: 1.65 }}>
-            The math is simple. Start now, hit the cap sooner, earn more on every deal that follows. Scout will walk you through it.
-          </p>
-        </Reveal>
-        <Reveal delay={250}>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <ScoutCTA label="Run My Numbers" />
-          </div>
-        </Reveal>
-      </section>
+      <SlideSection direction="left" style={{ overflow: "hidden" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "linear-gradient(135deg, #060e1c 0%, #0b1d3a 100%)", textAlign: "center" }}>
+          <Reveal>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3.5vw, 3rem)", fontWeight: 800, color: "#ffffff", marginBottom: "20px", lineHeight: 1.2 }}>
+              Every month you wait costs you
+              <br />
+              <span style={{ color: "#64b5f6" }}>a tier graduation.</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={150}>
+            <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.55)", maxWidth: "480px", margin: "0 auto 40px", lineHeight: 1.65 }}>
+              The math is simple. Start now, hit the cap sooner, earn more on every deal that follows. Scout will walk you through it.
+            </p>
+          </Reveal>
+          <Reveal delay={250}>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <ScoutCTA label="Run My Numbers" />
+            </div>
+          </Reveal>
+        </section>
+      </SlideSection>
 
       {/* ── FINAL CTA ── */}
-      <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3", textAlign: "center" }}>
-        <Reveal>
-          <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "16px", lineHeight: 1.15 }}>
-            Stop Guessing. Start Producing.
-          </h2>
-        </Reveal>
-        <Reveal delay={100}>
-          <p style={{ fontSize: "1.05rem", color: "#6b7280", maxWidth: "440px", margin: "0 auto 40px", lineHeight: 1.65 }}>
-            No commitment. You&rsquo;re not joining today — you&rsquo;re starting a conversation with a system that has answers.
-          </p>
-        </Reveal>
-        <Reveal delay={200}>
-          <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
-            <ScoutCTA size="lg" />
-            <a href="#systems" style={{ padding: "14px 32px", fontSize: "1rem", fontWeight: 600, color: "#3b5a82", border: "2px solid #3b5a82", borderRadius: "8px", textDecoration: "none", display: "inline-block" }}>
-              See How It Works
-            </a>
-          </div>
-        </Reveal>
-      </section>
+      <SlideSection direction="right" style={{ overflow: "hidden" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3", textAlign: "center" }}>
+          <Reveal>
+            <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "16px", lineHeight: 1.15 }}>
+              Stop Guessing. Start Producing.
+            </h2>
+          </Reveal>
+          <Reveal delay={100}>
+            <p style={{ fontSize: "1.05rem", color: "#6b7280", maxWidth: "440px", margin: "0 auto 40px", lineHeight: 1.65 }}>
+              No commitment. You&rsquo;re not joining today — you&rsquo;re starting a conversation with a system that has answers.
+            </p>
+          </Reveal>
+          <Reveal delay={200}>
+            <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
+              <ScoutCTA size="lg" />
+              <a href="#systems" style={{ padding: "14px 32px", fontSize: "1rem", fontWeight: 600, color: "#3b5a82", border: "2px solid #3b5a82", borderRadius: "8px", textDecoration: "none", display: "inline-block" }}>
+                See How It Works
+              </a>
+            </div>
+          </Reveal>
+        </section>
+      </SlideSection>
 
       {/* ── FOOTER ── */}
       <footer style={{ background: "#060e1c", padding: "60px 40px", textAlign: "center" }}>
