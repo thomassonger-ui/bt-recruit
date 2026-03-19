@@ -35,6 +35,7 @@ interface SystemPanelProps {
   description: string;
   href: string;
   external?: boolean;
+  videoModal?: string;
   visual: React.ReactNode;
   index: number;
 }
@@ -945,8 +946,9 @@ function AcademyVisual() {
 
 // ─── System Panel (parallax + fade-out per section) ───────────────────────────
 
-function SystemPanel({ label, title, description, href, external, visual, index, isLast }: SystemPanelProps & { isLast?: boolean }) {
+function SystemPanel({ label, title, description, href, external, videoModal, visual, index, isLast }: SystemPanelProps & { isLast?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [showVideo, setShowVideo] = useState(false);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
@@ -1020,7 +1022,105 @@ function SystemPanel({ label, title, description, href, external, visual, index,
           >
             {description}
           </p>
-          {external ? (
+          {videoModal ? (
+            <>
+              <button
+                onClick={() => setShowVideo(true)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "12px 28px",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "0.9rem",
+                  cursor: "pointer",
+                  transition: "background 0.2s ease, border-color 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.08)";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.18)";
+                }}
+              >
+                ▶ Explore {title}
+              </button>
+              {showVideo && (
+                <div
+                  onClick={() => setShowVideo(false)}
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    background: "rgba(0,0,0,0.85)",
+                    zIndex: 9999,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "24px",
+                  }}
+                >
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      maxWidth: "900px",
+                      borderRadius: "16px",
+                      overflow: "hidden",
+                      background: "#000",
+                      boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+                    }}
+                  >
+                    <button
+                      onClick={() => setShowVideo(false)}
+                      style={{
+                        position: "absolute",
+                        top: "12px",
+                        right: "14px",
+                        zIndex: 10,
+                        background: "rgba(0,0,0,0.6)",
+                        border: "none",
+                        color: "#fff",
+                        fontSize: "1.2rem",
+                        width: "32px",
+                        height: "32px",
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: 1,
+                      }}
+                    >
+                      ✕
+                    </button>
+                    <div style={{ position: "relative", paddingBottom: "56.25%", height: 0 }}>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${videoModal}?autoplay=1&rel=0`}
+                        title="Bear Academy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          border: "none",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : external ? (
             <a
               href={href}
               target="_blank"
@@ -1206,7 +1306,8 @@ function SystemShowcase() {
           title="Bear Academy"
           description="A full LMS built on Moodle. Structured 30-60-90 day certification tracks, deal walkthroughs, and ongoing CE — completely free for every Bear Team agent."
           href="https://youtu.be/o8q68ONEMnk"
-          external={true}
+          external={false}
+          videoModal="o8q68ONEMnk"
           visual={<AcademyVisual />}
           isLast={true}
         />
