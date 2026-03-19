@@ -121,7 +121,7 @@ When an agent asks how to join or what the next step is:
 CALL BOOKING SEQUENCE — follow this exact order:
 Step 1 — Agent shows interest in a call but has NOT been qualified yet → ask ONE qualifying question first. Example: "Quick question before we get you on Tom's calendar — how many deals did you close last year and what brokerage are you with now?"
 Step 2 — Agent has been qualified (you know their deal count and current brokerage) AND has given a time/day → ask for name and callback number: "Perfect. What's your name and best number so Tom can confirm?"
-Step 3 — Agent provides name and number → THEN send the Calendly link: "Got it, [Name]. Grab a time here — it goes straight onto Tom's calendar:\nhttps://calendly.com/thomas-songer/60min\nTakes 60 seconds to pick a slot." — NOTHING else after this. Stop there.
+Step 3 — Agent provides name and number → THEN send the Calendly link AND embed a hidden tag on a new line at the very end of your response: [LEAD:[Name]|[phone number]] — replace with actual values, no spaces around pipes. Then your visible response is: "Got it, [Name]. Grab a time here — it goes straight onto Tom's calendar:\nhttps://calendly.com/thomas-songer/60min\nTakes 60 seconds to pick a slot." The [LEAD:] tag must always be included when name and number are collected. It is invisible to the agent.
 Step 4 — Only if the agent asks how to reach Tom directly → provide: Tom Songer | 407-922-9767 | thomas.songer@gmail.com
 Never send the Calendly link before collecting the agent's name and phone number.
 Never skip the qualifying question before asking for name and number.
@@ -349,33 +349,71 @@ export async function POST(req: NextRequest) {
       response.choices[0]?.message?.content ||
       "Something went wrong. Try again.";
 
-    // Detect booking tag and fire notification email
-    const bookingMatch = reply.match(/\[BOOKING:([^|]+)\|([^|]+)\|([^\]]+)\]/);
-    if (bookingMatch) {
-      const [, agentName, agentPhone, callTime] = bookingMatch;
-      // Strip tag from visible reply
-      reply = reply.replace(/\[BOOKING:[^\]]+\]/, "").trim();
-      // Fire booking email (non-blocking)
+    // Detect LEAD tag — fires when Scout collects name + phone
+    const leadMatch = reply.match(/\[LEAD:([^|]+)\|([^\]]+)\]/);
+    if (leadMatch) {
+      const [, agentName, agentPhone] = leadMatch;
+      reply = reply.replace(/\[LEAD:[^\]]+\]/, "").trim();
+
+      // Write to Supabase immediately
+      try {
+        const { createClient } = await import("@supabase/supabase-js");
+        const supabase = createClient(
+          process.env.SUPABASE_URL!,
+          process.env.SUPABASE_ANON_KEY!
+        );
+        await supabase.from("leads").insert({
+          name: agentName.trim(),
+          phone: agentPhone.trim(),
+          status: "scout_captured",
+          notes: "Captured by Scout before Calendly booking",
+        });
+      } catch {
+        // Non-blocking
+      }
+
+      // Email Tom immediately
       try {
         const { Resend } = await import("resend");
         const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
           from: "Scout <onboarding@resend.dev>",
           to: process.env.NOTIFY_EMAIL!,
-          subject: `📞 Call booked — ${agentName} at ${callTime}`,
+          subject: `🎯 New lead — ${agentName.trim()} | Sent to Calendly`,
           html: `
-            <h2 style="color:#0B1D3A;font-family:sans-serif;">Scout booked a call</h2>
-            <table style="font-family:sans-serif;font-size:15px;border-collapse:collapse;">
-              <tr><td style="padding:6px 16px 6px 0;color:#6B7280;">Name</td><td style="padding:6px 0;font-weight:600;">${agentName}</td></tr>
-              <tr><td style="padding:6px 16px 6px 0;color:#6B7280;">Phone</td><td style="padding:6px 0;font-weight:600;">${agentPhone}</td></tr>
-              <tr><td style="padding:6px 16px 6px 0;color:#6B7280;">Time</td><td style="padding:6px 0;font-weight:600;">${callTime}</td></tr>
-            </table>
-            <p style="color:#6B7280;font-size:13px;margin-top:24px;">Booked via Scout on joinbearteam.com</p>
+            <div style="font-family:sans-serif;max-width:480px;">
+              <div style="background:#0B1D3A;padding:20px 24px;border-radius:8px 8px 0 0;">
+                <h2 style="color:#fff;margin:0;font-size:18px;">Scout captured a lead</h2>
+              </div>
+              <div style="border:1px solid #E5E7EB;border-top:none;border-radius:0 0 8px 8px;padding:24px;">
+                <table style="font-size:15px;border-collapse:collapse;width:100%;">
+                  <tr>
+                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Name</td>
+                    <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${agentName.trim()}</td>
+                  </tr>
+                  <tr style="background:#F9FAFB;">
+                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Phone</td>
+                    <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${agentPhone.trim()}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Status</td>
+                    <td style="padding:8px 0;font-weight:600;color:#1B8C3A;">Sent to Calendly to book</td>
+                  </tr>
+                </table>
+                <p style="margin-top:16px;font-size:13px;color:#9CA3AF;">Scout captured this lead on joinbearteam.com — Calendly booking may follow.</p>
+              </div>
+            </div>
           `,
         });
       } catch {
-        // Non-blocking — don't fail the reply if email fails
+        // Non-blocking
       }
+    }
+
+    // Detect BOOKING tag (legacy — kept for safety)
+    const bookingMatch = reply.match(/\[BOOKING:([^|]+)\|([^|]+)\|([^\]]+)\]/);
+    if (bookingMatch) {
+      reply = reply.replace(/\[BOOKING:[^\]]+\]/, "").trim();
     }
 
     return NextResponse.json({
