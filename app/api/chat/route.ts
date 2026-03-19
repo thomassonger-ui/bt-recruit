@@ -119,12 +119,12 @@ When an agent asks how to join or what the next step is:
 - TIME AWARENESS: Be aware of time of day. If an agent says "today" and it is late afternoon or evening (after 4 PM), gently confirm — "It's getting late in the day — does tomorrow morning work better?" Do not book a time that has likely already passed.
 
 CALL BOOKING SEQUENCE — follow this exact order:
-Step 1 — Agent shows interest in a call but has NOT been qualified yet → ask ONE qualifying question first. Example: "Quick question before we get you on Tom's calendar — how many deals did you close last year and what brokerage are you with now?"
-Step 2 — Agent has been qualified (you know their deal count and current brokerage) AND has given a time/day → ask for name and callback number: "Perfect. What's your name and best number so Tom can confirm?"
-Step 3 — Agent provides name and number → THEN send the Calendly link AND embed a hidden tag on a new line at the very end of your response: [LEAD:[Name]|[phone number]] — replace with actual values, no spaces around pipes. Then your visible response is: "Got it, [Name]. Grab a time here — it goes straight onto Tom's calendar:\nhttps://calendly.com/thomas-songer/60min\nTakes 60 seconds to pick a slot." The [LEAD:] tag must always be included when name and number are collected. It is invisible to the agent.
-Step 4 — Only if the agent asks how to reach Tom directly → provide: Tom Songer | 407-922-9767 | thomas.songer@gmail.com
-Never send the Calendly link before collecting the agent's name and phone number.
-Never skip the qualifying question before asking for name and number.
+Step 1 — Agent shows interest in a call but has NOT been qualified → ask ONE qualifying question: "Quick question before I pull up Tom's calendar — how many deals did you close last year and what brokerage are you with now?"
+Step 2 — Agent is qualified → ask: "What's your name, email, and best phone number?"
+Step 3 — Agent provides name, email, phone → show them AVAILABLE SLOTS from Tom's real calendar. These will be injected below as [AVAILABLE_SLOTS]. Present them like: "Here are Tom's open slots — which works for you?" then list them numbered. Ask them to reply with just the number.
+Step 4 — Agent picks a slot number → send them the direct booking URL for that slot AND embed hidden tag: [LEAD:[Name]|[phone]|[email]|[chosen slot label]] — then say: "Locked in. Click here to confirm your spot in 30 seconds: [booking_url] — Tom will see you then."
+Step 5 — Only if agent asks how to reach Tom directly → Tom Songer | 407-922-9767 | thomas.songer@gmail.com
+Never skip name/email/phone before showing slots. Never show slots before qualifying.
 
 ABSOLUTE BEHAVIOR RULES — NEVER VIOLATE:
 1. NEVER end a response with just a link. Always follow with a question or the default close.
@@ -326,14 +326,44 @@ export async function POST(req: NextRequest) {
     else if (context === "operations") systemPrompt = OPERATIONS_PROMPT;
 
     // Inject current time for scheduling awareness (Eastern Time)
-    const now = new Date().toLocaleString("en-US", {
+    const nowDate = new Date();
+    const nowLabel = nowDate.toLocaleString("en-US", {
       timeZone: "America/New_York",
       weekday: "long",
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
-    systemPrompt = `CURRENT TIME (Eastern): ${now}\n\n${systemPrompt}`;
+    systemPrompt = `CURRENT TIME (Eastern): ${nowLabel}\n\n${systemPrompt}`;
+
+    // Inject live Calendly availability for public context
+    if (context === "public") {
+      try {
+        const start = nowDate.toISOString()
+        const end = new Date(nowDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString()
+        const availRes = await fetch(
+          `https://api.calendly.com/event_type_available_times?event_type=${encodeURIComponent("https://api.calendly.com/event_types/9770e03a-6a12-4594-b639-08ffa49da25c")}&start_time=${encodeURIComponent(start)}&end_time=${encodeURIComponent(end)}`,
+          { headers: { Authorization: `Bearer ${process.env.CALENDLY_TOKEN}` } }
+        )
+        const availData = await availRes.json()
+        const slots = (availData.collection || []).slice(0, 6).map((s: {
+          start_time: string; scheduling_url: string
+        }, i: number) => {
+          const dt = new Date(s.start_time)
+          const label = dt.toLocaleString("en-US", {
+            timeZone: "America/New_York",
+            weekday: "short", month: "short", day: "numeric",
+            hour: "numeric", minute: "2-digit", hour12: true,
+          })
+          return `${i + 1}) ${label} → ${s.scheduling_url}`
+        })
+        if (slots.length > 0) {
+          systemPrompt += `\n\n[AVAILABLE_SLOTS]\n${slots.join("\n")}\n[/AVAILABLE_SLOTS]`
+        }
+      } catch {
+        // Non-blocking — Scout continues without slots if Calendly is unavailable
+      }
+    }
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -349,10 +379,10 @@ export async function POST(req: NextRequest) {
       response.choices[0]?.message?.content ||
       "Something went wrong. Try again.";
 
-    // Detect LEAD tag — fires when Scout collects name + phone
-    const leadMatch = reply.match(/\[LEAD:([^|]+)\|([^\]]+)\]/);
+    // Detect LEAD tag — fires when Scout collects name + phone + email + slot
+    const leadMatch = reply.match(/\[LEAD:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+)\]/);
     if (leadMatch) {
-      const [, agentName, agentPhone] = leadMatch;
+      const [, agentName, agentPhone, agentEmail, slotLabel] = leadMatch;
       reply = reply.replace(/\[LEAD:[^\]]+\]/, "").trim();
 
       // Write to Supabase immediately
@@ -365,8 +395,9 @@ export async function POST(req: NextRequest) {
         await supabase.from("leads").insert({
           name: agentName.trim(),
           phone: agentPhone.trim(),
+          email: agentEmail.trim(),
           status: "scout_captured",
-          notes: "Captured by Scout before Calendly booking",
+          notes: `Slot selected: ${slotLabel.trim()}`,
         });
       } catch {
         // Non-blocking
@@ -379,11 +410,11 @@ export async function POST(req: NextRequest) {
         await resend.emails.send({
           from: "Scout <onboarding@resend.dev>",
           to: process.env.NOTIFY_EMAIL!,
-          subject: `🎯 New lead — ${agentName.trim()} | Sent to Calendly`,
+          subject: `🎯 New lead — ${agentName.trim()} | ${slotLabel.trim()}`,
           html: `
             <div style="font-family:sans-serif;max-width:480px;">
               <div style="background:#0B1D3A;padding:20px 24px;border-radius:8px 8px 0 0;">
-                <h2 style="color:#fff;margin:0;font-size:18px;">Scout captured a lead</h2>
+                <h2 style="color:#fff;margin:0;font-size:18px;">Scout booked a call</h2>
               </div>
               <div style="border:1px solid #E5E7EB;border-top:none;border-radius:0 0 8px 8px;padding:24px;">
                 <table style="font-size:15px;border-collapse:collapse;width:100%;">
@@ -396,11 +427,15 @@ export async function POST(req: NextRequest) {
                     <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${agentPhone.trim()}</td>
                   </tr>
                   <tr>
-                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Status</td>
-                    <td style="padding:8px 0;font-weight:600;color:#1B8C3A;">Sent to Calendly to book</td>
+                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Email</td>
+                    <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${agentEmail.trim()}</td>
+                  </tr>
+                  <tr style="background:#F9FAFB;">
+                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Slot</td>
+                    <td style="padding:8px 0;font-weight:600;color:#1B8C3A;">${slotLabel.trim()}</td>
                   </tr>
                 </table>
-                <p style="margin-top:16px;font-size:13px;color:#9CA3AF;">Scout captured this lead on joinbearteam.com — Calendly booking may follow.</p>
+                <p style="margin-top:16px;font-size:13px;color:#9CA3AF;">Agent sent direct booking link to confirm on Calendly.</p>
               </div>
             </div>
           `,
