@@ -282,7 +282,7 @@ export async function POST(req: NextRequest) {
     const urlContext = searchParams.get("context");
 
     const body = await req.json();
-    const { messages, message, context: bodyContext } = body;
+    const { messages, message, context: bodyContext, sessionId, agentEmail } = body;
 
     // Context priority: URL param → request body → default public
     const declaredContext = urlContext || bodyContext || "public";
@@ -335,6 +335,37 @@ export async function POST(req: NextRequest) {
       hour12: true,
     });
     systemPrompt = `CURRENT TIME (Eastern): ${nowLabel}\n\n${systemPrompt}`;
+
+    // Inject prior conversation context for returning agents (public only)
+    if (context === "public" && agentEmail) {
+      try {
+        const { createClient } = await import("@supabase/supabase-js");
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
+        const { data: priorMessages } = await supabase
+          .from("conversations")
+          .select("role, content, created_at, brokerage, deal_count")
+          .eq("email", agentEmail.toLowerCase().trim())
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (priorMessages && priorMessages.length > 0) {
+          const lastSeen = new Date(priorMessages[0].created_at).toLocaleDateString("en-US", {
+            month: "short", day: "numeric", year: "numeric",
+          });
+          const brokerage = priorMessages.find((m) => m.brokerage)?.brokerage || null;
+          const dealCount = priorMessages.find((m) => m.deal_count)?.deal_count || null;
+          const summary = priorMessages
+            .slice(0, 6)
+            .reverse()
+            .map((m) => `${m.role === "user" ? "Agent" : "Scout"}: ${m.content.slice(0, 120)}`)
+            .join("\n");
+
+          systemPrompt = `RETURNING AGENT CONTEXT — ${agentEmail} last spoke with Scout on ${lastSeen}.\n${brokerage ? `Brokerage: ${brokerage}` : ""}\n${dealCount ? `Deals last year: ${dealCount}` : ""}\nRecent exchange:\n${summary}\n\nDo NOT ask questions already answered. Pick up where you left off naturally.\n\n${systemPrompt}`;
+        }
+      } catch {
+        // Non-blocking
+      }
+    }
 
     // Inject live Calendly availability for public context
     if (context === "public") {
@@ -449,6 +480,46 @@ export async function POST(req: NextRequest) {
     const bookingMatch = reply.match(/\[BOOKING:([^|]+)\|([^|]+)\|([^\]]+)\]/);
     if (bookingMatch) {
       reply = reply.replace(/\[BOOKING:[^\]]+\]/, "").trim();
+    }
+
+    // Save conversation to Supabase for memory (public context only)
+    if (context === "public" && sessionId) {
+      try {
+        const { createClient } = await import("@supabase/supabase-js");
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
+
+        // Detect email and brokerage from conversation for enrichment
+        const fullConvo = chatMessages.map((m) => m.content).join(" ").toLowerCase();
+        const emailMatch = fullConvo.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/);
+        const detectedEmail = agentEmail || emailMatch?.[0] || null;
+        const brokerageMatch = fullConvo.match(/\b(kw|keller williams|exp|compass|coldwell|remax|re\/max|lpt|mainframe|exit realty)\b/i);
+        const detectedBrokerage = brokerageMatch?.[0] || null;
+        const dealMatch = fullConvo.match(/(\d+)\s*(deals?|closings?|transactions?)/i);
+        const detectedDeals = dealMatch?.[1] || null;
+
+        // Save last user message + Scout reply
+        const lastMsg = chatMessages[chatMessages.length - 1];
+        if (lastMsg?.role === "user") {
+          await supabase.from("conversations").insert({
+            session_id: sessionId,
+            email: detectedEmail,
+            role: "user",
+            content: lastMsg.content.slice(0, 1000),
+            brokerage: detectedBrokerage,
+            deal_count: detectedDeals,
+          });
+        }
+        await supabase.from("conversations").insert({
+          session_id: sessionId,
+          email: detectedEmail,
+          role: "assistant",
+          content: reply.slice(0, 1000),
+          brokerage: detectedBrokerage,
+          deal_count: detectedDeals,
+        });
+      } catch {
+        // Non-blocking
+      }
     }
 
     return NextResponse.json({

@@ -17,7 +17,9 @@ interface Message {
 
 async function callScoutAPI(
   messages: Message[],
-  context: string
+  context: string,
+  sessionId: string,
+  agentEmail?: string
 ): Promise<string> {
   const res = await fetch("/api/chat", {
     method: "POST",
@@ -25,6 +27,8 @@ async function callScoutAPI(
     body: JSON.stringify({
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
       context,
+      sessionId,
+      agentEmail: agentEmail || null,
     }),
   })
 
@@ -45,6 +49,18 @@ function ChatPageInner() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [agentEmail, setAgentEmail] = useState<string | undefined>(undefined)
+
+  // Stable session ID for this browser session
+  const sessionId = useRef<string>(
+    typeof window !== "undefined"
+      ? (sessionStorage.getItem("scout_session_id") || (() => {
+          const id = crypto.randomUUID();
+          sessionStorage.setItem("scout_session_id", id);
+          return id;
+        })())
+      : crypto.randomUUID()
+  ).current
 
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -98,8 +114,13 @@ function ChatPageInner() {
 
       sendNotification(text)
 
+      // Detect email from conversation for memory
+      const allText = updatedMessages.map((m) => m.content).join(" ");
+      const emailMatch = allText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (emailMatch && !agentEmail) setAgentEmail(emailMatch[0].toLowerCase());
+
       try {
-        const reply = await callScoutAPI(updatedMessages, context)
+        const reply = await callScoutAPI(updatedMessages, context, sessionId, agentEmail || emailMatch?.[0]?.toLowerCase())
         setMessages((prev) => [
           ...prev,
           {
