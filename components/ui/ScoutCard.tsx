@@ -5,29 +5,29 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const conversations = [
   {
-    question: "Write a listing description for my Winter Park home.",
+    question: "I'm at KW and I never hit my cap. Is that normal?",
     answer:
-      "Elegant 3-bedroom residence in the heart of Winter Park featuring updated interiors, natural light throughout, and a spacious backyard ideal for entertaining.",
+      "Very normal. Most KW agents doing 6–14 deals per year never cap. You pay the full split all year, reset, and pay it again. Bear Team's $16K cap is a graduation trigger — hit it and your split improves automatically.",
   },
   {
-    question: "What should I price my listing at?",
+    question: "What would I net at Bear Team vs KW at 8 deals?",
     answer:
-      "Based on 14 comparable sales within 0.8 miles, a competitive range is $410,000–$425,000. Median price per sqft is $192.",
+      "At 8 deals and $415K average: Bear Team nets ~$66,975 after splits and $150 flat fee. KW nets ~$64,000 after the 70/30 split, 6% royalty, and monthly fees. Bear Team wins year 1 — and year 2 you start at Tier 2.",
   },
   {
-    question: "Draft a follow-up message to my buyer.",
+    question: "What are my monthly costs at Bear Team?",
     answer:
-      "Hi Sarah, thank you for visiting the property yesterday. The seller is motivated and I'd love to help you put together a competitive offer.",
+      "$0/month. No desk fees, no tech fees, no royalty. E&O insurance is covered by Bear Team. Your only cost is $150 flat per closing — the same whether the deal is $200K or $2M.",
   },
   {
-    question: "Create a social media post for my new listing.",
+    question: "How long does it take to switch brokerages in Florida?",
     answer:
-      "Just listed! Beautiful home with modern finishes and a private backyard. Priced to move. Message me for details or to schedule a showing.",
+      "One FREC license transfer form. Typically 3–5 business days. You can keep working your active deals the entire time. There's no gap in your license and no interruption to your pipeline.",
   },
   {
-    question: "How is my pipeline performing this quarter?",
+    question: "What does the 90/10 tier look like?",
     answer:
-      "You have 8 active deals worth $2.4M. Your conversion rate is up 12% from last quarter. Two listings need price adjustments.",
+      "Tier 4 — Team Lead level — is 90/10. You hit it at Deal 16 and beyond. The brokerage always earns at every tier, but at 90/10 you're keeping the maximum. No other fees on top.",
   },
 ];
 

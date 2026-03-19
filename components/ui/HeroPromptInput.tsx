@@ -4,24 +4,24 @@ import React, { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 const quickPrompts = [
-  "Write a listing description for a 3-bedroom home in Winter Park",
-  "Create a social media post for a new listing",
-  "Draft a follow-up message to a buyer",
-  "Summarize the Orlando housing market",
-  "Prepare a showing checklist for a buyer client",
+  "What would I net at Bear Team vs where I am now?",
+  "I'm at KW and I never hit my cap. Is that normal?",
+  "What does it cost to join Bear Team?",
+  "How does the $16K cap work?",
+  "I just got my license. Is Bear Team a good first brokerage?",
 ]
 
 const simulatedResponses: Record<string, string> = {
-  "Write a listing description for a 3-bedroom home in Winter Park":
-    "Elegant 3-bedroom residence in the heart of Winter Park featuring updated interiors, natural light throughout, and a spacious backyard ideal for entertaining. Move-in ready with modern finishes and a prime location near shops and dining.",
-  "Create a social media post for a new listing":
-    "Just listed! Beautiful home with modern finishes and a private backyard perfect for entertaining. Priced to move. Message me for details or to schedule a private showing.",
-  "Draft a follow-up message to a buyer":
-    "Hi [Name], thank you for visiting the property yesterday. I wanted to follow up and see if you had any questions. The seller is motivated and I'd love to help you put together a competitive offer. Let me know when you're free to discuss.",
-  "Summarize the Orlando housing market":
-    "The Orlando metro market remains competitive with median home prices around $385,000, up 4.2% year-over-year. Inventory has increased slightly to 2.8 months of supply. Homes in Winter Park and Dr. Phillips are averaging 22 days on market. Interest rates are stabilizing, bringing more buyers back into the market.",
-  "Prepare a showing checklist for a buyer client":
-    "Pre-showing: Confirm appointment time, review listing details and disclosures, prepare comps for the area. During showing: Check roof condition, water pressure, HVAC age, electrical panel, and signs of water damage. Note neighborhood noise levels and natural light. Post-showing: Send follow-up within 2 hours with your assessment and next steps.",
+  "What would I net at Bear Team vs where I am now?":
+    "At 8 deals and a $415K average, you'd net approximately $66,975 at Bear Team after splits and the $150 flat fee — with zero monthly costs. Most agents at KW in that range net around $64,000 after fees. Bear Team wins year 1, and year 2 you start at Tier 2 automatically.",
+  "I'm at KW and I never hit my cap. Is that normal?":
+    "Very normal. Most KW agents doing 6–14 deals per year never hit their cap. You pay the full 70/30 + 6% royalty all year, reset, and pay it again. That's the cap treadmill. Bear Team's $16K cap is a graduation trigger — once the broker collects $16K, your split improves automatically. No reset.",
+  "What does it cost to join Bear Team?":
+    "Zero upfront. Zero monthly fees. Zero desk fees. Zero tech fees. E&O insurance is covered by Bear Team. Your only cost is a flat $150 per closing — same whether the deal is $200K or $2M. That's it.",
+  "How does the $16K cap work?":
+    "The $16K cap is a graduation trigger, not a ceiling. Once Bear Team collects $16K from your deals, you automatically promote to the next tier — 70/30. Keep producing and you move to 80/20, then 90/10. The brokerage earns at every tier. You just keep more as you grow.",
+  "I just got my license. Is Bear Team a good first brokerage?":
+    "Bear Team is one of the best first moves you can make. Zero monthly fees means a slow month costs you nothing. BearTeam Academy covers everything: commission structure, transaction workflow, and compliance — free and self-paced. And Scout is here for questions anytime.",
 }
 
 export default function HeroPromptInput() {
@@ -70,7 +70,7 @@ export default function HeroPromptInput() {
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSubmit("")
           }}
-          placeholder="Ask Scout anything about real estate..."
+          placeholder="Ask Scout about splits, fees, or joining Bear Team..."
           className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted/50 outline-none"
           style={{ fontFamily: "Inter, sans-serif" }}
         />
