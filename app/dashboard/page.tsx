@@ -37,6 +37,7 @@ const STATUS_COLORS: Record<string, string> = {
   booked: "#1B8C3A",
   no_show: "#C62828",
   completed: "#0B1D3A",
+  joined: "#7C3AED",
   unknown: "#9CA3AF",
 }
 
@@ -45,6 +46,7 @@ const STATUS_LABELS: Record<string, string> = {
   booked: "Booked",
   no_show: "No Show",
   completed: "Completed",
+  joined: "Joined",
   unknown: "Unknown",
 }
 
@@ -54,6 +56,29 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [joiningId, setJoiningId] = useState<string | null>(null)
+
+  const markJoined = async (leadId: string) => {
+    if (!confirm("Mark this agent as joined? This will send them a welcome email and alert Tom and Beth.")) return
+    setJoiningId(leadId)
+    try {
+      const res = await fetch("/api/onboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId, pw: password }),
+      })
+      if (res.ok) {
+        alert("Done — welcome email sent to agent, Tom and Beth alerted.")
+        fetchData(password)
+      } else {
+        alert("Something went wrong. Try again.")
+      }
+    } catch {
+      alert("Failed to send.")
+    } finally {
+      setJoiningId(null)
+    }
+  }
 
   const fetchData = useCallback(async (pw: string) => {
     setLoading(true)
@@ -211,14 +236,14 @@ export default function DashboardPage() {
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
               <thead>
                 <tr style={{ background: "#F3F4F6" }}>
-                  {["Date", "Name", "Email", "Phone", "Status", "Notes"].map(h => (
+                  {["Date", "Name", "Email", "Phone", "Status", "Notes", "Action"].map(h => (
                     <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {recentLeads.length === 0 && (
-                  <tr><td colSpan={6} style={{ padding: 20, color: "#9CA3AF", textAlign: "center" }}>No leads yet.</td></tr>
+                  <tr><td colSpan={7} style={{ padding: 20, color: "#9CA3AF", textAlign: "center" }}>No leads yet.</td></tr>
                 )}
                 {recentLeads.map((lead, i) => (
                   <tr key={lead.id} style={{ background: i % 2 === 0 ? "#fff" : "#F9FAFB" }}>
@@ -240,6 +265,26 @@ export default function DashboardPage() {
                     </td>
                     <td style={{ padding: "10px 14px", color: "#6B7280", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {lead.notes || "—"}
+                    </td>
+                    <td style={{ padding: "10px 14px" }}>
+                      {lead.status !== "joined" && lead.email ? (
+                        <button
+                          onClick={() => markJoined(lead.id)}
+                          disabled={joiningId === lead.id}
+                          style={{
+                            background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A",
+                            color: joiningId === lead.id ? "#9CA3AF" : "#fff",
+                            border: "none", borderRadius: 6,
+                            padding: "6px 12px", fontSize: 12, fontWeight: 600,
+                            cursor: joiningId === lead.id ? "default" : "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {joiningId === lead.id ? "Sending..." : "Mark Joined"}
+                        </button>
+                      ) : lead.status === "joined" ? (
+                        <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
+                      ) : null}
                     </td>
                   </tr>
                 ))}
