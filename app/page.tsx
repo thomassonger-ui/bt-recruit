@@ -391,22 +391,22 @@ function Card3_IntroducingScout() {
     <div style={{ width:"100%", height:"100%", background:"#f0f1f3", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column", position:"relative" }}>
       <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(107,114,128,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(107,114,128,0.08) 1px, transparent 1px)", backgroundSize:"40px 40px" }} />
       <div style={{ position:"relative", zIndex:1, padding:"28px 24px 20px", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:"1.4rem", fontWeight:800, color:"#111", marginBottom:4 }}>Introducing Scout</div>
-        <div style={{ fontSize:"0.65rem", color:"#3b5a82", fontWeight:600, marginBottom:10 }}>BearTeam AI Assistant</div>
-        <div style={{ fontSize:"0.62rem", color:"#374151", lineHeight:1.6, marginBottom:14 }}>Most agents don&rsquo;t lose deals because of skill.<br />They lose them because of broken systems.</div>
+        <div style={{ fontSize:"1.4rem", fontWeight:800, color:"#111", marginBottom:4 }}>Meet Scout</div>
+        <div style={{ fontSize:"0.65rem", color:"#3b5a82", fontWeight:600, marginBottom:10 }}>AI Built Exclusively for Bear Team</div>
+        <div style={{ fontSize:"0.62rem", color:"#374151", lineHeight:1.6, marginBottom:14 }}>Not a generic platform. Not a copy.<br />Designed and developed exclusively for Bear Team agents.</div>
         <div style={{ background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"8px 12px", display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
           <span style={{ fontSize:"0.56rem", color:"#9ca3af", flex:1 }}>Ask Scout about splits, fees, or joining Bear Team...</span>
           <div style={{ width:24, height:24, borderRadius:6, background:"#3b5a82", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ color:"#fff", fontSize:"0.5rem" }}>➤</span></div>
         </div>
         {[
-          "What's my split if I close 10 deals this year?",
-          "How does Bear Team compare to eXp?",
-          "What are my monthly costs at Bear Team?",
+          "What would I net at Bear Team vs where I am now?",
+          "I'm at KW and I never hit my cap. Is that normal?",
+          "How does the $16K cap work?",
         ].map((p,i) => (
           <div key={i} style={{ fontSize:"0.52rem", color:"#6b7280", padding:"4px 8px", background:"rgba(255,255,255,0.7)", borderRadius:5, marginBottom:4, border:"1px solid #e5e7eb" }}>{p}</div>
         ))}
         <div style={{ display:"flex", gap:8, marginTop:4, flexWrap:"wrap" }}>
-          {["Summarize the Orlando housing market","Prepare a showing checklist for a buyer client"].map((p,i) => (
+          {["What does it cost to join Bear Team?","I just got my license. Is Bear Team a good fit?"].map((p,i) => (
             <div key={i} style={{ fontSize:"0.52rem", color:"#6b7280", padding:"4px 8px", background:"rgba(255,255,255,0.7)", borderRadius:5, border:"1px solid #e5e7eb" }}>{p}</div>
           ))}
         </div>
@@ -572,16 +572,16 @@ function HeroParallax() {
         }}>
           <HeroFade delay={0}>
             <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#1a1a1a", marginBottom: "20px", letterSpacing: "-0.02em" }}>
-              A Real Estate System
+              Built Exclusively for
               <br />
               <span style={{ color: "#3b5a82" }}>
-                That Tells You What To Do Next
+                Bear Team Agents
               </span>
             </h1>
           </HeroFade>
           <HeroFade delay={150}>
             <p style={{ fontSize: "1.15rem", color: "#6b7280", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.65 }}>
-              Most agents guess. Bear Team removes that. Zero fees, progressive splits, and Scout AI working for you from day one.
+              Scout is not a generic AI tool. It was designed and built from the ground up for Bear Team — to improve every agent's productivity, consistency, and results from day one.
             </p>
           </HeroFade>
           <HeroFade delay={300}>
