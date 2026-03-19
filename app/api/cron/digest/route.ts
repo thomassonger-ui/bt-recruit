@@ -75,3 +75,4 @@ export async function GET(req: Request) {
 
   return NextResponse.json({ ok: true, leads: count })
 }
+// cron deploy trigger Thu Mar 19 01:14:49 EDT 2026
