@@ -1603,7 +1603,7 @@ export default function HomePage() {
             <path d="M0 28V17.2C0 12.533 1.067 8.667 3.2 5.6C5.333 2.533 8.533 0.8 12.8 0L14.4 3.2C11.733 3.867 9.733 5.2 8.4 7.2C7.067 9.2 6.4 11.467 6.4 14H12.8V28H0ZM22.4 28V17.2C22.4 12.533 23.467 8.667 25.6 5.6C27.733 2.533 30.933 0.8 35.2 0L36.8 3.2C34.133 3.867 32.133 5.2 30.8 7.2C29.467 9.2 28.8 11.467 28.8 14H35.2V28H22.4Z" fill="white"/>
           </svg>
           <p style={{ fontSize: "1.25rem", lineHeight: 1.7, color: "#ffffff", fontStyle: "italic", margin: "0 0 32px", fontWeight: 400 }}>
-            "I built this model because I was tired of watching good agents pay into a cap they never hit. I'm the Team Lead here at 90/10. The structure works because I designed it to reward production — mine included."
+            "I built this model because I was tired of watching good agents pay into a cap they never hit. I've been on both sides of this. I know what it feels like to close a deal and do the math on what you actually kept. The structure works because I designed it to reward production."
           </p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px" }}>
             <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#1B8C3A", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "1.1rem", color: "#fff" }}>TS</div>
