@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
             <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:20px;margin:20px 0;">
               <p style="margin:0 0 12px;font-weight:700;color:#0B1D3A;">Step 1 — License Transfer Form</p>
-              <p style="margin:0;color:#374151;">You'll need to complete a license transfer with FREC. Beth will send you the form directly. It takes 3–5 business days. You can keep working your current deals the entire time — nothing stops.</p>
+              <p style="margin:0;color:#374151;">You'll need to complete a license transfer with FREC. Veronica will send you the form directly. It takes 3–5 business days. You can keep working your current deals the entire time — nothing stops.</p>
             </div>
 
             <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:20px;margin:20px 0;">
@@ -77,10 +77,10 @@ export async function POST(req: NextRequest) {
       `,
     })
 
-    // 2. Alert Tom and Beth
+    // 2. Alert Tom and Veronica
     await resend.emails.send({
       from: "Scout <onboarding@resend.dev>",
-      to: process.env.NOTIFY_EMAIL!,
+      to: [process.env.NOTIFY_EMAIL!, "veronica@bearteam.com"],
       subject: `New agent joined — ${lead.name}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;">
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
             </table>
             <div style="margin-top:20px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;padding:16px;">
               <p style="margin:0;font-size:14px;font-weight:600;color:#166534;">Next step</p>
-              <p style="margin:8px 0 0;font-size:14px;color:#374151;">Send ${firstName} the FREC license transfer form. Welcome email already sent to ${lead.email}.</p>
+              <p style="margin:8px 0 0;font-size:14px;color:#374151;"><strong>Veronica</strong> — please send ${firstName} the FREC license transfer form. Welcome email already sent to ${lead.email}.</p>
             </div>
             <p style="margin-top:16px;font-size:13px;color:#9CA3AF;">Triggered from Scout dashboard · Bear Team Real Estate</p>
           </div>
