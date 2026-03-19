@@ -395,13 +395,13 @@ function Card3_IntroducingScout() {
         <div style={{ fontSize:"0.65rem", color:"#3b5a82", fontWeight:600, marginBottom:10 }}>BearTeam AI Assistant</div>
         <div style={{ fontSize:"0.62rem", color:"#374151", lineHeight:1.6, marginBottom:14 }}>Most agents don&rsquo;t lose deals because of skill.<br />They lose them because of broken systems.</div>
         <div style={{ background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"8px 12px", display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-          <span style={{ fontSize:"0.56rem", color:"#9ca3af", flex:1 }}>Ask Scout anything about real estate...</span>
+          <span style={{ fontSize:"0.56rem", color:"#9ca3af", flex:1 }}>Ask Scout about splits, fees, or joining Bear Team...</span>
           <div style={{ width:24, height:24, borderRadius:6, background:"#3b5a82", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ color:"#fff", fontSize:"0.5rem" }}>➤</span></div>
         </div>
         {[
-          "Write a listing description for a 3-bedroom home in Winter Park",
-          "Create a social media post for a new listing",
-          "Draft a follow-up message to a buyer",
+          "What's my split if I close 10 deals this year?",
+          "How does Bear Team compare to eXp?",
+          "What are my monthly costs at Bear Team?",
         ].map((p,i) => (
           <div key={i} style={{ fontSize:"0.52rem", color:"#6b7280", padding:"4px 8px", background:"rgba(255,255,255,0.7)", borderRadius:5, marginBottom:4, border:"1px solid #e5e7eb" }}>{p}</div>
         ))}
@@ -421,7 +421,7 @@ function Card4_ScoutInAction() {
     <div style={{ width:"100%", height:"100%", background:"#fff", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column", padding:"22px 24px" }}>
       <div style={{ fontSize:"0.5rem", fontWeight:700, letterSpacing:"0.14em", textTransform:"uppercase", color:"#9ca3af", marginBottom:5 }}>AI-POWERED</div>
       <div style={{ fontSize:"1.2rem", fontWeight:800, color:"#111", marginBottom:4 }}>Scout in Action</div>
-      <div style={{ fontSize:"0.6rem", color:"#6b7280", marginBottom:16 }}>Scout assists agents with marketing, communication, and daily workflow tasks.</div>
+      <div style={{ fontSize:"0.6rem", color:"#6b7280", marginBottom:16 }}>Ask Scout anything about splits, fees, or what joining Bear Team looks like for you.</div>
       <div style={{ flex:1, background:"#fff", borderRadius:14, border:"1px solid #e5e7eb", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 2px 16px rgba(0,0,0,0.07)" }}>
         <div style={{ padding:"12px 16px", borderBottom:"1px solid #f3f4f6", display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
           <div style={{ width:26, height:26, borderRadius:"50%", background:"#3b5a82", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.55rem", color:"#fff", fontWeight:700 }}>S</div>
@@ -430,16 +430,16 @@ function Card4_ScoutInAction() {
         </div>
         <div style={{ flex:1, padding:"14px 16px", display:"flex", flexDirection:"column", gap:10, overflow:"hidden" }}>
           <div style={{ display:"flex", justifyContent:"flex-end" }}>
-            <div style={{ maxWidth:"70%", padding:"10px 14px", background:"#3b5a82", borderRadius:"14px 14px 4px 14px", color:"#fff", fontSize:"0.58rem", lineHeight:1.5 }}>Scout, write a listing description for a 3 bedroom home in Winter Park.</div>
+            <div style={{ maxWidth:"70%", padding:"10px 14px", background:"#3b5a82", borderRadius:"14px 14px 4px 14px", color:"#fff", fontSize:"0.58rem", lineHeight:1.5 }}>I&rsquo;m at KW doing about 8 deals a year. What would I net at Bear Team?</div>
           </div>
           <div style={{ display:"flex", justifyContent:"flex-start" }}>
-            <div style={{ maxWidth:"74%", padding:"10px 14px", background:"#f3f4f6", borderRadius:"14px 14px 14px 4px", color:"#374151", fontSize:"0.58rem", lineHeight:1.55 }}>Elegant 3-bedroom residence in the heart of Winter Park featuring updated interiors, natural light throughout, and a spacious backyard ideal for entertaining. Move-in ready with modern finishes.</div>
+            <div style={{ maxWidth:"74%", padding:"10px 14px", background:"#f3f4f6", borderRadius:"14px 14px 14px 4px", color:"#374151", fontSize:"0.58rem", lineHeight:1.55 }}>At 8 deals and $415K avg, you&rsquo;d net ~$53,700 at Bear Team vs ~$51,200 at KW — and that&rsquo;s before your monthly fee savings. Year 2 you start at Tier 2 automatically.</div>
           </div>
           <div style={{ display:"flex", justifyContent:"flex-end" }}>
-            <div style={{ maxWidth:"62%", padding:"10px 14px", background:"#3b5a82", borderRadius:"14px 14px 4px 14px", color:"#fff", fontSize:"0.58rem", lineHeight:1.5 }}>What pricing strategy would you recommend?</div>
+            <div style={{ maxWidth:"62%", padding:"10px 14px", background:"#3b5a82", borderRadius:"14px 14px 4px 14px", color:"#fff", fontSize:"0.58rem", lineHeight:1.5 }}>What are my monthly costs?</div>
           </div>
           <div style={{ display:"flex", justifyContent:"flex-start" }}>
-            <div style={{ maxWidth:"74%", padding:"10px 14px", background:"#f3f4f6", borderRadius:"14px 14px 14px 4px", color:"#374151", fontSize:"0.58rem", lineHeight:1.55 }}>Based on 14 comparable sales within 0.8 miles, a competitive range is $410,000–$425,000. At $415k you&rsquo;d generate multiple offers within 18 days.</div>
+            <div style={{ maxWidth:"74%", padding:"10px 14px", background:"#f3f4f6", borderRadius:"14px 14px 14px 4px", color:"#374151", fontSize:"0.58rem", lineHeight:1.55 }}>$0/month. No desk fees, no tech fees, no royalty. Your only cost is $150 flat per closing. E&amp;O is covered by Bear Team.</div>
           </div>
         </div>
         <div style={{ padding:"10px 14px", borderTop:"1px solid #f3f4f6", display:"flex", gap:8, flexShrink:0 }}>
@@ -457,7 +457,7 @@ function Card5_ScoutTryIt() {
     <div style={{ width:"100%", height:"100%", background:"#fff", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 30px" }}>
       <div style={{ fontSize:"0.55rem", color:"#9ca3af", fontWeight:600, letterSpacing:"0.14em", textTransform:"uppercase", marginBottom:8 }}>TRY IT NOW</div>
       <div style={{ fontSize:"1.3rem", fontWeight:800, color:"#111", marginBottom:6, textAlign:"center" }}>See What Scout Can Do</div>
-      <div style={{ fontSize:"0.6rem", color:"#6b7280", marginBottom:22, textAlign:"center" }}>Click generate and watch Scout write a listing description in seconds.</div>
+      <div style={{ fontSize:"0.6rem", color:"#6b7280", marginBottom:22, textAlign:"center" }}>Ask Scout the question every agent wants answered before they switch.</div>
       <div style={{ width:"100%", background:"#fff", border:"1px solid #e5e7eb", borderRadius:12, padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
           <div style={{ width:22, height:22, borderRadius:"50%", background:"#f3f4f6", border:"1px solid #e5e7eb", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -465,8 +465,8 @@ function Card5_ScoutTryIt() {
           </div>
           <span style={{ fontSize:"0.62rem", fontWeight:600, color:"#374151" }}>Scout AI</span>
         </div>
-        <div style={{ fontSize:"0.58rem", color:"#6b7280", marginBottom:12 }}>Choose a task to see Scout in action:</div>
-        {["Write a listing description","Draft a follow-up message","Organize my daily workflow"].map((task,i) => (
+        <div style={{ fontSize:"0.58rem", color:"#6b7280", marginBottom:12 }}>Common questions Scout answers instantly:</div>
+        {["What's my split at 8 deals?","How do I compare to KW?","What does joining cost?"].map((task,i) => (
           <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", background:"#f3f4f6", borderRadius:10, marginBottom:8 }}>
             <div style={{ width:8, height:8, borderRadius:"50%", background:"#3b5a82", flexShrink:0 }} />
             <span style={{ fontSize:"0.6rem", color:"#374151" }}>{task}</span>
@@ -570,7 +570,7 @@ function HeroParallax() {
           border: "1px solid rgba(255,255,255,0.6)",
           boxShadow: "0 8px 40px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.8) inset",
         }}>
-          <HeroFade delay={200}>
+          <HeroFade delay={0}>
             <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#1a1a1a", marginBottom: "20px", letterSpacing: "-0.02em" }}>
               A Real Estate System
               <br />
@@ -579,12 +579,12 @@ function HeroParallax() {
               </span>
             </h1>
           </HeroFade>
-          <HeroFade delay={350}>
+          <HeroFade delay={150}>
             <p style={{ fontSize: "1.15rem", color: "#6b7280", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.65 }}>
               Most agents guess. Bear Team removes that. Zero fees, progressive splits, and Scout AI working for you from day one.
             </p>
           </HeroFade>
-          <HeroFade delay={500}>
+          <HeroFade delay={300}>
             <div style={{ display: "flex", justifyContent: "center" }}>
               <ScoutCTA size="lg" />
             </div>
@@ -945,18 +945,18 @@ function AcademyVisual() {
 
 // ─── System Panel (parallax + fade-out per section) ───────────────────────────
 
-function SystemPanel({ label, title, description, href, external, visual, index }: SystemPanelProps) {
+function SystemPanel({ label, title, description, href, external, visual, index, isLast }: SystemPanelProps & { isLast?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
   });
 
-  // Fade in as it enters, fade out as it exits
+  // Fade in as it enters; only fade out on exit if not the last panel
   const opacity = useTransform(
     scrollYProgress,
     [0, 0.15, 0.5, 0.85, 1],
-    [0, 1, 1, 1, 0]
+    isLast ? [0, 1, 1, 1, 1] : [0, 1, 1, 1, 0]
   );
   // Subtle vertical parallax on the visual
   const visualY = useTransform(scrollYProgress, [0, 1], [40, -40]);
@@ -1101,6 +1101,7 @@ function SystemShowcase() {
         background: "linear-gradient(180deg, #060e1c 0%, #081528 50%, #060e1c 100%)",
         position: "relative",
         overflow: "hidden",
+        paddingBottom: "80px",
       }}
     >
       {/* Subtle grid */}
@@ -1207,6 +1208,7 @@ function SystemShowcase() {
           href="https://youtu.be/o8q68ONEMnk"
           external={true}
           visual={<AcademyVisual />}
+          isLast={true}
         />
       </div>
 
@@ -1222,7 +1224,7 @@ export default function HomePage() {
       id="top"
       style={{
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        background: "#f0f1f3",
+        background: "#f0f3f8",
         color: "#1a1a1a",
       }}
     >
@@ -1285,7 +1287,7 @@ export default function HomePage() {
 
       {/* ── PROBLEM ── */}
 
-        <section style={{ padding: "clamp(48px,8vw,100px) clamp(20px,5vw,40px)", background: "#f0f1f3", position: "relative", overflow: "hidden" }}>
+        <section style={{ padding: "clamp(48px,8vw,100px) clamp(20px,5vw,40px)", background: "#f0f3f8", position: "relative", overflow: "hidden" }}>
           {/* Ghost number background */}
           <div style={{ position: "absolute", right: "clamp(-20px, 2vw, 40px)", top: "50%", transform: "translateY(-50%)", fontSize: "clamp(180px, 22vw, 320px)", fontWeight: 900, color: "rgba(220,38,38,0.04)", lineHeight: 1, pointerEvents: "none", userSelect: "none", letterSpacing: "-0.06em" }}>01</div>
           <div style={{ maxWidth: "760px", margin: "0 auto", position: "relative", zIndex: 1 }}>
@@ -1417,7 +1419,7 @@ export default function HomePage() {
 
       {/* ── DAY-TO-DAY ── */}
 
-        <section style={{ padding: "clamp(60px,9vw,100px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
+        <section style={{ padding: "clamp(60px,9vw,100px) clamp(20px,5vw,40px)", background: "#f0f3f8" }}>
           <div style={{ maxWidth: "860px", margin: "0 auto" }}>
             <Reveal>
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
@@ -1493,7 +1495,7 @@ export default function HomePage() {
 
       {/* ── DIFFERENTIATION ── */}
 
-        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f3f8" }}>
           <div style={{ maxWidth: "900px", margin: "0 auto" }}>
             <Reveal>
               <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center" }}>Traditional vs. Bear Team</h2>
@@ -1574,7 +1576,7 @@ export default function HomePage() {
 
       {/* ── FINAL CTA ── */}
 
-        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f1f3", textAlign: "center" }}>
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f3f8", textAlign: "center" }}>
           <Reveal>
             <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "16px", lineHeight: 1.15 }}>
               Stop Guessing. Start Producing.
