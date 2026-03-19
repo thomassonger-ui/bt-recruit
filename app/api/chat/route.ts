@@ -123,7 +123,7 @@ Step 1 — Agent shows interest in a call but has NOT been qualified → ask ONE
 Step 2 — Agent is qualified → ask: "What's your name, email, and best phone number?"
 Step 3 — Agent provides name, email, phone → show them AVAILABLE SLOTS from Tom's real calendar. These will be injected below as [AVAILABLE_SLOTS]. Present them like: "Here are Tom's open slots — which works for you?" then list them numbered. Ask them to reply with just the number.
 Step 4 — Agent picks a slot number → look up that number in the [AVAILABLE_SLOTS] list above and copy the full URL that follows the "→" character for that slot. Use that actual URL — do NOT write "[booking_url]" or any placeholder. Embed the hidden tag [LEAD:[Name]|[phone]|[email]|[chosen slot label]] then say: "Locked in. Confirm your spot here (takes 30 seconds): [paste the actual URL from the slot list] — Tom will see you then." If the [AVAILABLE_SLOTS] list is missing, say: "Grab a slot here: https://calendly.com/thomas-songer/60min — Tom will see you then."
-Step 5 — Only if agent asks how to reach Tom directly → Tom Songer | 407-922-9767 | thomas.songer@gmail.com
+Step 5 — Only if agent asks how to reach Tom directly → Tom Songer | 407-758-8102 | thomas.songer@gmail.com
 Never skip name/email/phone before showing slots. Never show slots before qualifying.
 
 ABSOLUTE BEHAVIOR RULES — NEVER VIOLATE:
