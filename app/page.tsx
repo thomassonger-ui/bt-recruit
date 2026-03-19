@@ -466,7 +466,7 @@ function Card5_ScoutTryIt() {
           <span style={{ fontSize:"0.62rem", fontWeight:600, color:"#374151" }}>Scout AI</span>
         </div>
         <div style={{ fontSize:"0.58rem", color:"#6b7280", marginBottom:12 }}>Common questions Scout answers instantly:</div>
-        {["What's my split at 8 deals?","How do I compare to KW?","What does joining cost?"].map((task,i) => (
+        {["I closed 8 deals last year. What tier would I be in?","What does it cost to join Bear Team?","What's the difference between Bear Team and eXp?"].map((task,i) => (
           <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", background:"#f3f4f6", borderRadius:10, marginBottom:8 }}>
             <div style={{ width:8, height:8, borderRadius:"50%", background:"#3b5a82", flexShrink:0 }} />
             <span style={{ fontSize:"0.6rem", color:"#374151" }}>{task}</span>
@@ -498,10 +498,10 @@ function Card6_ScoutFull() {
         </div>
         <div style={{ flex:1, padding:"0 18px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, overflow:"hidden" }}>
           {[
-            "Scout, write an MLS listing for a 3-bed in Winter Park with an updated kitchen.",
-            "Scout, create a social media post announcing a new listing in Baldwin Park.",
-            "Scout, summarize the key selling points so I can present to buyers quickly.",
-            "Scout, write an email introducing this listing to potential buyers.",
+            "I'm at KW and I never hit my cap. Is that normal?",
+            "What would I actually net at Bear Team vs where I am now?",
+            "How long does it take to switch brokerages in Florida?",
+            "I just got my license. Is Bear Team a good first brokerage?",
           ].map((p,i) => (
             <div key={i} style={{ background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"8px 10px", fontSize:"0.5rem", color:"#374151", lineHeight:1.5 }}>{p}</div>
           ))}
@@ -700,7 +700,7 @@ function ScoutVisual() {
       {/* Suggested prompts — only show when just the greeting is visible */}
       {messages.length === 1 && (
         <div style={{ padding: "0 18px 12px", display: "flex", gap: "8px", flexWrap: "wrap", flexShrink: 0 }}>
-          {["What's my split at 8 deals?", "How do I compare to KW?", "What does joining cost?"].map(q => (
+          {["I want to see the math before I commit.", "I'm tired of paying monthly fees.", "How does the $16K cap work?"].map(q => (
             <button key={q} onClick={() => { setInput(q); }} style={{ padding: "6px 12px", background: "rgba(59,90,130,0.2)", border: "1px solid rgba(59,90,130,0.4)", borderRadius: "20px", color: "rgba(255,255,255,0.65)", fontSize: "0.72rem", cursor: "pointer", whiteSpace: "nowrap" }}>
               {q}
             </button>
