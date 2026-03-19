@@ -1609,7 +1609,7 @@ export default function HomePage() {
             <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#1B8C3A", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "1.1rem", color: "#fff" }}>TS</div>
             <div style={{ textAlign: "left" }}>
               <div style={{ color: "#ffffff", fontWeight: 700, fontSize: "0.95rem" }}>Tom Songer</div>
-              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.82rem" }}>Team Lead · Bear Team Real Estate · 90/10 Tier</div>
+              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.82rem" }}>Team Lead · Bear Team Real Estate</div>
             </div>
           </div>
         </div>
