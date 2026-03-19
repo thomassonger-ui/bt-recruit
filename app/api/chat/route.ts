@@ -340,7 +340,7 @@ export async function POST(req: NextRequest) {
     if (context === "public") {
       try {
         const start = nowDate.toISOString()
-        const end = new Date(nowDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString()
+        const end = new Date(nowDate.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString()
         const availRes = await fetch(
           `https://api.calendly.com/event_type_available_times?event_type=${encodeURIComponent("https://api.calendly.com/event_types/9770e03a-6a12-4594-b639-08ffa49da25c")}&start_time=${encodeURIComponent(start)}&end_time=${encodeURIComponent(end)}`,
           { headers: { Authorization: `Bearer ${process.env.CALENDLY_TOKEN}` } }
