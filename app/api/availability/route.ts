@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 
 // ─── AVAILABILITY ROUTE ───────────────────────────────────────────────────────
-// Fetches real available time slots from Calendly for Tom's 60min event
+// Fetches real available time slots from Calendly for Bear Team Meet recruiting call
 // Called by the chat route to inject live availability into Scout's context
 
 const CALENDLY_TOKEN = process.env.CALENDLY_TOKEN!
-const EVENT_TYPE_URI = "https://api.calendly.com/event_types/9770e03a-6a12-4594-b639-08ffa49da25c"
+const EVENT_TYPE_URI = "https://api.calendly.com/event_types/327f388a-0296-4a2b-960d-4e6f6fb93044"
 const USER_URI = "https://api.calendly.com/users/c25d94e3-b7dd-4323-80e1-c6887c55aae3"
 
 export async function GET(req: NextRequest) {
