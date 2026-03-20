@@ -5,7 +5,8 @@ import { useState, useEffect, useCallback } from "react"
 interface StageData { count: number; value: number; weighted: number }
 interface FunnelStage { name: string; count: number; dropoff: number; dropoffRate: number; lostValue: number }
 interface StalledLead { id: string; name: string; email: string; phone: string; stage: string; brokerage: string; deal_count: number; last_activity: string; days_stalled: number; estimated_value: number; drip_step: number }
-interface SourceData { leads: number; booked: number; joined: number }
+interface SourceData { leads: number; booked: number; joined: number; gciValue: number }
+interface RTBucket { bucket: string; label: string; total: number; booked: number; bookRate: number; joinRate: number }
 
 interface DashboardData {
   summary: { totalLeads: number; weekLeads: number; monthLeads: number; uniqueSessions: number; convCount: number }
@@ -13,9 +14,10 @@ interface DashboardData {
   statusCounts: Record<string, number>
   recentLeads: { id: string; created_at: string; name: string; email: string; phone: string; status: string; notes: string; event_start: string | null }[]
   pipeline: { totalValue: number; weightedValue: number; closedWonValue: number; byStage: Record<string, StageData>; activeCount: number }
+  forecast: { d30: { agents: number; gci: number }; d60: { agents: number; gci: number }; d90: { agents: number; gci: number }; monthlyLeadRate: number; zeroRecruitingNote: string }
   funnelLeaks: { stages: FunnelStage[]; biggestLeak: string; biggestLeakDropoff: number; biggestLeakValue: number }
-  responseTime: { avgDisplay: string; avgMinutes: number; buckets: Record<string, number>; sampleSize: number }
-  sourceAttribution: { breakdown: Record<string, SourceData>; bestSource: string; bestSourceConvRate: number }
+  responseTime: { avgDisplay: string; avgMinutes: number; correlation: RTBucket[]; speedMultiplier: number | null; sampleSize: number }
+  sourceAttribution: { breakdown: Record<string, SourceData>; bestSource: string; bestSourceConvRate: number; bestSourceByValue: string; bestSourceGCI: number }
   stalledLeads: { leads: StalledLead[]; totalCount: number; totalValue: number }
   weeklyTrend: { week: string; leads: number }[]
 }
@@ -98,7 +100,7 @@ export default function DashboardPage() {
   }
 
   if (!data) return null
-  const { summary, funnel, statusCounts, recentLeads, pipeline, funnelLeaks, responseTime, sourceAttribution, stalledLeads, weeklyTrend } = data
+  const { summary, funnel, statusCounts, recentLeads, pipeline, forecast, funnelLeaks, responseTime, sourceAttribution, stalledLeads, weeklyTrend } = data
   const maxWeeklyLeads = Math.max(...(weeklyTrend || []).map(w => w.leads), 1)
 
   const tabStyle = (tab: string) => ({
@@ -192,26 +194,51 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
-              {/* Response time */}
+              {/* Response time + correlation */}
               <div style={{ background: "#fff", borderRadius: 10, padding: "22px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>Avg Response Time</div>
-                <div style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 14 }}>Lead captured → call booked</div>
-                <div style={{ fontSize: 38, fontWeight: 700, color: (responseTime?.avgMinutes || 999) < 240 ? "#1B8C3A" : "#C62828", marginBottom: 14 }}>
-                  {responseTime?.avgDisplay || "—"}
-                </div>
-                {Object.entries(responseTime?.buckets || {}).map(([bucket, count]) => (
-                  <div key={bucket} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
-                    <span style={{ color: "#6B7280" }}>{bucket === "under1hr" ? "< 1 hour" : bucket === "under4hr" ? "1–4 hours" : bucket === "under24hr" ? "4–24 hours" : "> 24 hours"}</span>
-                    <span style={{ fontWeight: 600, color: "#0B1D3A" }}>{count as number}</span>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>Speed-to-Lead Correlation</div>
+                <div style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 14 }}>Faster response = higher booking rate</div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 14 }}>
+                  <div style={{ fontSize: 36, fontWeight: 700, color: (responseTime?.avgMinutes || 999) < 240 ? "#1B8C3A" : "#C62828" }}>
+                    {responseTime?.avgDisplay || "—"}
                   </div>
-                ))}
-                <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 8 }}>Based on {responseTime?.sampleSize || 0} leads</div>
+                  <div style={{ fontSize: 12, color: "#6B7280" }}>avg response</div>
+                </div>
+                {responseTime?.speedMultiplier && (
+                  <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 6, padding: "8px 12px", marginBottom: 12, fontSize: 12, color: "#166534", fontWeight: 600 }}>
+                    Leads booked in &lt;1hr convert {responseTime.speedMultiplier}x more than &gt;24hr leads
+                  </div>
+                )}
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+                  <thead>
+                    <tr style={{ background: "#F9FAFB" }}>
+                      {["Response", "Leads", "Booked", "Rate"].map(h => (
+                        <th key={h} style={{ padding: "6px 8px", textAlign: "left", color: "#9CA3AF", fontWeight: 600 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(responseTime?.correlation || []).filter(r => r.total > 0).map(r => (
+                      <tr key={r.bucket} style={{ borderBottom: "1px solid #F3F4F6" }}>
+                        <td style={{ padding: "6px 8px", color: "#374151" }}>{r.label}</td>
+                        <td style={{ padding: "6px 8px", color: "#374151" }}>{r.total}</td>
+                        <td style={{ padding: "6px 8px", color: "#374151" }}>{r.booked}</td>
+                        <td style={{ padding: "6px 8px", fontWeight: 700, color: r.bookRate >= 50 ? "#1B8C3A" : r.bookRate >= 25 ? "#E6A817" : "#C62828" }}>{r.bookRate}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Source attribution */}
+              {/* Source attribution + GCI value */}
               <div style={{ background: "#fff", borderRadius: 10, padding: "22px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>Source Attribution</div>
-                <div style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 16 }}>Lead source → booking rate</div>
+                <div style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 16 }}>Booking rate + GCI value by source</div>
+                {sourceAttribution?.bestSourceGCI > 0 && (
+                  <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 6, padding: "8px 12px", marginBottom: 12, fontSize: 12, color: "#1e40af", fontWeight: 600 }}>
+                    Best ROI source: {sourceAttribution.bestSourceByValue} ({fmt$(sourceAttribution.bestSourceGCI)} GCI produced)
+                  </div>
+                )}
                 {Object.entries(sourceAttribution?.breakdown || {}).map(([source, d]) => {
                   const src = d as SourceData
                   const convRate = src.leads > 0 ? Math.round((src.booked / src.leads) * 100) : 0
@@ -219,7 +246,7 @@ export default function DashboardPage() {
                     <div key={source} style={{ marginBottom: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
                         <span style={{ color: "#374151", fontWeight: 500 }}>{source}</span>
-                        <span style={{ color: "#6B7280" }}>{src.leads} · {convRate}% booked</span>
+                        <span style={{ color: "#6B7280" }}>{src.leads} leads · {convRate}% booked{src.gciValue > 0 ? ` · ${fmt$(src.gciValue)} GCI` : ""}</span>
                       </div>
                       <div style={{ height: 5, background: "#F3F4F6", borderRadius: 3 }}>
                         <div style={{ height: 5, background: "#0B1D3A", borderRadius: 3, width: `${Math.min(convRate, 100)}%` }} />
@@ -249,6 +276,31 @@ export default function DashboardPage() {
         {/* ── PIPELINE TAB ── */}
         {activeTab === "pipeline" && (
           <>
+            {/* 90-day forecast */}
+            <div style={{ background: "#0B1D3A", borderRadius: 10, padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.12)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <div>
+                  <div style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>90-Day Recruiting Forecast</div>
+                  <div style={{ color: "#93C5FD", fontSize: 11, marginTop: 2 }}>{forecast?.zeroRecruitingNote || "Based on current pipeline"} · {forecast?.monthlyLeadRate || 0} leads/mo current rate</div>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                {[
+                  { label: "30-Day Projection", agents: forecast?.d30?.agents || 0, gci: forecast?.d30?.gci || 0 },
+                  { label: "60-Day Projection", agents: forecast?.d60?.agents || 0, gci: forecast?.d60?.gci || 0 },
+                  { label: "90-Day Projection", agents: forecast?.d90?.agents || 0, gci: forecast?.d90?.gci || 0 },
+                ].map(f => (
+                  <div key={f.label} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "16px 18px" }}>
+                    <div style={{ color: "#93C5FD", fontSize: 11, marginBottom: 6 }}>{f.label}</div>
+                    <div style={{ color: "#c9a84c", fontSize: 28, fontWeight: 700 }}>{f.agents}</div>
+                    <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 11, marginTop: 2 }}>projected agents</div>
+                    <div style={{ color: "#fff", fontSize: 14, fontWeight: 600, marginTop: 8 }}>{fmt$(f.gci)}</div>
+                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>projected GCI</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 24 }}>
               {[
                 { label: "Weighted Pipeline Value", value: fmt$(pipeline?.weightedValue || 0), sub: "Probability-adjusted forecast", color: "#0B1D3A" },

@@ -122,21 +122,42 @@ export async function GET(req: NextRequest) {
   const biggestLeak = funnelWithLeaks.reduce((max, s) => s.dropoff > max.dropoff ? s : max, funnelWithLeaks[0])
 
   // ── 3. RESPONSE TIME CORRELATION ──────────────────────────────────────────
-  // How quickly after lead capture does a call get booked?
-  // Faster response → higher show rate
+  // Measures both avg response time AND correlation between speed and booking rate
   const leadsWithBothTimestamps = allLeads.filter(l => l.created_at && l.event_start)
-  const responseTimeBuckets = { under1hr: 0, under4hr: 0, under24hr: 0, over24hr: 0 }
+
+  // All leads — bucketed by how fast they booked (or didn't book at all)
+  interface BucketStats { total: number; booked: number; joined: number }
+  const rtBuckets: Record<string, BucketStats> = {
+    under1hr:  { total: 0, booked: 0, joined: 0 },
+    under4hr:  { total: 0, booked: 0, joined: 0 },
+    under24hr: { total: 0, booked: 0, joined: 0 },
+    over24hr:  { total: 0, booked: 0, joined: 0 },
+    never:     { total: 0, booked: 0, joined: 0 }, // captured but never booked
+  }
   let totalResponseMinutes = 0
 
-  leadsWithBothTimestamps.forEach(l => {
+  allLeads.forEach(l => {
+    const didBook = ["booked", "no_show", "completed"].includes(l.status)
+    const didJoin = l.status === "joined" || l.stage === "Closed Won" || l.stage === "Onboarding"
+
+    if (!l.event_start) {
+      rtBuckets.never.total++
+      return
+    }
+
     const leadTime = new Date(l.created_at).getTime()
     const bookTime = new Date(l.event_start).getTime()
     const minutes = (bookTime - leadTime) / (1000 * 60)
     totalResponseMinutes += minutes
-    if (minutes <= 60) responseTimeBuckets.under1hr++
-    else if (minutes <= 240) responseTimeBuckets.under4hr++
-    else if (minutes <= 1440) responseTimeBuckets.under24hr++
-    else responseTimeBuckets.over24hr++
+
+    let bucket = "over24hr"
+    if (minutes <= 60) bucket = "under1hr"
+    else if (minutes <= 240) bucket = "under4hr"
+    else if (minutes <= 1440) bucket = "under24hr"
+
+    rtBuckets[bucket].total++
+    if (didBook) rtBuckets[bucket].booked++
+    if (didJoin) rtBuckets[bucket].joined++
   })
 
   const avgResponseMinutes = leadsWithBothTimestamps.length > 0
@@ -149,10 +170,24 @@ export async function GET(req: NextRequest) {
     ? `${Math.round(avgResponseMinutes / 60)}h`
     : `${Math.round(avgResponseMinutes / 1440)}d`
 
+  // Compute booking rate per bucket — this IS the correlation
+  const rtCorrelation = Object.entries(rtBuckets).map(([bucket, stats]) => ({
+    bucket,
+    label: bucket === "under1hr" ? "< 1 hour" : bucket === "under4hr" ? "1–4 hours" : bucket === "under24hr" ? "4–24 hours" : bucket === "over24hr" ? "> 24 hours" : "Never booked",
+    total: stats.total,
+    booked: stats.booked,
+    bookRate: stats.total > 0 ? Math.round((stats.booked / stats.total) * 100) : 0,
+    joinRate: stats.total > 0 ? Math.round((stats.joined / stats.total) * 100) : 0,
+  }))
+
+  // SLA insight: fastest bucket booking rate vs slowest
+  const fastRate = rtBuckets.under1hr.total > 0 ? Math.round((rtBuckets.under1hr.booked / rtBuckets.under1hr.total) * 100) : null
+  const slowRate = rtBuckets.over24hr.total > 0 ? Math.round((rtBuckets.over24hr.booked / rtBuckets.over24hr.total) * 100) : null
+  const speedMultiplier = fastRate && slowRate && slowRate > 0 ? parseFloat((fastRate / slowRate).toFixed(1)) : null
+
   // ── 4. SOURCE ATTRIBUTION ──────────────────────────────────────────────────
-  // Track which sources are generating the most leads and conversions
-  // Source is inferred from notes field ("Slot selected" = Calendly/Scout)
-  const sourceBreakdown = allLeads.reduce((acc: Record<string, { leads: number; booked: number; joined: number }>, l) => {
+  // Tracks leads, booking rate, AND GCI value per source
+  const sourceBreakdown = allLeads.reduce((acc: Record<string, { leads: number; booked: number; joined: number; gciValue: number }>, l) => {
     let source = "Direct"
     const notes = (l.notes || "").toLowerCase()
     if (notes.includes("slot selected") || notes.includes("calendly")) source = "Scout Chat"
@@ -160,21 +195,30 @@ export async function GET(req: NextRequest) {
     else if (notes.includes("linkedin")) source = "LinkedIn"
     else if (notes.includes("instagram") || notes.includes("facebook")) source = "Social"
 
-    if (!acc[source]) acc[source] = { leads: 0, booked: 0, joined: 0 }
+    if (!acc[source]) acc[source] = { leads: 0, booked: 0, joined: 0, gciValue: 0 }
     acc[source].leads++
     if (["booked", "no_show", "completed"].includes(l.status)) acc[source].booked++
-    if (l.status === "joined" || l.stage === "Closed Won" || l.stage === "Onboarding") acc[source].joined++
+    if (l.status === "joined" || l.stage === "Closed Won" || l.stage === "Onboarding") {
+      acc[source].joined++
+      // Add estimated annual GCI value for joined agents from this source
+      const dealCount = l.deal_count || 6
+      acc[source].gciValue += GCI_PER_DEAL * dealCount * 0.4
+    }
     return acc
   }, {})
 
-  // Best converting source
+  // Best source by booking rate
   const bestSource = Object.entries(sourceBreakdown)
     .map(([source, data]) => ({
-      source,
-      ...data,
-      convRate: data.leads > 0 ? Math.round((data.booked / data.leads) * 100) : 0
+      source, ...data,
+      convRate: data.leads > 0 ? Math.round((data.booked / data.leads) * 100) : 0,
     }))
     .sort((a, b) => b.convRate - a.convRate)[0]
+
+  // Best source by GCI value produced
+  const bestSourceByValue = Object.entries(sourceBreakdown)
+    .map(([source, data]) => ({ source, ...data }))
+    .sort((a, b) => b.gciValue - a.gciValue)[0]
 
   // ── 5. STALLED LEAD REACTIVATION ──────────────────────────────────────────
   // Leads that haven't moved in 14+ days and aren't closed
@@ -199,6 +243,42 @@ export async function GET(req: NextRequest) {
   })).sort((a, b) => b.estimated_value - a.estimated_value) // highest value first
 
   const stalledValue = stalledLeads.reduce((sum, l) => sum + l.estimated_value, 0)
+
+  // ── 90-DAY FORECAST ENGINE ────────────────────────────────────────────────
+  // Projects: agents joining, GCI generated, and revenue if recruiting stops today
+  // Based on current pipeline × stage conversion rates × avg time-to-close
+
+  const stageConvRates: Record<string, number> = {
+    "New Lead": 0.05, "Outreach Sent": 0.10, "Active Convo": 0.20,
+    "scout_captured": 0.15, "booked": 0.35, "Call Scheduled": 0.35,
+    "completed": 0.50, "Follow-Up Queue": 0.25, "Offer Extended": 0.65,
+  }
+  // Avg days from each stage to close (time-to-revenue)
+  const stageDaysToClose: Record<string, number> = {
+    "New Lead": 75, "Outreach Sent": 60, "Active Convo": 45,
+    "scout_captured": 50, "booked": 30, "Call Scheduled": 30,
+    "completed": 14, "Follow-Up Queue": 40, "Offer Extended": 7,
+  }
+
+  // For each active lead, project whether they close in 30/60/90 days
+  const forecast = { d30: { agents: 0, gci: 0 }, d60: { agents: 0, gci: 0 }, d90: { agents: 0, gci: 0 } }
+
+  pipelineLeads.forEach(l => {
+    const stage = l.stage || l.status || "unknown"
+    const prob = stageConvRates[stage] || 0.1
+    const days = stageDaysToClose[stage] || 60
+    const dealCount = l.deal_count || 6
+    const agentGCI = GCI_PER_DEAL * dealCount * 0.4
+
+    // Fractional agent count weighted by probability
+    if (days <= 30) { forecast.d30.agents += prob; forecast.d30.gci += agentGCI * prob }
+    if (days <= 60) { forecast.d60.agents += prob; forecast.d60.gci += agentGCI * prob }
+    if (days <= 90) { forecast.d90.agents += prob; forecast.d90.gci += agentGCI * prob }
+  })
+
+  // Current monthly lead rate (last 30 days)
+  const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const monthlyLeadRate = allLeads.filter(l => new Date(l.created_at) >= last30Days).length
 
   // ── Build weekly trend (last 8 weeks) ──────────────────────────────────────
   const weeklyTrend = Array.from({ length: 8 }, (_, i) => {
@@ -247,13 +327,23 @@ export async function GET(req: NextRequest) {
     responseTime: {
       avgDisplay: avgResponseDisplay,
       avgMinutes: avgResponseMinutes,
-      buckets: responseTimeBuckets,
+      correlation: rtCorrelation,
+      speedMultiplier,
       sampleSize: leadsWithBothTimestamps.length,
     },
     sourceAttribution: {
       breakdown: sourceBreakdown,
       bestSource: bestSource?.source || "Scout Chat",
       bestSourceConvRate: bestSource?.convRate || 0,
+      bestSourceByValue: bestSourceByValue?.source || "Scout Chat",
+      bestSourceGCI: Math.round(bestSourceByValue?.gciValue || 0),
+    },
+    forecast: {
+      d30: { agents: Math.round(forecast.d30.agents * 10) / 10, gci: Math.round(forecast.d30.gci) },
+      d60: { agents: Math.round(forecast.d60.agents * 10) / 10, gci: Math.round(forecast.d60.gci) },
+      d90: { agents: Math.round(forecast.d90.agents * 10) / 10, gci: Math.round(forecast.d90.gci) },
+      monthlyLeadRate,
+      zeroRecruitingNote: forecast.d90.agents < 1 ? "Pipeline too thin — need new leads now" : `${Math.round(forecast.d90.agents * 10) / 10} agents projected in 90 days from current pipeline`,
     },
     stalledLeads: {
       leads: stalledLeads.slice(0, 10),
