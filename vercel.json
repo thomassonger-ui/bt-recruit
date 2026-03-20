@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/noshow",
       "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/drip",
+      "schedule": "0 12 * * *"
     }
   ]
 }
