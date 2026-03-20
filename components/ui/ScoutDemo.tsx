@@ -362,8 +362,7 @@ export default function ScoutDemo({
             Scout in Action
           </h2>
           <p className="text-lg leading-relaxed text-muted">
-            Scout assists agents with marketing, communication, and daily
-            workflow tasks.
+            See how Scout qualifies agents, uncovers their pain, and moves them toward a call with Tom.
           </p>
         </motion.div>
 
