@@ -385,6 +385,7 @@ export async function POST(req: NextRequest) {
     // ──────────────────────────────────────────────────────────────────────────
 
     // Context is set only via URL param — never auto-detected from message content
+    const context = (body.context as string) || urlContext || "public";
 
     // Inject memory block at end of system prompt (only for public/recruit context)
     if (returningLeadBlock && context === "public") {
