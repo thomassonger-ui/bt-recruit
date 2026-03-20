@@ -28,6 +28,11 @@ interface LeadRecord {
   objections?: string;
   created_at?: string;
   updated_at?: string;
+  source?: string;
+  tier?: string;
+  call_outcome?: string;
+  top_objection?: string;
+  follow_up_date?: string;
 }
 
 // ─── SUPABASE MEMORY HELPERS ──────────────────────────────────────────────────
