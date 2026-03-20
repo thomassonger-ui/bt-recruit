@@ -9,7 +9,7 @@ interface Message {
   text: string;
 }
 
-conversations: [
+const conversations = [
   {
     tab: "Deal analysis",
     messages: [
