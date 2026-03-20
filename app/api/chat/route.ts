@@ -17,6 +17,8 @@ interface LeadRecord {
   id?: string;
   email: string;
   name?: string;
+  phone?: string;
+  status?: string;
   brokerage?: string;
   deal_count?: number;
   avg_price?: number;
