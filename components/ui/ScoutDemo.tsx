@@ -423,8 +423,8 @@ export default function ScoutDemo({
                 const sIdx = pi * 2 + 1;
                 return (
                   <React.Fragment key={`pair-${pi}`}>
-                    <AgentBubble text={conversations[pairIndex].messages[aIdx].text} />
-                    <ScoutBubble text={conversations[pairIndex].messages[sIdx].text} />
+                    <AgentBubble text={conversations[pairIndex].messages[aIdx].content} />
+                    <ScoutBubble text={conversations[pairIndex].messages[sIdx].content} />
                   </React.Fragment>
                 );
               })}
@@ -438,7 +438,7 @@ export default function ScoutDemo({
                   !completedPairs.includes(pairIndex) && (
                     <AgentBubble
                       key={`agent-${pairIndex}`}
-                      text={conversations[pairIndex].messages[agentMsgIndex].text}
+                      text={conversations[pairIndex].messages[agentMsgIndex].content}
                     />
                   )}
 
@@ -452,7 +452,7 @@ export default function ScoutDemo({
                   !completedPairs.includes(pairIndex) && (
                     <ScoutTypingBubble
                       key={`scout-${pairIndex}`}
-                      fullText={conversations[pairIndex].messages[scoutMsgIndex].text}
+                      fullText={conversations[pairIndex].messages[scoutMsgIndex].content}
                       onComplete={handleTypingComplete}
                     />
                   )}
