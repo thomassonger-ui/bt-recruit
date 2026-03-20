@@ -82,8 +82,8 @@ export default function DashboardPage() {
     return (
       <div style={{ minHeight: "100vh", background: "#0B1D3A", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif" }}>
         <div style={{ background: "#fff", borderRadius: 12, padding: "40px 48px", width: 360, textAlign: "center" }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>BearTeamOS</div>
-          <div style={{ fontSize: 14, color: "#6B7280", marginBottom: 28 }}>Scout Analytics Dashboard</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>Recruit Dashboard</div>
+          <div style={{ fontSize: 14, color: "#6B7280", marginBottom: 28 }}>Bear Team Real Estate · Orlando, FL</div>
           <input type="password" placeholder="Enter password" value={password}
             onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === "Enter" && fetchData(password)}
@@ -114,8 +114,8 @@ export default function DashboardPage() {
       {/* Header */}
       <div style={{ background: "#0B1D3A", padding: "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ color: "#fff", fontSize: 18, fontWeight: 700 }}>BearTeamOS — Scout Dashboard</div>
-          <div style={{ color: "#93C5FD", fontSize: 12, marginTop: 2 }}>Live recruiting funnel · Auto-refreshes every 60s</div>
+          <div style={{ color: "#fff", fontSize: 18, fontWeight: 700 }}>Recruit Dashboard</div>
+          <div style={{ color: "#93C5FD", fontSize: 12, marginTop: 2 }}>Bear Team Real Estate · Live recruiting funnel · Auto-refreshes every 60s</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {(["overview", "pipeline", "leads", "stalled"] as const).map(tab => (
