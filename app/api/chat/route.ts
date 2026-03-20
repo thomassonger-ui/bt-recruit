@@ -1,21 +1,132 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// ─── TYPES ────────────────────────────────────────────────────────────────────
+
+interface LeadRecord {
+  id?: string;
+  email: string;
+  name?: string;
+  brokerage?: string;
+  deal_count?: number;
+  avg_price?: number;
+  stage?: string;
+  last_contact?: string;
+  notes?: string;
+  objections?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ─── SUPABASE MEMORY HELPERS ──────────────────────────────────────────────────
+
+/**
+ * Look up a returning recruit by email in Supabase.
+ * Returns their lead record if found, null if not.
+ */
+async function getReturningLead(email: string): Promise<LeadRecord | null> {
+  if (!email || !email.includes("@")) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .eq("email", email.toLowerCase().trim())
+      .single();
+
+    if (error || !data) return null;
+    return data as LeadRecord;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Upsert a lead record — creates new or updates existing on email match.
+ * Called when Scout captures a new lead OR when a returning lead provides
+ * updated information during a conversation.
+ */
+async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
+  if (!lead.email) return;
+
+  try {
+    await supabase
+      .from("leads")
+      .upsert(
+        {
+          ...lead,
+          email: lead.email.toLowerCase().trim(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "email" }
+      );
+  } catch (err) {
+    console.error("Supabase upsert error:", err);
+  }
+}
+
+/**
+ * Extracts an email address from a message string, if present.
+ * Scout can use this to trigger memory lookup mid-conversation.
+ */
+function extractEmail(text: string): string | null {
+  const match = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  return match ? match[0] : null;
+}
+
+/**
+ * Builds a returning-agent context block to inject into the system prompt.
+ * This gives Scout full prior context so the agent never has to re-explain.
+ */
+function buildMemoryBlock(lead: LeadRecord): string {
+  const lines: string[] = [
+    "─── RETURNING RECRUIT — PRIOR CONTEXT ───────────────────────────────────────",
+    `This agent has contacted Bear Team before. Do NOT ask them to re-explain their situation.`,
+    `Use the context below to pick up where the conversation left off.`,
+    "",
+  ];
+
+  if (lead.name) lines.push(`Name: ${lead.name}`);
+  if (lead.email) lines.push(`Email: ${lead.email}`);
+  if (lead.brokerage) lines.push(`Current brokerage: ${lead.brokerage}`);
+  if (lead.deal_count !== undefined && lead.deal_count !== null) {
+    lines.push(`Deals last year: ${lead.deal_count}`);
+  }
+  if (lead.avg_price) {
+    lines.push(`Average sale price: $${lead.avg_price.toLocaleString()}`);
+  }
+  if (lead.stage) lines.push(`Pipeline stage: ${lead.stage}`);
+  if (lead.last_contact) lines.push(`Last contact: ${lead.last_contact}`);
+  if (lead.notes) lines.push(`Notes from last conversation: ${lead.notes}`);
+  if (lead.objections) lines.push(`Objections raised previously: ${lead.objections}`);
+
+  lines.push("");
+  lines.push("RETURNING AGENT RULES:");
+  lines.push("1. Acknowledge them by name if you have it — 'Welcome back, [Name].'");
+  lines.push("2. Reference their specific situation immediately — brokerage, deal count.");
+  lines.push("3. Do NOT restart the funnel from Stage 1. Jump to Stage 3 (Math Moment) or wherever they left off.");
+  lines.push("4. If they previously raised an objection, address it directly in your opening.");
+  lines.push("5. Your first qualifying question should advance from where they stopped, not restart.");
+  lines.push("─────────────────────────────────────────────────────────────────────────────");
+
+  return lines.join("\n");
+}
+
 // ─── SYSTEM PROMPTS ───────────────────────────────────────────────────────────
 
-const PUBLIC_PROMPT = `You are Scout — the AI assistant for Bear Team Real Estate in Orlando, Florida.
+const PUBLIC_PROMPT = `You are Scout — the recruiting AI for Bear Team Real Estate in Orlando, Florida.
 
-You are NOT a directory. You are NOT a chatbot that gives a link and stops. You are a conversion engine. Your job is to qualify the agent, show them the math, and move them toward a scheduled call with Tom. You control the next step. You do not defer to humans until a call is booked.
-
-PRIMARY OBJECTIVE: Convert every meaningful conversation into a scheduled 10-minute call with Tom Songer.
-Every response moves toward this. Never end a conversation without a direction. If the conversation has had 3+ exchanges and no call has been suggested, introduce it naturally.
-
-DEFAULT CLOSE — use this when the moment is right:
-"Let's take 10 minutes and map this to your specific situation. What's easier — later today or tomorrow?"
+You are NOT a directory. You are NOT a chatbot that gives a link and stops. You are a recruiter running a system. Your job is to qualify the agent, show them the math, and move them toward joining Bear Team. You control the next step. You do not defer to humans.
 
 BEAR TEAM VALUE PROPOSITION:
 - Progressive commission tiers: 60/40 → 70/30 → 80/20 → 90/10
@@ -34,111 +145,36 @@ COMMISSION TIER DETAIL (average home $415K, 2.5% commission = $10,375 per deal):
 - Team Lead (Deals 16+): 90/10.
 The $16,000 is a graduation trigger — NOT a point where the agent keeps 100%. The brokerage always earns.
 
-RESPONSE FRAMEWORK — REQUIRED FOR EVERY REPLY:
-1. Acknowledge — recognize their situation in one sentence. Make them feel seen.
-2. Reframe — give them an insight they didn't have before. Not information. Perspective.
-3. Value — one specific, concrete thing Bear Team does that addresses their situation directly.
-4. Advance — end with a question or the default close that moves the conversation forward.
-Never give a passive answer. Every response has a next step.
-
-SCENARIO HANDLERS — USE THESE FOR THE SPECIFIC SITUATIONS:
-
-A) SWITCHING BROKERAGES (agent mentions leaving, comparing, unhappy at current brokerage):
-Acknowledge the frustration without piling on. Reframe: "Most agents who move don't regret the move — they regret waiting." Lead with their specific math. Ask: "What does your current split look like, and what are you paying monthly?" Move toward the call.
-
-B) LOW PRODUCTION — 2–6 DEALS (agent mentions low deal count, slow year, stuck):
-"That range is exactly where most agents plateau — and it's almost never a talent problem. It's a systems problem. Without a structured pipeline and a brokerage that actually supports production, you're running on effort alone. That's exhausting and it has a ceiling."
-Then: "What does your follow-up system look like right now?" Move toward showing them the Bear Team structure.
-
-C) NEW AGENT (just licensed, exploring, first brokerage):
-Keep it short and helpful — they're early in the process and not ready to be closed. One insight, one question. Example: "Most new agents don't realize how much their brokerage costs them before they close a single deal. Bear Team has zero monthly fees — the only cost is $150 per closing. What market are you focused on?" Build conversation first. Do NOT drop the default close on the first response to a new agent.
-
-D) LEAD HELP / CONVERSION COACHING (agent asks about leads, pipeline, follow-up):
-Give 2–3 concrete, actionable tactics immediately. Do not route to a course. Real advice first.
-Then connect: "Bear Team agents have Scout for exactly this — pipeline visibility, follow-up structure, next-action clarity. How many active leads are you working right now?"
-
-E) COMMISSION QUESTIONS (agent asks about splits, fees, math):
-Never just recite numbers. Frame it as a story. CRITICAL MATH RULES:
-
-KW-SPECIFIC MODEL (use when agent is at KW):
-KW agents pay 70/30 + 6% royalty until cap (~$17K–$28K total cap). After cap they earn 100%. But:
-- Most KW agents doing 6–12 deals/year NEVER cap. They pay the full split all year, reset, and pay it again.
-- Only high producers (15+ deals, $3M+ volume) reliably cap. For them, KW works well.
-- The KW cap amount itself ($17K–$28K) is higher than Bear Team's $16K cap.
-- Bear Team has ZERO monthly fees. KW charges $100–$350/month in tech/desk fees = $1,200–$4,200/year gone before a single deal closes.
-- Bear Team's only cost: $150 flat per closing.
-
-THE HONEST COMPARISON — DO NOT HIDE BEAR TEAM'S WEAKNESSES:
-Bear Team year 1 is lower for high producers who cap at KW. Acknowledge this directly.
-Bear Team wins for agents who: (1) close 6–14 deals/year and never hit KW cap, (2) pay monthly fees at KW, (3) want predictability over the cap lottery.
-
-EXAMPLE — 10 deals, KW agent who does NOT cap:
-KW: 10 × $10,375 × 64% effective (after 30% split + 6% royalty) = $66,400 minus $2,400 monthly fees = $64,000 net
-Bear Team: Deals 1-5 at 60/40 = $31,125 | Deals 6-9 at 70/30 = $29,050 | Deal 10 at 80/20 = $8,300 = $68,475 minus $1,500 ($150×10) = $66,975 net
-Bear Team wins by ~$3,000 in year 1 for this agent — and year 2 they start at Tier 2 and graduate faster.
-
-EXAMPLE — 10 deals, KW agent who DOES cap (high producer):
-KW post-cap = 100% minus monthly fees. For these agents, KW is strong.
-Bear Team honest response: "If you're capping every year at KW, KW is a good deal for you. Bear Team makes more sense if you're in the 6–12 deal range and paying into that cap without hitting it — or if you're tired of the fee stack and want simplicity."
-
-ALWAYS ask: "Do you typically cap at KW?" — that question determines which comparison to run.
-Always show monthly fee savings separately. Always show year 2-3 trajectory for Bear Team.
-End with the call close once math is shown.
-
-URGENCY LANGUAGE — LAYER NATURALLY, NEVER FORCE:
-- "This is where most agents plateau — and the fix isn't working harder."
-- "The difference usually shows up in the next 60–90 days."
-- "Most agents wait too long to fix this. By the time they do, they've left real money on the table."
-- "The math compounds the longer you stay at a flat split with fees coming out."
-Use these to create momentum, not pressure. Professional and controlled always.
+RESPONSE STRUCTURE — REQUIRED FOR EVERY REPLY:
+1. Direction — answer the question or give the specific information they asked for
+2. Context — one sentence on why this matters for their production or income
+3. Question — end with a qualifying question that advances the conversation
 
 QUALIFYING QUESTIONS — ROTATE BASED ON CONTEXT:
+- "Are you currently active in real estate, or just getting your license?"
 - "How many deals did you close last year?"
 - "What brokerage are you with now, and what's your biggest frustration there?"
-- "What does your current split look like, and what are you paying monthly?"
 - "Are you solo or part of a team right now?"
-- "Have you run the math on what you'd net here vs. where you are now?"
+- "What does your ideal brokerage look like?"
+- "Have you run the math on what you'd net at Bear Team vs. where you are now?"
 - "What would need to be true for you to make a move in the next 90 days?"
 - "What's the one thing your current brokerage isn't giving you?"
 
-PIPELINE & PRODUCTION QUESTIONS:
-When agents ask about growing their business, pipeline, listings, leads, marketing, or production — answer directly with 2–3 concrete, actionable tactics. Give real advice, then connect it back to Bear Team's structure. End with a qualifying question about their current production.
-
-LISTING MARKETING & SOCIAL MEDIA — USE THESE TACTICS:
-1. Post the open house in local Facebook neighborhood groups, NextDoor, and HOA pages — people share to friends looking nearby
-2. Create a short walkthrough Reel for Instagram and Facebook — story AND feed post, tag the neighborhood
-3. Post in local Facebook buy/sell/trade groups and investor groups — massive organic reach, no ad spend
-4. Go live on Facebook or Instagram during the open house — live video gets pushed to followers automatically
-5. Door-knock or text 10–15 neighbors personally — neighbors always know someone looking to move nearby
-6. Post on your personal profile: "Do you know anyone looking?" — warm referrals close faster than cold leads
-Always frame these as low-cost, high-impact moves executable today with no ad spend.
-
 JOINING BEAR TEAM — HOW IT WORKS:
 When an agent asks how to join or what the next step is:
-- Use the default close: "Let's take 10 minutes and map this to your situation. What's easier — later today or tomorrow?"
-- TIME AWARENESS: Be aware of time of day. If an agent says "today" and it is late afternoon or evening (after 4 PM), gently confirm — "It's getting late in the day — does tomorrow morning work better?" Do not book a time that has likely already passed.
-
-CALL BOOKING SEQUENCE — follow this exact order:
-Step 1 — Agent shows interest in a call but has NOT been qualified → ask ONE qualifying question: "Quick question before I pull up Tom's calendar — how many deals did you close last year and what brokerage are you with now?"
-Step 2 — Agent is qualified → ask: "What's your name, email, and best phone number?"
-Step 3 — Agent provides name, email, phone → show them AVAILABLE SLOTS from Tom's real calendar. These will be injected below as [AVAILABLE_SLOTS]. Present them like: "Here are Tom's open slots — which works for you?" then list them numbered. Ask them to reply with just the number.
-Step 4 — Agent picks a slot number → look up that number in the [AVAILABLE_SLOTS] list above and copy the full URL that follows the "→" character for that slot. Use that actual URL — do NOT write "[booking_url]" or any placeholder. Embed the hidden tag [LEAD:[Name]|[phone]|[email]|[chosen slot label]] then say: "Locked in. Confirm your spot here (takes 30 seconds): [paste the actual URL from the slot list] — Tom will see you then." If the [AVAILABLE_SLOTS] list is missing, say: "Grab a slot here: https://calendly.com/thomas-songer/60min — Tom will see you then."
-Step 5 — Only if agent asks how to reach Tom directly → Tom Songer | 407-758-8102 | thomas.songer@gmail.com
-Never skip name/email/phone before showing slots. Never show slots before qualifying.
+- Direct them to www.joinbearteam.com to start the conversation
+- Immediately follow with a qualifying question — do NOT stop at the link
+- The link is step one of a conversation, not the end of one
 
 ABSOLUTE BEHAVIOR RULES — NEVER VIOLATE:
-1. NEVER end a response with just a link. Always follow with a question or the default close.
-2. NEVER say "feel free to reach out" or "contact us" — that ends the conversation.
-3. NEVER give a wall of text. Short, scannable, confident.
-4. ALWAYS end every single response with a question or a next step.
-5. Lead with financial math when relevant — agents respond to real numbers.
-6. Be warm and direct — never pushy, never salesy. Controlled urgency only.
-7. You run the next step. Do not hand off to a human until a call is the natural next action.
-8. NEVER use the word "recruiter" or "recruiting" in any response.
-9. Layer value propositions naturally — $0 fees, E&O covered, tiered splits, systems — don't dump them all at once.
-10. NEVER say "I'd be happy to", "I'd love to", "Looking forward to connecting", "Great question", "Congratulations", or any filler opener. Start every response with substance — the insight, the number, or the next step.
-11. After sending the Calendly booking URL, stop. Do not add "feel free to reach out" or any closing line after the URL.
-12. NEVER use the default close on the FIRST response in a conversation. Build one exchange first — give value, ask a question, earn the close. The default close belongs in the second or third response once there is context.`;
+1. NEVER end a response with just a link. Always follow with a qualifying question.
+2. NEVER say "feel free to reach out" or "contact us" — that hands off control and ends the conversation.
+3. NEVER refer the agent to a specific person, email address, or phone number. Scout is the entry point.
+4. NEVER give a wall of text. Short, scannable, confident.
+5. ALWAYS end every single response with a qualifying question.
+6. Lead with financial math when relevant — agents respond to real numbers.
+7. Be warm and direct — never pushy, never salesy.
+8. You are the system. You run the next step. Do not hand off to a human as a first response.`;
 
 const ACADEMY_PROMPT = `You are Scout — the operational AI assistant inside BearTeam Academy.
 
@@ -282,7 +318,7 @@ export async function POST(req: NextRequest) {
     const urlContext = searchParams.get("context");
 
     const body = await req.json();
-    const { messages, message, context: bodyContext, sessionId, agentEmail } = body;
+    const { messages, message, context: bodyContext, email: bodyEmail } = body;
 
     // Context priority: URL param → request body → default public
     const declaredContext = urlContext || bodyContext || "public";
@@ -291,24 +327,44 @@ export async function POST(req: NextRequest) {
     const chatMessages: { role: "user" | "assistant"; content: string }[] =
       messages || [{ role: "user", content: message || "" }];
 
-    // Keyword-based context override — detect intent from last user message
-    // even when URL/body context is "public"
+    // ─── MEMORY LAYER — Returning Recruit Lookup ───────────────────────────────
+    // 1. Check if email was passed explicitly in the request body
+    // 2. If not, scan the first user message for an email address
+    // 3. If we have an email, query Supabase for a returning lead record
+    // 4. If found, inject their prior context into the system prompt
+
+    let returningLeadBlock = "";
+    const firstUserMessage = chatMessages.find((m) => m.role === "user")?.content || "";
     const lastUserMessage = [...chatMessages]
       .reverse()
       .find((m) => m.role === "user")?.content?.toLowerCase() || "";
 
+    // Determine email — explicit body param takes priority over extracted
+    const emailFromMessage = extractEmail(firstUserMessage) || extractEmail(lastUserMessage);
+    const resolvedEmail = bodyEmail || emailFromMessage;
+
+    if (resolvedEmail) {
+      const returningLead = await getReturningLead(resolvedEmail);
+      if (returningLead) {
+        returningLeadBlock = "\n\n" + buildMemoryBlock(returningLead);
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Keyword-based context override — detect intent from last user message
     const academyKeywords = [
       "moodle", "course", "academy", "training", "module", "lesson",
       "orientation", "where do i start", "where to start", "just joined",
     ];
 
     const operationsKeywords = [
-      // Transaction-specific — only fire on unambiguous active-deal language
-      "submit a deal", "under contract", "listing agreement signed",
-      "offer received", "contract accepted", "earnest money deposit",
-      "commission disbursement", "cda form", "inspection period expires",
-      "mls submission", "submit to mls", "transaction folder",
-      "title company wire", "final walkthrough scheduled",
+      "offer", "contract", "listing", "closing", "escrow", "transaction",
+      "inspection", "mls", "commission disbursement", "cda", "earnest",
+      "contingency", "submit a deal", "under contract",
+      "not sure what", "don't know what to do", "what should i do",
+      "what do i do", "don't know where", "confused",
+      "supposed to be doing", "what am i supposed", "what's next",
+      "whats next", "next step", "lost", "not sure what to",
     ];
 
     let context = declaredContext;
@@ -320,80 +376,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Select system prompt
+    // Select system prompt and append memory block if returning lead found
     let systemPrompt = PUBLIC_PROMPT;
     if (context === "academy") systemPrompt = ACADEMY_PROMPT;
     else if (context === "operations") systemPrompt = OPERATIONS_PROMPT;
 
-    // Inject current time for scheduling awareness (Eastern Time)
-    const nowDate = new Date();
-    const nowLabel = nowDate.toLocaleString("en-US", {
-      timeZone: "America/New_York",
-      weekday: "long",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-    systemPrompt = `CURRENT TIME (Eastern): ${nowLabel}\n\n${systemPrompt}`;
-
-    // Inject prior conversation context for returning agents (public only)
-    if (context === "public" && agentEmail) {
-      try {
-        const { createClient } = await import("@supabase/supabase-js");
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
-        const { data: priorMessages } = await supabase
-          .from("conversations")
-          .select("role, content, created_at, brokerage, deal_count")
-          .eq("email", agentEmail.toLowerCase().trim())
-          .order("created_at", { ascending: false })
-          .limit(20);
-
-        if (priorMessages && priorMessages.length > 0) {
-          const lastSeen = new Date(priorMessages[0].created_at).toLocaleDateString("en-US", {
-            month: "short", day: "numeric", year: "numeric",
-          });
-          const brokerage = priorMessages.find((m) => m.brokerage)?.brokerage || null;
-          const dealCount = priorMessages.find((m) => m.deal_count)?.deal_count || null;
-          const summary = priorMessages
-            .slice(0, 6)
-            .reverse()
-            .map((m) => `${m.role === "user" ? "Agent" : "Scout"}: ${m.content.slice(0, 120)}`)
-            .join("\n");
-
-          systemPrompt = `RETURNING AGENT CONTEXT — ${agentEmail} last spoke with Scout on ${lastSeen}.\n${brokerage ? `Brokerage: ${brokerage}` : ""}\n${dealCount ? `Deals last year: ${dealCount}` : ""}\nRecent exchange:\n${summary}\n\nDo NOT ask questions already answered. Pick up where you left off naturally.\n\n${systemPrompt}`;
-        }
-      } catch {
-        // Non-blocking
-      }
-    }
-
-    // Inject live Calendly availability for public context
-    if (context === "public") {
-      try {
-        const start = nowDate.toISOString()
-        const end = new Date(nowDate.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString()
-        const availRes = await fetch(
-          `https://api.calendly.com/event_type_available_times?event_type=${encodeURIComponent("https://api.calendly.com/event_types/9770e03a-6a12-4594-b639-08ffa49da25c")}&start_time=${encodeURIComponent(start)}&end_time=${encodeURIComponent(end)}`,
-          { headers: { Authorization: `Bearer ${process.env.CALENDLY_TOKEN}` } }
-        )
-        const availData = await availRes.json()
-        const slots = (availData.collection || []).slice(0, 6).map((s: {
-          start_time: string; scheduling_url: string
-        }, i: number) => {
-          const dt = new Date(s.start_time)
-          const label = dt.toLocaleString("en-US", {
-            timeZone: "America/New_York",
-            weekday: "short", month: "short", day: "numeric",
-            hour: "numeric", minute: "2-digit", hour12: true,
-          })
-          return `${i + 1}) ${label} → ${s.scheduling_url}`
-        })
-        if (slots.length > 0) {
-          systemPrompt += `\n\n[AVAILABLE_SLOTS]\n${slots.join("\n")}\n[/AVAILABLE_SLOTS]`
-        }
-      } catch {
-        // Non-blocking — Scout continues without slots if Calendly is unavailable
-      }
+    // Inject memory block at end of system prompt (only for public/recruit context)
+    if (returningLeadBlock && context === "public") {
+      systemPrompt = systemPrompt + returningLeadBlock;
     }
 
     const response = await openai.chat.completions.create({
@@ -406,127 +396,16 @@ export async function POST(req: NextRequest) {
       temperature: 0.4,
     });
 
-    let reply =
+    const reply =
       response.choices[0]?.message?.content ||
       "Something went wrong. Try again.";
-
-    // Detect LEAD tag — fires when Scout collects name + phone + email + slot
-    const leadMatch = reply.match(/\[LEAD:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+)\]/);
-    if (leadMatch) {
-      const [, agentName, agentPhone, agentEmail, slotLabel] = leadMatch;
-      reply = reply.replace(/\[LEAD:[^\]]+\]/, "").trim();
-
-      // Write to Supabase immediately
-      try {
-        const { createClient } = await import("@supabase/supabase-js");
-        const supabase = createClient(
-          process.env.SUPABASE_URL!,
-          process.env.SUPABASE_ANON_KEY!
-        );
-        await supabase.from("leads").insert({
-          name: agentName.trim(),
-          phone: agentPhone.trim(),
-          email: agentEmail.trim(),
-          status: "scout_captured",
-          notes: `Slot selected: ${slotLabel.trim()}`,
-        });
-      } catch {
-        // Non-blocking
-      }
-
-      // Email Tom immediately
-      try {
-        const { Resend } = await import("resend");
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-          from: "Scout <onboarding@resend.dev>",
-          to: process.env.NOTIFY_EMAIL!,
-          subject: `🎯 New lead — ${agentName.trim()} | ${slotLabel.trim()}`,
-          html: `
-            <div style="font-family:sans-serif;max-width:480px;">
-              <div style="background:#0B1D3A;padding:20px 24px;border-radius:8px 8px 0 0;">
-                <h2 style="color:#fff;margin:0;font-size:18px;">Scout booked a call</h2>
-              </div>
-              <div style="border:1px solid #E5E7EB;border-top:none;border-radius:0 0 8px 8px;padding:24px;">
-                <table style="font-size:15px;border-collapse:collapse;width:100%;">
-                  <tr>
-                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Name</td>
-                    <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${agentName.trim()}</td>
-                  </tr>
-                  <tr style="background:#F9FAFB;">
-                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Phone</td>
-                    <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${agentPhone.trim()}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Email</td>
-                    <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${agentEmail.trim()}</td>
-                  </tr>
-                  <tr style="background:#F9FAFB;">
-                    <td style="padding:8px 16px 8px 0;color:#6B7280;">Slot</td>
-                    <td style="padding:8px 0;font-weight:600;color:#1B8C3A;">${slotLabel.trim()}</td>
-                  </tr>
-                </table>
-                <p style="margin-top:16px;font-size:13px;color:#9CA3AF;">Agent sent direct booking link to confirm on Calendly.</p>
-              </div>
-            </div>
-          `,
-        });
-      } catch {
-        // Non-blocking
-      }
-    }
-
-    // Detect BOOKING tag (legacy — kept for safety)
-    const bookingMatch = reply.match(/\[BOOKING:([^|]+)\|([^|]+)\|([^\]]+)\]/);
-    if (bookingMatch) {
-      reply = reply.replace(/\[BOOKING:[^\]]+\]/, "").trim();
-    }
-
-    // Save conversation to Supabase for memory (public context only)
-    if (context === "public" && sessionId) {
-      try {
-        const { createClient } = await import("@supabase/supabase-js");
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
-
-        // Detect email and brokerage from conversation for enrichment
-        const fullConvo = chatMessages.map((m) => m.content).join(" ").toLowerCase();
-        const emailMatch = fullConvo.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/);
-        const detectedEmail = agentEmail || emailMatch?.[0] || null;
-        const brokerageMatch = fullConvo.match(/\b(kw|keller williams|exp|compass|coldwell|remax|re\/max|lpt|mainframe|exit realty)\b/i);
-        const detectedBrokerage = brokerageMatch?.[0] || null;
-        const dealMatch = fullConvo.match(/(\d+)\s*(deals?|closings?|transactions?)/i);
-        const detectedDeals = dealMatch?.[1] || null;
-
-        // Save last user message + Scout reply
-        const lastMsg = chatMessages[chatMessages.length - 1];
-        if (lastMsg?.role === "user") {
-          await supabase.from("conversations").insert({
-            session_id: sessionId,
-            email: detectedEmail,
-            role: "user",
-            content: lastMsg.content.slice(0, 1000),
-            brokerage: detectedBrokerage,
-            deal_count: detectedDeals,
-          });
-        }
-        await supabase.from("conversations").insert({
-          session_id: sessionId,
-          email: detectedEmail,
-          role: "assistant",
-          content: reply.slice(0, 1000),
-          brokerage: detectedBrokerage,
-          deal_count: detectedDeals,
-        });
-      } catch {
-        // Non-blocking
-      }
-    }
 
     return NextResponse.json({
       reply,
       role: "assistant",
       content: reply,
       context,
+      returning: !!returningLeadBlock, // tells frontend whether memory was loaded
     });
   } catch (error) {
     console.error("Scout API error:", error);
