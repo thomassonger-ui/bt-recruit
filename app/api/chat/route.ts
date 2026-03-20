@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+const resend = new Resend(process.env.RESEND_API_KEY!);
 
 const supabase = createClient(
   (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
@@ -390,6 +392,15 @@ export async function POST(req: NextRequest) {
         if (bodyName) leadData.name = bodyName;
         if (bodyPhone) leadData.phone = bodyPhone;
         await upsertLead(leadData);
+        // Fire-and-forget Tom alert on full lead capture
+        if (bodyName && bodyPhone) {
+          resend.emails.send({
+            from: "Scout <scout@joinbearteam.com>",
+            to: "thomas.songer@gmail.com",
+            subject: `🔔 New Lead: ${bodyName}`,
+            html: `<p><strong>Scout captured a new lead:</strong></p><ul><li><strong>Name:</strong> ${bodyName}</li><li><strong>Email:</strong> ${resolvedEmail}</li><li><strong>Phone:</strong> ${bodyPhone}</li></ul><p>Log in to your <a href="https://joinbearteam.com/dashboard">dashboard</a> to follow up.</p>`,
+          }).catch(() => {});
+        }
       }
     }
     // ──────────────────────────────────────────────────────────────────────────
