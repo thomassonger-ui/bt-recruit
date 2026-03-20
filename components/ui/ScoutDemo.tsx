@@ -243,7 +243,7 @@ export default function ScoutDemo({
   // Completed pairs stored for rendering
   const [completedPairs, setCompletedPairs] = useState<number[]>([]);
 
-  const totalPairs = conversation.length / 2;
+  const totalPairs = conversations[pairIndex].messages.length / 2;
 
   // Auto-scroll
   const scrollToBottom = useCallback(() => {
@@ -423,8 +423,8 @@ export default function ScoutDemo({
                 const sIdx = pi * 2 + 1;
                 return (
                   <React.Fragment key={`pair-${pi}`}>
-                    <AgentBubble text={conversation[aIdx].text} />
-                    <ScoutBubble text={conversation[sIdx].text} />
+                    <AgentBubble text={conversations[pairIndex].messages[aIdx].text} />
+                    <ScoutBubble text={conversations[pairIndex].messages[sIdx].text} />
                   </React.Fragment>
                 );
               })}
@@ -438,7 +438,7 @@ export default function ScoutDemo({
                   !completedPairs.includes(pairIndex) && (
                     <AgentBubble
                       key={`agent-${pairIndex}`}
-                      text={conversation[agentMsgIndex].text}
+                      text={conversations[pairIndex].messages[agentMsgIndex].text}
                     />
                   )}
 
@@ -452,7 +452,7 @@ export default function ScoutDemo({
                   !completedPairs.includes(pairIndex) && (
                     <ScoutTypingBubble
                       key={`scout-${pairIndex}`}
-                      fullText={conversation[scoutMsgIndex].text}
+                      fullText={conversations[pairIndex].messages[scoutMsgIndex].text}
                       onComplete={handleTypingComplete}
                     />
                   )}
