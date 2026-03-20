@@ -40,22 +40,30 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Support both direct call { email } and Supabase webhook payload { record: {...} }
-    const lead = body.record || body;
-    const email = lead.email;
-
-    if (!email) {
-      return NextResponse.json({ error: "No email provided" }, { status: 400 });
+    // Password check when called from dashboard UI
+    if (body.pw && body.pw !== process.env.DASHBOARD_PASSWORD) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // If called directly with just email, fetch the full lead record
+    // Support three call patterns:
+    // 1. Dashboard UI:        { leadId, pw }
+    // 2. Direct/curl:         { email }
+    // 3. Supabase webhook:    { record: { ...full row } }
+    const lead = body.record || body;
+    const leadId = body.leadId || lead.leadId;
+    const email = lead.email;
+
+    if (!leadId && !email) {
+      return NextResponse.json({ error: "No leadId or email provided" }, { status: 400 });
+    }
+
+    // Fetch the full lead record by leadId or email
     let agentData = lead;
-    if (!lead.name) {
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("email", email.toLowerCase().trim())
-        .single();
+    if (leadId || !lead.name) {
+      const query = supabase.from("leads").select("*");
+      const { data, error } = leadId
+        ? await query.eq("id", leadId).single()
+        : await query.eq("email", email.toLowerCase().trim()).single();
 
       if (error || !data) {
         return NextResponse.json({ error: "Lead not found" }, { status: 404 });
