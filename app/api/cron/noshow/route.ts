@@ -1,90 +1,201 @@
-import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-import { Resend } from "resend"
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 
-export const runtime = "nodejs"
-export const dynamic = "force-dynamic"
+const supabase = createClient(
+  (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization")
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const TOM_EMAIL = "thomas.songer@gmail.com";
+const TOM_PHONE = "407-758-8102";
+const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
+const FROM_EMAIL = "Scout <scout@joinbearteam.com>";
+
+// ─── NO-SHOW DETECTION LOGIC ──────────────────────────────────────────────────
+//
+// A lead is a no-show if ALL of these are true:
+// 1. event_end is in the past (the call window has passed)
+// 2. event_end was within the last 2 hours (avoid re-triggering old no-shows)
+// 3. stage is NOT 'Closed Won' or 'Closed Lost'
+// 4. noshow_followup_sent is NULL or false
+//
+// Cron runs every 30 minutes via vercel.json cron config.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function GET(req: NextRequest) {
+  // Verify cron secret to prevent unauthorized triggers
+  const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!)
-  const resend = new Resend(process.env.RESEND_API_KEY!)
+  try {
+    const now = new Date();
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
 
-  const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString()
-
-  const { data: noShows } = await supabase
-    .from("leads")
-    .select("id, name, email, phone, event_start")
-    .eq("status", "booked")
-    .lt("event_start", thirtyMinAgo)
-    .neq("email", "")
-
-  if (!noShows || noShows.length === 0) {
-    return NextResponse.json({ ok: true, processed: 0 })
-  }
-
-  let processed = 0
-
-  for (const lead of noShows) {
-    const formattedTime = new Date(lead.event_start).toLocaleString("en-US", {
-      timeZone: "America/New_York",
-      weekday: "long", month: "long", day: "numeric",
-      hour: "numeric", minute: "2-digit", hour12: true,
-    })
-
-    const firstName = (lead.name || "there").split(" ")[0]
-
-    // Update status to no_show
-    await supabase
+    // Find no-show leads: event ended, within last 2 hours, not yet followed up
+    const { data: noShows, error } = await supabase
       .from("leads")
-      .update({ status: "no_show" })
-      .eq("id", lead.id)
+      .select("*")
+      .lt("event_end", now.toISOString())       // call window has passed
+      .gt("event_end", twoHoursAgo.toISOString()) // within last 2 hours
+      .not("stage", "in", '("Closed Won","Closed Lost")')
+      .or("noshow_followup_sent.is.null,noshow_followup_sent.eq.false");
 
-    // Email Tom
-    await resend.emails.send({
-      from: "Scout <onboarding@resend.dev>",
-      to: process.env.NOTIFY_EMAIL!,
-      subject: `No-show — ${lead.name} missed the call (${formattedTime})`,
-      html: `
-      <div style="font-family:sans-serif;max-width:480px;">
-        <div style="background:#0B1D3A;padding:20px 24px;border-radius:8px 8px 0 0;">
-          <h2 style="color:#fff;margin:0;font-size:18px;">No-show Alert</h2>
-          <p style="color:#FCA5A5;margin:6px 0 0;font-size:14px;">${lead.name} missed their scheduled call</p>
-        </div>
-        <div style="border:1px solid #E5E7EB;border-top:none;border-radius:0 0 8px 8px;padding:24px;">
-          <table style="font-size:15px;border-collapse:collapse;width:100%;">
-            <tr>
-              <td style="padding:8px 16px 8px 0;color:#6B7280;">Name</td>
-              <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${lead.name}</td>
-            </tr>
-            <tr style="background:#F9FAFB;">
-              <td style="padding:8px 16px 8px 0;color:#6B7280;">Email</td>
-              <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${lead.email}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 16px 8px 0;color:#6B7280;">Phone</td>
-              <td style="padding:8px 0;font-weight:600;color:#0B1D3A;">${lead.phone || "Not provided"}</td>
-            </tr>
-            <tr style="background:#F9FAFB;">
-              <td style="padding:8px 16px 8px 0;color:#6B7280;">Scheduled</td>
-              <td style="padding:8px 0;font-weight:600;color:#C62828;">${formattedTime}</td>
-            </tr>
-          </table>
-          <div style="margin-top:20px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:16px;">
-            <p style="margin:0;font-size:14px;font-weight:600;color:#92400E;">Suggested next step</p>
-            <p style="margin:8px 0 0;font-size:14px;color:#374151;">Reply directly to ${lead.email} or call ${lead.phone || "them"} — keep it short: "Hey ${firstName}, missed you today — still want to connect? Grab a new time here: https://calendly.com/thomas-songer/60min"</p>
-          </div>
-          <p style="margin-top:20px;font-size:13px;color:#9CA3AF;">Detected automatically by Scout 30 minutes after scheduled call time.</p>
-        </div>
-      </div>`,
-    })
+    if (error) {
+      console.error("Supabase query error:", error);
+      return NextResponse.json({ error: "DB query failed" }, { status: 500 });
+    }
 
-    processed++
+    if (!noShows || noShows.length === 0) {
+      return NextResponse.json({ message: "No no-shows found", processed: 0 });
+    }
+
+    const results = [];
+
+    for (const lead of noShows) {
+      const firstName = lead.name?.split(" ")[0] || "there";
+
+      // ── Email to recruit ──────────────────────────────────────────────────
+      const recruitEmail = buildRecruitEmail(firstName, lead.email);
+      const { error: recruitEmailError } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: lead.email,
+        subject: `We missed you today, ${firstName}`,
+        html: recruitEmail,
+      });
+
+      if (recruitEmailError) {
+        console.error(`Failed to send recruit email to ${lead.email}:`, recruitEmailError);
+        continue;
+      }
+
+      // ── Notification email to Tom ─────────────────────────────────────────
+      const tomEmail = buildTomNotificationEmail(lead);
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: TOM_EMAIL,
+        subject: `[No-Show] ${lead.name || lead.email} missed their call`,
+        html: tomEmail,
+      });
+
+      // ── Update Supabase — mark follow-up sent, update stage ──────────────
+      await supabase
+        .from("leads")
+        .update({
+          noshow_followup_sent: true,
+          noshow_followup_at: now.toISOString(),
+          stage: "Follow-Up Queue",
+          updated_at: now.toISOString(),
+        })
+        .eq("id", lead.id);
+
+      results.push({ email: lead.email, name: lead.name, status: "followup_sent" });
+    }
+
+    console.log(`No-show cron: processed ${results.length} leads`, results);
+    return NextResponse.json({ processed: results.length, results });
+
+  } catch (err) {
+    console.error("No-show cron error:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
+}
 
-  return NextResponse.json({ ok: true, processed })
+// ─── EMAIL TEMPLATES ──────────────────────────────────────────────────────────
+
+function buildRecruitEmail(firstName: string, email: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 560px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .header { background: #1a1a1a; padding: 28px 36px; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+    .header span { color: #c9a84c; }
+    .body { padding: 36px; }
+    .body p { color: #333333; font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
+    .cta { display: block; background: #c9a84c; color: #1a1a1a; text-decoration: none; font-weight: 700; font-size: 15px; text-align: center; padding: 14px 28px; border-radius: 6px; margin: 28px 0; }
+    .footer { padding: 20px 36px; border-top: 1px solid #f0f0f0; }
+    .footer p { color: #888888; font-size: 13px; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Bear <span>Team</span> Real Estate</h1>
+    </div>
+    <div class="body">
+      <p>Hey ${firstName},</p>
+      <p>We had a 15-minute call on the calendar today — looks like you weren't able to make it. No problem at all.</p>
+      <p>I wanted to make sure this didn't fall through the cracks. A lot of agents are surprised when they actually run the numbers on what they'd net at Bear Team vs. where they are now — and I'd hate for you to miss that conversation.</p>
+      <p>Grab another slot whenever works for you:</p>
+      <a href="${CALENDLY_LINK}" class="cta">Schedule a New 15-Minute Call →</a>
+      <p>Or if it's easier, just reply to this email and we'll figure out a time directly.</p>
+      <p>Either way — no pressure, no pitch. Just 15 minutes and the math.</p>
+      <p style="margin-bottom: 4px;">Tom Songer</p>
+      <p style="color: #888; font-size: 13px; margin: 0;">Team Lead | Bear Team Real Estate | ${TOM_PHONE}</p>
+    </div>
+    <div class="footer">
+      <p>Bear Team Real Estate · Orlando, FL · joinbearteam.com</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+function buildTomNotificationEmail(lead: Record<string, string | number | boolean | null>): string {
+  const name = lead.name || "Unknown";
+  const email = lead.email || "No email";
+  const phone = lead.phone || "No phone";
+  const brokerage = lead.brokerage || "Unknown brokerage";
+  const dealCount = lead.deal_count ?? "Unknown";
+  const eventStart = lead.event_start
+    ? new Date(lead.event_start as string).toLocaleString("en-US", { timeZone: "America/New_York" })
+    : "Unknown";
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 560px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .header { background: #c0392b; padding: 20px 28px; }
+    .header h1 { color: #fff; margin: 0; font-size: 17px; font-weight: 600; }
+    .body { padding: 28px; }
+    .row { display: flex; margin-bottom: 12px; }
+    .label { color: #888; font-size: 13px; width: 120px; flex-shrink: 0; padding-top: 2px; }
+    .value { color: #222; font-size: 14px; font-weight: 500; }
+    .cta { display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 5px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚠️ No-Show Alert — Follow-up sent automatically</h1>
+    </div>
+    <div class="body">
+      <div class="row"><div class="label">Name</div><div class="value">${name}</div></div>
+      <div class="row"><div class="label">Email</div><div class="value">${email}</div></div>
+      <div class="row"><div class="label">Phone</div><div class="value">${phone}</div></div>
+      <div class="row"><div class="label">Brokerage</div><div class="value">${brokerage}</div></div>
+      <div class="row"><div class="label">Deal Count</div><div class="value">${dealCount}</div></div>
+      <div class="row"><div class="label">Call Was At</div><div class="value">${eventStart} ET</div></div>
+      <div class="row"><div class="label">Stage</div><div class="value">→ Follow-Up Queue</div></div>
+      <p style="color: #555; font-size: 14px; margin-top: 20px;">A follow-up email was sent to ${email} automatically. If you want to reach out personally, their phone is above.</p>
+      <a href="https://supabase.com/dashboard/project/bbithigafmsyzlmuaokw/editor" class="cta">View in Supabase →</a>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
 }
