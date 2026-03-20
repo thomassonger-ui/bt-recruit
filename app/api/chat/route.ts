@@ -351,7 +351,7 @@ export async function POST(req: NextRequest) {
 
       // Save/update lead record whenever we have an email — captures name+phone if provided
       if (declaredContext === "public") {
-        const leadData: Partial<LeadRecord> = { email: resolvedEmail, status: "scout_captured" };
+        const leadData: Partial<LeadRecord> = { email: resolvedEmail, stage: "scout_captured" };
         if (bodyName) leadData.name = bodyName;
         if (bodyPhone) leadData.phone = bodyPhone;
         await upsertLead(leadData);
