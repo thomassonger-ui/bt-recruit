@@ -123,24 +123,24 @@ export async function POST(req: NextRequest) {
       });
 
     // ── 5. Log to Supabase agents table (create if not present) ───────────────
-    await supabase
-      .from("agents")
-      .upsert(
-        {
-          name: fullName,
-          email: email.toLowerCase().trim(),
-          phone: agentData.phone || null,
-          brokerage_previous: brokerage,
-          deal_count_previous: dealCount,
-          start_date: now.toISOString().split("T")[0],
-          stage: "Onboarding",
-          created_at: now.toISOString(),
-          updated_at: now.toISOString(),
-        },
-        { onConflict: "email" }
-      )
-      .then(() => null) // Don't fail if agents table doesn't exist yet
-      .catch(() => null);
+    try {
+      await supabase
+        .from("agents")
+        .upsert(
+          {
+            name: fullName,
+            email: email.toLowerCase().trim(),
+            phone: agentData.phone || null,
+            brokerage_previous: brokerage,
+            deal_count_previous: dealCount,
+            start_date: now.toISOString().split("T")[0],
+            stage: "Onboarding",
+            created_at: now.toISOString(),
+            updated_at: now.toISOString(),
+          },
+          { onConflict: "email" }
+        );
+    } catch (_) { /* agents table may not exist yet — non-fatal */ }
 
     console.log(`Onboarding triggered for ${fullName} (${email})`);
 
