@@ -384,35 +384,7 @@ export async function POST(req: NextRequest) {
     }
     // ──────────────────────────────────────────────────────────────────────────
 
-    // Keyword-based context override — detect intent from last user message
-    const academyKeywords = [
-      "moodle", "course", "academy", "training", "module", "lesson",
-      "orientation", "where do i start", "where to start", "just joined",
-    ];
-
-    const operationsKeywords = [
-      "offer", "contract", "listing", "closing", "escrow", "transaction",
-      "inspection", "mls", "commission disbursement", "cda", "earnest",
-      "contingency", "submit a deal", "under contract",
-      "not sure what", "don't know what to do", "what should i do",
-      "what do i do", "don't know where", "confused",
-      "supposed to be doing", "what am i supposed", "what's next",
-      "whats next", "next step", "lost", "not sure what to",
-    ];
-
-    let context = declaredContext;
-    if (declaredContext === "public") {
-      if (academyKeywords.some((kw) => lastUserMessage.includes(kw))) {
-        context = "academy";
-      } else if (operationsKeywords.some((kw) => lastUserMessage.includes(kw))) {
-        context = "operations";
-      }
-    }
-
-    // Select system prompt and append memory block if returning lead found
-    let systemPrompt = PUBLIC_PROMPT;
-    if (context === "academy") systemPrompt = ACADEMY_PROMPT;
-    else if (context === "operations") systemPrompt = OPERATIONS_PROMPT;
+    // Context is set only via URL param — never auto-detected from message content
 
     // Inject memory block at end of system prompt (only for public/recruit context)
     if (returningLeadBlock && context === "public") {
