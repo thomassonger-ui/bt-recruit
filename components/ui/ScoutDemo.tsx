@@ -9,31 +9,35 @@ interface Message {
   text: string;
 }
 
-const conversation: Message[] = [
+conversations: [
   {
-    role: "agent",
-    text: "Scout, write a listing description for a 3 bedroom home in Winter Park.",
+    tab: "Deal analysis",
+    messages: [
+      { role: "user", content: "I’m at KW closing about 18 deals a year. Fees are eating into everything." },
+      { role: "scout", content: "18 deals is solid production. At that volume you’d hit our $16K cap early in the year — and spend most of it at 90/10 with zero monthly, desk, or tech fees. What’s the biggest fee hurting you right now?" }
+    ]
   },
   {
-    role: "scout",
-    text: "Elegant 3-bedroom residence in the heart of Winter Park featuring updated interiors, natural light throughout, and a spacious backyard ideal for entertaining. Move-in ready with modern finishes and a prime location near shops and dining.",
+    tab: "Listing preparation",
+    messages: [
+      { role: "user", content: "I’ve been at eXp 3 years. Love the flexibility but feeling like just a number." },
+      { role: "scout", content: "That’s one of the most common things I hear. Bear Team is intentionally small — Bethanne, our broker/owner, knows every agent by name. What does real support look like to you?" }
+    ]
   },
   {
-    role: "agent",
-    text: "What pricing strategy would you recommend?",
+    tab: "Market insights",
+    messages: [
+      { role: "user", content: "Just got my license. Not sure where to hang it yet." },
+      { role: "scout", content: "Great timing to be thoughtful about it. A few quick questions — are you planning to focus on buyers, sellers, or both? And what area of Orlando are you targeting?" }
+    ]
   },
   {
-    role: "scout",
-    text: "Based on 14 comparable sales within 0.8 miles over the past 90 days, a competitive listing range would be $410,000\u2013$425,000. Median price per sqft in this micro-market is $192. At $415k you\u2019d be positioned to generate multiple offers within 18 days on market.",
-  },
-  {
-    role: "agent",
-    text: "Create a social media post for the listing.",
-  },
-  {
-    role: "scout",
-    text: "Just listed in Winter Park. Beautiful 3-bedroom home with updated interiors and a private backyard perfect for entertaining. Priced to move. Message me for details or to schedule a private showing.",
-  },
+    tab: "Production tracking",
+    messages: [
+      { role: "user", content: "I do about 8 deals a year at Compass. What would I actually net at Bear Team?" },
+      { role: "scout", content: "Good question — let’s make it real. What’s your current split, and are you paying any monthly or desk fees on top of that? I want the comparison to actually mean something for your volume." }
+    ]
+  }
 ];
 
 /* ── Phase state machine ──
