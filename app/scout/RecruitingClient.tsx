@@ -161,7 +161,7 @@ function HeroParallaxContent() {
     >
       {/* Layer 0: Blueprint photo — <img> tag, deepest background */}
       <img
-        src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop"
+        src="/blueprint.jpg"
         alt=""
         aria-hidden="true"
         className="pointer-events-none absolute"
