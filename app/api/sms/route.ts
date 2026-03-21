@@ -92,14 +92,3 @@ export async function POST(request: NextRequest) {
     });
   }
 }
-```
-
-**Only two lines changed:**
-- Line: `const contact = getContact(from)` → `const contact = await getContact(from)`
-- Line: `saveContact(contact)` → `await saveContact(contact)`
-
----
-
-Commit message:
-```
-fix: await async state calls in SMS route — Supabase persistence now active
