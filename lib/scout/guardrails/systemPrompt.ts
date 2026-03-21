@@ -142,12 +142,24 @@ CHANNEL: Messenger
 };
 
 /**
- * Build the full Scout system prompt for a given mode and channel.
- * One identity. Three behavioral contexts. Clean layering.
+ * Returns the full Scout system prompt for a given mode.
+ * BASE_IDENTITY is always prepended. Channel overlay appended when provided.
  */
-export function buildSystemPrompt(
-  channel: Channel = "web",
-  mode: ScoutMode = "recruit"
+export function getScoutPrompt(
+  mode: "recruit" | "academy" | "os" = "recruit",
+  channel: Channel = "web"
 ): string {
-  return BASE_IDENTITY + MODE_OVERLAYS[mode] + CHANNEL_OVERLAYS[channel];
+  switch (mode) {
+    case "recruit":
+      return BASE_IDENTITY + MODE_OVERLAYS.recruit + CHANNEL_OVERLAYS[channel];
+    case "academy":
+      return BASE_IDENTITY + MODE_OVERLAYS.academy + CHANNEL_OVERLAYS[channel];
+    case "os":
+      return BASE_IDENTITY + MODE_OVERLAYS.os + CHANNEL_OVERLAYS[channel];
+    default:
+      return BASE_IDENTITY + CHANNEL_OVERLAYS[channel];
+  }
 }
+
+/** Alias — keeps existing callers working without changes. */
+export const buildSystemPrompt = getScoutPrompt;
