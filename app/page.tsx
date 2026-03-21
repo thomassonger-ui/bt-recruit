@@ -207,7 +207,7 @@ function Nav() {
           Try It
         </a>
         <a
-          href="/chat"
+          href="sms:+14077588102"
           style={{
             background: "#2d4a6b",
             color: "#ffffff",
