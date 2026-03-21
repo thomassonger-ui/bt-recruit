@@ -550,240 +550,78 @@ function ScreenCard({ children, translate }: { children: React.ReactNode; transl
   );
 }
 
-// ─── ScoutHero ────────────────────────────────────────────────────────────────
+// ─── HeroParallax ─────────────────────────────────────────────────────────────
 
-const PILLARS = [
-  { label: "Daily execution", sub: "Consistent action builds pipeline. Scout structures your day so nothing falls through." },
-  { label: "Pipeline discipline", sub: "Tracked conversations close more. Scout surfaces where your follow-up breaks down." },
-  { label: "Applied training", sub: "Knowing is not the same as doing. Bear Team Academy trains agents on systems, not theory." },
-  { label: "Accountability", sub: "Performance improves when it is measured. Scout helps you see exactly where you stand." },
-];
+function HeroParallax() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const springConfig = { stiffness: 300, damping: 30, bounce: 100 };
+  const translateX = useSpring(useTransform(scrollYProgress, [0, 1], [0, 600]), springConfig);
+  const translateXReverse = useSpring(useTransform(scrollYProgress, [0, 1], [0, -600]), springConfig);
+  const rotateX = useSpring(useTransform(scrollYProgress, [0, 0.2], [12, 0]), springConfig);
+  const opacity = useSpring(useTransform(scrollYProgress, [0, 0.15], [0.5, 1]), springConfig);
+  const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [8, 0]), springConfig);
+  const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-100, 400]), springConfig);
 
-function ScoutHero() {
-  const [activePillar, setActivePillar] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setActivePillar(p => (p + 1) % PILLARS.length), 3200);
-    return () => clearInterval(t);
-  }, []);
+  const row1 = [<Card1_AcademyWelcome />, <Card2_MyCourses />, <Card3_IntroducingScout />];
+  const row2 = [<Card4_ScoutInAction />, <Card5_ScoutTryIt />, <Card6_ScoutFull />];
 
   return (
-    <section
-      id="top"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(160deg, #0b1524 0%, #0f1f36 45%, #101828 100%)",
-        position: "relative",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-      }}
+    <div
+      ref={ref}
+      style={{ height: "200vh", overflow: "hidden", position: "relative", background: "#F0F1F3" }}
     >
-      {/* Subtle grid overlay */}
-      <div style={{
-        position: "absolute", inset: 0, pointerEvents: "none",
-        backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
-        backgroundSize: "56px 56px",
-      }} />
+      {/* Blueprint grid background matching /scout */}
+      <BlueprintGrid />
 
-      {/* Radial glow — upper left */}
-      <div style={{
-        position: "absolute", top: "-10%", left: "-5%", width: "55vw", height: "55vw",
-        background: "radial-gradient(ellipse at center, rgba(44,74,114,0.28) 0%, transparent 65%)",
-        pointerEvents: "none",
-      }} />
-
-      {/* Radial glow — lower right */}
-      <div style={{
-        position: "absolute", bottom: "-10%", right: "-5%", width: "45vw", height: "45vw",
-        background: "radial-gradient(ellipse at center, rgba(26,107,60,0.12) 0%, transparent 65%)",
-        pointerEvents: "none",
-      }} />
-
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "clamp(100px,14vw,140px) clamp(20px,5vw,48px) clamp(60px,8vw,96px)", position: "relative", zIndex: 2, width: "100%" }}>
-
-        {/* Eyebrow */}
-        <HeroFade delay={0}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(44,74,114,0.35)", border: "1px solid rgba(100,181,246,0.2)", borderRadius: 20, padding: "6px 14px", marginBottom: 32 }}>
-            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 8px rgba(74,222,128,0.8)" }} />
-            <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-              Scout — Bear Team AI Coach
-            </span>
-          </div>
-        </HeroFade>
-
-        {/* Two-column layout: headline left, pillar panel right */}
-        <div className="scout-hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
-
-          {/* Left: Copy */}
-          <div>
-            <HeroFade delay={80}>
-              <h1 style={{
-                fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)",
-                fontWeight: 800,
-                lineHeight: 1.08,
-                color: "#ffffff",
-                letterSpacing: "-0.03em",
-                marginBottom: 24,
-              }}>
-                Real estate success<br />
-                <span style={{
-                  background: "linear-gradient(90deg, #64b5f6 0%, #90caf9 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}>is a system.</span>
-              </h1>
-            </HeroFade>
-
-            <HeroFade delay={180}>
-              <p style={{ fontSize: "1.15rem", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, marginBottom: 20, maxWidth: 460 }}>
-                Most agents work hard. Few agents work inside a structure that compounds their effort over time. The gap between the two is not motivation — it is execution.
-              </p>
-            </HeroFade>
-
-            <HeroFade delay={260}>
-              <p style={{ fontSize: "1.05rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.7, marginBottom: 40, maxWidth: 440 }}>
-                Scout is your AI coach built into the Bear Team platform — focused on daily execution, applied training, and performance that holds week over week.
-              </p>
-            </HeroFade>
-
-            <HeroFade delay={360}>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                <Link href="/scout" style={{ display: "inline-block" }}>
-                  <button
-                    style={{
-                      padding: "15px 34px",
-                      fontSize: "1rem",
-                      fontWeight: 700,
-                      background: "linear-gradient(135deg, #3b5a82 0%, #2c4a72 100%)",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 9,
-                      cursor: "pointer",
-                      letterSpacing: "0.01em",
-                      boxShadow: "0 4px 24px rgba(59,90,130,0.5)",
-                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 32px rgba(59,90,130,0.65)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 24px rgba(59,90,130,0.5)"; }}
-                  >
-                    Talk to Scout
-                  </button>
-                </Link>
-                <Link href="/academy" style={{
-                  fontSize: "0.9rem",
-                  fontWeight: 600,
-                  color: "rgba(255,255,255,0.5)",
-                  textDecoration: "none",
-                  padding: "15px 20px",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  borderRadius: 9,
-                  transition: "color 0.2s, border-color 0.2s",
-                }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.85)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.28)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.5)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
-                >
-                  Explore Academy
-                </Link>
-              </div>
-            </HeroFade>
-
-            {/* Social proof row */}
-            <HeroFade delay={460}>
-              <div style={{ display: "flex", gap: 28, marginTop: 48, flexWrap: "wrap" }}>
-                {[["6 courses", "Free for all agents"], ["Daily", "Coaching cadence"], ["100%", "System-driven"]].map(([val, label]) => (
-                  <div key={label}>
-                    <div style={{ fontSize: "1.3rem", fontWeight: 800, color: "#fff" }}>{val}</div>
-                    <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 3, letterSpacing: "0.03em", textTransform: "uppercase" }}>{label}</div>
-                  </div>
-                ))}
-              </div>
-            </HeroFade>
-          </div>
-
-          {/* Right: Animated pillar panel */}
-          <HeroFade delay={200}>
-            <div style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.09)",
-              borderRadius: 16,
-              padding: "clamp(24px,3vw,36px)",
-              backdropFilter: "blur(12px)",
-            }}>
-              <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 20 }}>
-                Where most agents break down
-              </div>
-
-              {/* Pillars */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 28 }}>
-                {PILLARS.map((p, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setActivePillar(i)}
-                    style={{
-                      padding: "14px 16px",
-                      borderRadius: 10,
-                      cursor: "pointer",
-                      background: activePillar === i ? "rgba(44,74,114,0.45)" : "transparent",
-                      border: `1px solid ${activePillar === i ? "rgba(100,181,246,0.25)" : "rgba(255,255,255,0.06)"}`,
-                      transition: "all 0.3s ease",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{
-                        width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
-                        background: activePillar === i ? "#64b5f6" : "rgba(255,255,255,0.18)",
-                        boxShadow: activePillar === i ? "0 0 10px rgba(100,181,246,0.6)" : "none",
-                        transition: "all 0.3s ease",
-                      }} />
-                      <span style={{ fontSize: "0.88rem", fontWeight: 700, color: activePillar === i ? "#fff" : "rgba(255,255,255,0.5)", transition: "color 0.3s" }}>
-                        {p.label}
-                      </span>
-                    </div>
-                    {activePillar === i && (
-                      <p style={{ margin: "10px 0 0 18px", fontSize: "0.8rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
-                        {p.sub}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Scout intro line */}
-              <div style={{
-                background: "rgba(44,74,114,0.3)",
-                border: "1px solid rgba(100,181,246,0.18)",
-                borderRadius: 10,
-                padding: "16px 18px",
-                display: "flex",
-                gap: 12,
-                alignItems: "flex-start",
-              }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "#1b365d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid rgba(100,181,246,0.2)" }}>
-                  <span style={{ color: "#64b5f6", fontSize: "0.7rem", fontWeight: 800 }}>S</span>
-                </div>
-                <div>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "rgba(255,255,255,0.55)", marginBottom: 4 }}>Scout</div>
-                  <div style={{ fontSize: "0.83rem", color: "rgba(255,255,255,0.75)", lineHeight: 1.55 }}>
-                    Tell me where your production is right now and I will show you exactly where the gap is.
-                  </div>
-                </div>
-              </div>
+      {/* Sticky hero text */}
+      <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none" }}>
+        <div style={{
+          maxWidth: "860px",
+          padding: "40px 48px",
+          textAlign: "center",
+          pointerEvents: "all",
+          background: "rgba(240,241,243,0.72)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          borderRadius: "24px",
+          border: "1px solid rgba(255,255,255,0.6)",
+          boxShadow: "0 8px 40px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.8) inset",
+        }}>
+          <HeroFade delay={0}>
+            <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#1a1a1a", marginBottom: "20px", letterSpacing: "-0.02em" }}>
+              Built Exclusively for
+              <br />
+              <span style={{ color: "#3b5a82" }}>
+                Bear Team Agents
+              </span>
+            </h1>
+          </HeroFade>
+          <HeroFade delay={150}>
+            <p style={{ fontSize: "1.15rem", color: "#6b7280", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.65 }}>
+              Scout is not a generic AI tool. It was designed and built from the ground up for Bear Team — to improve every agent's productivity, consistency, and results from day one.
+            </p>
+          </HeroFade>
+          <HeroFade delay={300}>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <ScoutCTA size="lg" />
             </div>
           </HeroFade>
         </div>
       </div>
 
-      {/* Bottom divider — fade to next section bg */}
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 120, background: "linear-gradient(to bottom, transparent, #f0f3f8)", pointerEvents: "none" }} />
-
-      <style>{`
-        @media (max-width: 768px) {
-          .scout-hero-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
-    </section>
+      {/* 3D card grid */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 5 }}>
+        <motion.div style={{ rotateX, rotateZ, translateY, opacity, transformStyle: "preserve-3d", paddingTop: "45vh" }}>
+          <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "24px", marginBottom: "24px", paddingLeft: "40px", paddingRight: "40px" }}>
+            {row1.map((child, i) => <ScreenCard key={i} translate={translateX}>{child}</ScreenCard>)}
+          </motion.div>
+          <motion.div style={{ display: "flex", flexDirection: "row", gap: "24px", paddingLeft: "40px", paddingRight: "40px" }}>
+            {row2.map((child, i) => <ScreenCard key={i} translate={translateXReverse}>{child}</ScreenCard>)}
+          </motion.div>
+        </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -1542,8 +1380,8 @@ export default function HomePage() {
       `}</style>
       <Nav />
 
-      {/* ── HERO: Scout Coach ── */}
-      <ScoutHero />
+      {/* ── HERO: Parallax ── */}
+      <HeroParallax />
 
       {/* ── SYSTEM SHOWCASE ── */}
       <SystemShowcase />
@@ -1976,7 +1814,7 @@ export default function HomePage() {
           <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
           <a href="#proof" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Track Record</a>
         </div>
-        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)", marginTop: "28px" }}>© 2026 Copyright WorldTeachPathways | Bear Team Real Estate · Bethanne Baer, Broker/Owner · Orlando, FL</div>
+        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)", marginTop: "28px" }}>© 2026 WorldTeachPathways. All rights reserved.</div>
       </footer>
     </main>
   );
