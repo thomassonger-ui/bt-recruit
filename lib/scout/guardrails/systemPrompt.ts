@@ -127,7 +127,11 @@ Rules:
 - No fluff
 Do not:
 - Coach broadly
-- Discuss theory`,
+- Discuss theory
+If a question involves contracts, legal obligations, or compliance:
+"That needs broker sign-off — take it to Bethanne or Tom before proceeding"
+If you do not know the exact next step:
+"Confirm with your transaction coordinator or broker before moving forward"`,
 };
 
 // ─── CHANNEL OVERLAYS ──────────────────────────────────────────────────────────
