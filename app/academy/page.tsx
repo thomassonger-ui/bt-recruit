@@ -265,16 +265,17 @@ export default function AcademyPage() {
       {/* Hero */}
       <div
         className="blueprint-hero"
-        style={{
-          position: "relative", overflow: "hidden",
-          padding: "80px 24px 72px", textAlign: "center",
-          backgroundImage: `url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop')`,
-          backgroundSize: "cover", backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
+        style={{ position: "relative", overflow: "hidden", padding: "80px 24px 72px", textAlign: "center" }}
       >
+        {/* Blueprint photo — <img> tag bypasses CSP restrictions */}
+        <img
+          src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop"
+          alt=""
+          aria-hidden="true"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", pointerEvents: "none" }}
+        />
         {/* Dark overlay for readability */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(15,28,50,0.72)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(15,28,50,0.75)", pointerEvents: "none" }} />
         {/* Subtle blueprint grid overlay */}
         <div style={{
           position: "absolute", inset: 0, pointerEvents: "none",
