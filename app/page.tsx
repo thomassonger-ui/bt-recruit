@@ -1355,6 +1355,8 @@ export default function HomePage() {
             max-height: 380px !important;
           }
           .proof-grid { grid-template-columns: 1fr !important; }
+          .testimonial-grid { grid-template-columns: 1fr !important; }
+          .compare-grid { grid-template-columns: 1fr !important; }
           .compare-grid { grid-template-columns: 1fr !important; }
           .hero-card-grid { padding-left: 16px !important; padding-right: 16px !important; }
         }
@@ -1698,6 +1700,72 @@ export default function HomePage() {
           </Reveal>
         </section>
 
+
+
+      {/* ── AGENT TESTIMONIALS ── */}
+      <section style={{ background: "#f0f3f8", padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)" }}>
+        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
+          <Reveal>
+            <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b7280", marginBottom: "16px", textAlign: "center" }}>Agent Results</p>
+          </Reveal>
+          <Reveal delay={100}>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", textAlign: "center", lineHeight: 1.2 }}>
+              What agents say after they make the move.
+            </h2>
+          </Reveal>
+          <div className="testimonial-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "28px" }}>
+            {[
+              {
+                quote: "In my first year at Coldwell Banker, I went from uncertainty to Rookie of the Year. The structure, systems, and support completely changed how I approached the business.",
+                name: "Venesa",
+                detail: "Coldwell Banker → Bear Team",
+                stat: "Rookie of the Year",
+                initials: "V",
+                color: "#1B8C3A",
+              },
+              {
+                quote: "I tripled my production in one year after plugging into the right system. It wasn't about working more — it was about finally having a clear process that actually worked.",
+                name: "Joe",
+                detail: "EXIT Realty → Bear Team",
+                stat: "3× Production Growth",
+                initials: "J",
+                color: "#3b5a82",
+              },
+              {
+                quote: "Reaching the top 1% wasn't luck. It came from operating within a system that removed guesswork and allowed me to focus on high-value activities every day.",
+                name: "Mike",
+                detail: "Coldwell Banker → Bear Team",
+                stat: "Top 1% Producer",
+                initials: "M",
+                color: "#c9a84c",
+              },
+            ].map(({ quote, name, detail, stat, initials, color }, i) => (
+              <Reveal key={name} delay={i * 120}>
+                <div style={{ background: "#ffffff", borderRadius: "14px", padding: "32px 28px", border: "1px solid #e5e7eb", display: "flex", flexDirection: "column", height: "100%", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
+                  {/* Stat badge */}
+                  <div style={{ display: "inline-block", background: color + "18", color, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase", padding: "5px 12px", borderRadius: "20px", marginBottom: "20px", alignSelf: "flex-start" }}>
+                    {stat}
+                  </div>
+                  {/* Quote */}
+                  <p style={{ fontSize: "0.95rem", lineHeight: 1.7, color: "#374151", flex: 1, margin: "0 0 24px", fontStyle: "italic" }}>
+                    &ldquo;{quote}&rdquo;
+                  </p>
+                  {/* Attribution */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", paddingTop: "20px", borderTop: "1px solid #f3f4f6" }}>
+                    <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: color, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "0.95rem", color: "#fff", flexShrink: 0 }}>
+                      {initials}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, color: "#0b1d3a", fontSize: "0.9rem" }}>{name}</div>
+                      <div style={{ color: "#9ca3af", fontSize: "0.78rem", marginTop: "2px" }}>{detail}</div>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── TESTIMONIAL ── */}
       <section style={{ background: "#0B1D3A", padding: "80px 40px", textAlign: "center" }}>
