@@ -225,7 +225,7 @@ function ChatPageInner() {
           <a href="/#why-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Why Scout</a>
           <a href="/#see-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>See Scout</a>
           <a href="/#try-it" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Try It</a>
-          <a href="/chat" style={{
+          <a href="sms:+14077588102" style={{
             background: "#2d4a6b",
             color: "#ffffff",
             textDecoration: "none",
