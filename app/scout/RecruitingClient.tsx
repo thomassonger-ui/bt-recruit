@@ -384,17 +384,25 @@ function HeroParallaxContent() {
                 transition={{ duration: 0.6 }}
                 style={{ y: headlineY, willChange: "transform" }}
               >
+                <p
+                  className="mb-3 text-xs font-semibold uppercase tracking-[0.25em]"
+                  style={{ fontFamily: "Inter, sans-serif", color: "var(--color-primary)" }}
+                >
+                  Scout
+                </p>
                 <h1
                   className="text-display text-foreground"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
-                  Introducing Scout
+                  Find What&apos;s Missing
                 </h1>
                 <p
                   className="mt-3 text-lg font-medium text-muted sm:text-xl"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
-                  BearTeam AI Assistant
+                  Most agents aren&apos;t falling behind because of effort.
+                  <br />
+                  They&apos;re missing structure, systems, and consistency.
                 </p>
               </motion.div>
 
@@ -405,11 +413,9 @@ function HeroParallaxContent() {
                 className="max-w-lg text-lg leading-relaxed text-muted"
                 style={{ y: subtitleY, willChange: "transform" }}
               >
-                Most agents don&apos;t lose deals because of skill.
-                <br />
-                <span className="font-medium text-foreground/80">
-                  They lose them because of broken systems.
-                </span>
+                Scout helps you identify exactly where things are breaking
+                down — so you know what to fix, what to build, and what to
+                stop doing.
               </motion.p>
 
               {/* Prompt input */}
