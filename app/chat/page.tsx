@@ -169,9 +169,9 @@ function ChatPageInner() {
 
   const greeting =
     context === "academy"
-      ? "I'm Scout. I'm here to guide you through BearTeam Academy. Tell me where you're stuck and I'll point you to the right course."
+      ? "Scout (Train) — I’m here to help you build skill, reinforce systems, and improve consistency. Tell me where you’re stuck and I’ll point you to the right place."
       : context === "operations"
-      ? "I'm Scout. I'm in ops mode — tell me where you are in the transaction and I'll give you the next step."
+      ? "Scout (Execute) — I guide what to do next, step-by-step, so nothing falls through the cracks. Tell me where you are in the transaction."
       : null // public greeting handled inline with buttons
 
   const publicEntryButtons = [
@@ -264,10 +264,10 @@ function ChatPageInner() {
               </div>
               <div className="text-xs" style={{ color: "#6B7280" }}>
                 {context === "academy"
-                  ? "Bear Team Academy Assistant"
+                  ? "Scout (Train)"
                   : context === "operations"
-                  ? "Bear Team Operations Assistant"
-                  : "Bear Team AI Assistant"}
+                  ? "Scout (Execute)"
+                  : "Scout (Find What’s Missing)"}
               </div>
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
