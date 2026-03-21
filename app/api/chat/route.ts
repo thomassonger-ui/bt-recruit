@@ -248,7 +248,7 @@ export async function POST(req: NextRequest) {
       reply,
       role: "assistant",
       content: reply,
-      context,
+      context: rawContext,
       mode,
       returning: !!returningLeadBlock, // tells frontend whether memory was loaded
     });
@@ -260,4 +260,5 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
 
