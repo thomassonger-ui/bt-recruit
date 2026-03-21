@@ -419,18 +419,18 @@ function HeroParallaxContent() {
                 transition={{ duration: 0.6 }}
                 style={{ y: headlineY, willChange: "transform" }}
               >
-                <p
-                  className="mb-3 text-xs font-semibold uppercase tracking-[0.25em]"
-                  style={{ fontFamily: "Inter, sans-serif", color: "#93c5fd" }}
-                >
-                  Scout
-                </p>
                 <h1
                   className="text-display"
                   style={{ fontFamily: "Inter, sans-serif", color: "#ffffff" }}
                 >
-                  Find What&apos;s Missing
+                  Introducing Scout
                 </h1>
+                <h3
+                  className="mt-2 text-2xl font-semibold sm:text-3xl"
+                  style={{ fontFamily: "Inter, sans-serif", color: "#93c5fd" }}
+                >
+                  Find What&apos;s Missing
+                </h3>
                 <p
                   className="mt-3 text-lg font-medium sm:text-xl"
                   style={{ fontFamily: "Inter, sans-serif", color: "rgba(255,255,255,0.75)" }}
