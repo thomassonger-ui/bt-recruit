@@ -196,19 +196,21 @@ function ChatPageInner() {
     <div
       className="flex min-h-screen items-center justify-center px-4 py-8"
       style={{
-        backgroundImage: "url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "fixed",
         paddingTop: "88px",
         position: "relative",
       }}
     >
+      {/* Blueprint photo — <img> tag fixed as background */}
+      <img
+        src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop"
+        alt=""
+        aria-hidden="true"
+        style={{ position: "fixed", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", pointerEvents: "none", zIndex: 0 }}
+      />
       {/* Dark overlay */}
-      <div style={{ position: "fixed", inset: 0, background: "rgba(11,22,42,0.78)", zIndex: 0, pointerEvents: "none" }} />
+      <div style={{ position: "fixed", inset: 0, background: "rgba(11,22,42,0.80)", zIndex: 1, pointerEvents: "none" }} />
       {/* Blueprint grid overlay */}
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 1,
         backgroundImage: "linear-gradient(rgba(100,180,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(100,180,255,0.04) 1px, transparent 1px)",
         backgroundSize: "56px 56px",
       }} />
