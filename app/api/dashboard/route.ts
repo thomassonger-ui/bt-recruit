@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "bearteam2026"
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD
 const AVG_PRICE = 415000
 const COMMISSION_RATE = 0.025
 const GCI_PER_DEAL = AVG_PRICE * COMMISSION_RATE // $10,375

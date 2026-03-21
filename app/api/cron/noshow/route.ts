@@ -198,7 +198,7 @@ function buildTomNotificationEmail(lead: Record<string, string | number | boolea
       <div class="row"><div class="label">Call Was At</div><div class="value">${eventStart} ET</div></div>
       <div class="row"><div class="label">Stage</div><div class="value">→ Follow-Up Queue</div></div>
       <p style="color: #555; font-size: 14px; margin-top: 20px;">A follow-up email was sent to ${email} automatically. If you want to reach out personally, their phone is above.</p>
-      <a href="https://getSupabase().com/dashboard/project/bbithigafmsyzlmuaokw/editor" class="cta">View in Supabase →</a>
+      <a href="https://supabase.com/dashboard/project/bbithigafmsyzlmuaokw/editor" class="cta">View in Supabase →</a>
     </div>
   </div>
 </body>
