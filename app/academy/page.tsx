@@ -210,19 +210,36 @@ export default function AcademyPage() {
       </nav>
 
       {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg, #1b365d 0%, #2d4a6b 60%, #1a3050 100%)", padding: "80px 24px 64px", textAlign: "center" }}>
-        <div style={{ display: "inline-block", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 20, padding: "6px 16px", fontSize: "0.78rem", fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 24, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-          BearTeam Academy
-        </div>
-        <h1 style={{ color: "#fff", fontSize: "clamp(2rem, 5vw, 3.2rem)", fontWeight: 800, margin: "0 0 20px", lineHeight: 1.15 }}>
-          Training Built for<br />Bear Team Agents
-        </h1>
-        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "1.1rem", maxWidth: 560, margin: "0 auto 40px", lineHeight: 1.6 }}>
-          6 courses. Free for every agent. Covers everything from your first day to your first 20-deal year. Every lesson is built around how Bear Team actually operates.
-        </p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <a href="https://calendly.com/thomas-songer/bear-team-meet" target="_blank" rel="noopener noreferrer" style={{ background: "#fff", color: "#1b365d", textDecoration: "none", fontWeight: 700, padding: "14px 32px", borderRadius: 10, fontSize: "0.95rem" }}>Book a Call with Tom</a>
-          <a href="/chat" style={{ background: "rgba(255,255,255,0.12)", color: "#fff", textDecoration: "none", fontWeight: 600, padding: "14px 32px", borderRadius: 10, fontSize: "0.95rem", border: "1px solid rgba(255,255,255,0.25)" }}>Ask Scout About Academy</a>
+      <div style={{ background: "#F0F1F3", position: "relative", overflow: "hidden", padding: "80px 24px 72px", textAlign: "center" }}>
+        {/* Blueprint grid background — matches homepage */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          backgroundImage: "linear-gradient(rgba(107,114,128,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(107,114,128,0.10) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+        }} />
+        {/* Frosted glass card */}
+        <div style={{
+          position: "relative", zIndex: 1,
+          maxWidth: 720,
+          margin: "0 auto",
+          background: "rgba(240,241,243,0.72)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          borderRadius: 24,
+          border: "1px solid rgba(255,255,255,0.6)",
+          boxShadow: "0 8px 40px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.8) inset",
+          padding: "48px 40px",
+        }}>
+          <h1 style={{ color: "#1a1a1a", fontSize: "clamp(2rem, 5vw, 3.2rem)", fontWeight: 800, margin: "0 0 20px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+            Training Built for<br /><span style={{ color: "#3b5a82" }}>Bear Team Agents</span>
+          </h1>
+          <p style={{ color: "#6b7280", fontSize: "1.05rem", maxWidth: 520, margin: "0 auto 36px", lineHeight: 1.65 }}>
+            6 courses. Free for every agent. Covers everything from your first day to your first 20-deal year. Every lesson is built around how Bear Team actually operates.
+          </p>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            <a href="https://calendly.com/thomas-songer/bear-team-meet" target="_blank" rel="noopener noreferrer" style={{ background: "#1b365d", color: "#fff", textDecoration: "none", fontWeight: 700, padding: "13px 30px", borderRadius: 9, fontSize: "0.95rem" }}>Book a Call with Tom</a>
+            <a href="/chat" style={{ background: "rgba(59,90,130,0.08)", color: "#1b365d", textDecoration: "none", fontWeight: 600, padding: "13px 30px", borderRadius: 9, fontSize: "0.95rem", border: "1px solid rgba(59,90,130,0.2)" }}>Ask Scout About Academy</a>
+          </div>
         </div>
       </div>
 
