@@ -159,6 +159,24 @@ function HeroParallaxContent() {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
+      {/* Layer 0: Blueprint photo — deepest background */}
+      <motion.div
+        className="pointer-events-none absolute inset-[-20px]"
+        style={{
+          y: gridY,
+          willChange: "transform",
+          backgroundImage: "url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: 0.18,
+          filter: "saturate(0.4) brightness(0.9)",
+        }}
+      />
+
+      {/* Layer 0b: Dark overlay to keep text readable */}
+      <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(240,243,248,0.88) 0%, rgba(220,228,240,0.82) 100%)", zIndex: 0 }} />
+
       {/* Layer 1: Blueprint grid */}
       <motion.div
         className="pointer-events-none absolute inset-[-20px]"
@@ -377,6 +395,26 @@ function HeroParallaxContent() {
               initial="initial"
               animate="animate"
               className="flex flex-col gap-6"
+              style={{
+                background: "rgba(255,255,255,0.55)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                borderRadius: "20px",
+                border: "1px solid rgba(255,255,255,0.7)",
+                padding: "40px 36px",
+                boxShadow: "0 8px 40px rgba(0,0,0,0.08)",
+                transition: "transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s cubic-bezier(0.22,1,0.36,1)",
+              }}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLDivElement;
+                el.style.transform = "translateY(-6px) scale(1.012)";
+                el.style.boxShadow = "0 24px 64px rgba(0,0,0,0.14)";
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLDivElement;
+                el.style.transform = "translateY(0) scale(1)";
+                el.style.boxShadow = "0 8px 40px rgba(0,0,0,0.08)";
+              }}
             >
               {/* Headline */}
               <motion.div
