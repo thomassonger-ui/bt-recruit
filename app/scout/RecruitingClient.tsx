@@ -71,10 +71,40 @@ const painPoints = [
   },
 ];
 
-const builtForItems = [
-  "Built for real transactions — not theory",
-  "Designed for production — not recruiting",
-  "Structured workflows — not guesswork",
+const builtForCards = [
+  {
+    bold: "Built for real transactions",
+    contrast: "not theory",
+    body: "Every tool and workflow is built around how deals actually close — contracts, timelines, client communication, and what moves the needle.",
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect x="3" y="5" width="22" height="18" rx="2" stroke="#93c5fd" strokeWidth="1.5"/>
+        <path d="M8 10h12M8 14h8M8 18h5" stroke="#93c5fd" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
+    bold: "Designed for production",
+    contrast: "not recruiting",
+    body: "Scout exists to make your current business run better — more output, less friction, no fluff. Built for agents who are already in motion.",
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M14 4L24 9v10L14 24 4 19V9L14 4z" stroke="#93c5fd" strokeWidth="1.5"/>
+        <path d="M14 4v20M4 9l10 6 10-6" stroke="#93c5fd" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
+    bold: "Structured workflows",
+    contrast: "not guesswork",
+    body: "From first contact to close, Scout follows a consistent system — so nothing falls through the cracks and every client gets your best work.",
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M5 8h18M5 14h12M5 20h8" stroke="#93c5fd" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="22" cy="20" r="3" stroke="#93c5fd" strokeWidth="1.5"/>
+      </svg>
+    ),
+  },
 ];
 
 const SMS_BODY = encodeURIComponent(
@@ -604,7 +634,7 @@ export default function RecruitingClient() {
           SECTION 4 — BUILT FOR REAL ESTATE AGENTS
       ═══════════════════════════════════════════════════════ */}
       <section className="px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl py-20 sm:py-28">
+        <div className="mx-auto max-w-5xl py-20 sm:py-28">
           <motion.div
             {...fadeUp}
             transition={{ duration: 0.5 }}
@@ -631,26 +661,58 @@ export default function RecruitingClient() {
             </p>
           </motion.div>
 
-          <div className="mt-10 flex flex-col items-center gap-4 sm:mt-12">
-            {builtForItems.map((item, i) => (
+          <div className="mt-12 grid grid-cols-1 gap-5 sm:mt-14 sm:grid-cols-3">
+            {builtForCards.map((card, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.12 }}
-                className="flex items-center gap-3"
+                transition={{ duration: 0.45, delay: i * 0.12 }}
+                style={{
+                  background: "rgba(11,22,42,0.94)",
+                  border: "1px solid rgba(147,197,253,0.18)",
+                  borderRadius: "16px",
+                  padding: "32px 28px",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
+                  transition: "transform 0.30s cubic-bezier(0.22,1,0.36,1), box-shadow 0.30s cubic-bezier(0.22,1,0.36,1), border-color 0.30s ease",
+                  cursor: "default",
+                }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.transform = "translateY(-8px) scale(1.02)";
+                  el.style.boxShadow = "0 20px 56px rgba(0,0,0,0.32)";
+                  el.style.borderColor = "rgba(147,197,253,0.45)";
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.transform = "translateY(0) scale(1)";
+                  el.style.boxShadow = "0 4px 24px rgba(0,0,0,0.18)";
+                  el.style.borderColor = "rgba(147,197,253,0.18)";
+                }}
               >
-                <span
-                  className="h-2 w-2 flex-shrink-0 rounded-full"
-                  style={{ background: "var(--color-primary)" }}
-                />
-                <span
-                  className="text-sm font-medium text-foreground/80 sm:text-base"
-                  style={{ fontFamily: "Inter, sans-serif" }}
+                {/* Icon */}
+                <div className="mb-5">{card.icon}</div>
+                {/* Headline */}
+                <p
+                  className="text-lg font-bold leading-snug"
+                  style={{ fontFamily: "Inter, sans-serif", color: "#ffffff" }}
                 >
-                  {item}
-                </span>
+                  {card.bold}
+                  <span
+                    className="block text-base font-semibold mt-0.5"
+                    style={{ color: "#93c5fd" }}
+                  >
+                    — {card.contrast}
+                  </span>
+                </p>
+                {/* Body */}
+                <p
+                  className="mt-4 text-sm leading-relaxed"
+                  style={{ fontFamily: "Inter, sans-serif", color: "rgba(255,255,255,0.60)" }}
+                >
+                  {card.body}
+                </p>
               </motion.div>
             ))}
           </div>
