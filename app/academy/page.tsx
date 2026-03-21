@@ -410,14 +410,7 @@ export default function AcademyPage() {
 
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#1b365d", borderRadius: 20, padding: "6px 16px", marginBottom: 16 }}>
-              <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.8)" }} />
-              <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" }}>Coach — Training Assistant</span>
-            </div>
-            <h2 style={{ fontSize: "1.8rem", fontWeight: 800, color: "#1a1a1a", margin: "0 0 10px" }}>Ask Coach</h2>
-            <p style={{ color: "#6b7280", fontSize: "0.95rem", maxWidth: 520, margin: "0 auto", lineHeight: 1.6 }}>
-              Coach knows the 6 Academy courses, Florida real estate law, Bear Team systems, and production coaching. Ask anything — this is where you come to learn.
-            </p>
+            <h2 style={{ fontSize: "1.8rem", fontWeight: 800, color: "#1a1a1a", margin: "0 0 0" }}>Ask Coach</h2>
           </div>
 
           {/* Chat window */}
