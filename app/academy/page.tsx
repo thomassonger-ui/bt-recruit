@@ -65,13 +65,12 @@ export default function AcademyPage() {
       const windowHeight = window.innerHeight;
       const elementHeight = timelineRef.current.offsetHeight;
       const start = rect.top - windowHeight;
-      const end = rect.bottom;
       const total = elementHeight + windowHeight;
       const progress = Math.min(1, Math.max(0, -start / total));
       setScrollProgress(progress);
     };
+    // No handleScroll() on mount — prevents scroll flash on initial render
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
