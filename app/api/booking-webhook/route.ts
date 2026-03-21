@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 // ─── CALENDLY WEBHOOK HANDLER ─────────────────────────────────────────────────
 //
 // Register this URL in Calendly:

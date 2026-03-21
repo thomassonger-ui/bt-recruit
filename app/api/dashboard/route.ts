@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "bearteam2026"
 const AVG_PRICE = 415000
 const COMMISSION_RATE = 0.025

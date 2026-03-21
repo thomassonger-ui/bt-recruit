@@ -195,21 +195,50 @@ function ChatPageInner() {
   return (
     <div
       className="flex min-h-screen items-center justify-center px-4 py-8"
-      style={{ background: "#F2F2F2" }}
+      style={{ background: "#F2F2F2", paddingTop: "88px" }}
     >
-      <div className="w-full max-w-2xl">
-        <div className="mb-4">
-          <a
-            href="/scout"
-            className="inline-flex items-center gap-2 text-sm transition-colors"
-            style={{ color: "#6B7280" }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Back to Scout
-          </a>
+      {/* ── TOP NAV — matches homepage ── */}
+      <nav style={{
+        position: "fixed",
+        top: 0, left: 0, right: 0,
+        zIndex: 100,
+        padding: "0 clamp(16px, 4vw, 40px)",
+        height: "60px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "rgba(255,255,255,0.96)",
+        backdropFilter: "blur(14px)",
+        borderBottom: "1px solid rgba(0,0,0,0.08)",
+      }}>
+        <a href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="32" height="32" rx="1" stroke="#1a1a1a" strokeWidth="2" fill="none"/>
+            <rect x="4" y="4" width="26" height="26" rx="0.5" stroke="#1a1a1a" strokeWidth="1.5" fill="none"/>
+            <text x="17" y="22.5" textAnchor="middle" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontWeight="800" fontSize="12" fill="#1a1a1a" letterSpacing="0.5">BT</text>
+          </svg>
+          <span style={{ color: "#1a1a1a", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.01em" }}>
+            Bear Real Estate Team
+          </span>
+        </a>
+        <div style={{ display: "flex", gap: "28px", alignItems: "center" }}>
+          <a href="/#why-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Why Scout</a>
+          <a href="/#see-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>See Scout</a>
+          <a href="/#try-it" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Try It</a>
+          <a href="/chat" style={{
+            background: "#2d4a6b",
+            color: "#ffffff",
+            textDecoration: "none",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            padding: "9px 20px",
+            borderRadius: "8px",
+            whiteSpace: "nowrap",
+          }}>Text Me Scout</a>
         </div>
+      </nav>
+
+      <div className="w-full max-w-2xl">
 
         <div
           className="rounded-2xl overflow-hidden"

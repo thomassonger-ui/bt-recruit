@@ -191,19 +191,36 @@ function Nav() {
           <rect x="4" y="4" width="26" height="26" rx="0.5" stroke="#1a1a1a" strokeWidth="1.5" fill="none"/>
           <text x="17" y="22.5" textAnchor="middle" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontWeight="800" fontSize="12" fill="#1a1a1a" letterSpacing="0.5">BT</text>
         </svg>
-        <span style={{ color: "#1a1a1a", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.04em" }}>
-          Bear Team
+        <span style={{ color: "#1a1a1a", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.01em" }}>
+          Bear Real Estate Team
         </span>
       </a>
       {/* Desktop links */}
       <div style={{ display: "flex", gap: "28px", alignItems: "center" }} className="nav-desktop">
-        <a href="#systems" style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
-          The System
+        <a href="#why-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+          Why Scout
         </a>
-        <a href="#proof" style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
-          Track Record
+        <a href="#see-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+          See Scout
         </a>
-        <ScoutCTA size="sm" />
+        <a href="#try-it" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+          Try It
+        </a>
+        <a
+          href="/chat"
+          style={{
+            background: "#2d4a6b",
+            color: "#ffffff",
+            textDecoration: "none",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            padding: "9px 20px",
+            borderRadius: "8px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Text Me Scout
+        </a>
       </div>
       {/* Mobile hamburger */}
       <button

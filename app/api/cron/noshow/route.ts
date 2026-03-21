@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
-const supabase = createClient(
-  (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy init — avoids build-time crash
+function getSupabase() {
+  return createClient(
+    (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
 const TOM_EMAIL = "thomas.songer@gmail.com";
 const TOM_PHONE = "407-758-8102";
@@ -37,7 +43,7 @@ export async function GET(req: NextRequest) {
     const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
 
     // Find no-show leads: event ended, within last 2 hours, not yet followed up
-    const { data: noShows, error } = await supabase
+    const { data: noShows, error } = await getSupabase()
       .from("leads")
       .select("*")
       .lt("event_end", now.toISOString())       // call window has passed
@@ -61,7 +67,7 @@ export async function GET(req: NextRequest) {
 
       // ── Email to recruit ──────────────────────────────────────────────────
       const recruitEmail = buildRecruitEmail(firstName, lead.email);
-      const { error: recruitEmailError } = await resend.emails.send({
+      const { error: recruitEmailError } = await getResend().emails.send({
         from: FROM_EMAIL,
         to: lead.email,
         subject: `We missed you today, ${firstName}`,
@@ -75,7 +81,7 @@ export async function GET(req: NextRequest) {
 
       // ── Notification email to Tom ─────────────────────────────────────────
       const tomEmail = buildTomNotificationEmail(lead);
-      await resend.emails.send({
+      await getResend().emails.send({
         from: FROM_EMAIL,
         to: TOM_EMAIL,
         subject: `[No-Show] ${lead.name || lead.email} missed their call`,
@@ -83,7 +89,7 @@ export async function GET(req: NextRequest) {
       });
 
       // ── Update Supabase — mark follow-up sent, update stage ──────────────
-      await supabase
+      await getSupabase()
         .from("leads")
         .update({
           noshow_followup_sent: true,
@@ -192,7 +198,7 @@ function buildTomNotificationEmail(lead: Record<string, string | number | boolea
       <div class="row"><div class="label">Call Was At</div><div class="value">${eventStart} ET</div></div>
       <div class="row"><div class="label">Stage</div><div class="value">→ Follow-Up Queue</div></div>
       <p style="color: #555; font-size: 14px; margin-top: 20px;">A follow-up email was sent to ${email} automatically. If you want to reach out personally, their phone is above.</p>
-      <a href="https://supabase.com/dashboard/project/bbithigafmsyzlmuaokw/editor" class="cta">View in Supabase →</a>
+      <a href="https://getSupabase().com/dashboard/project/bbithigafmsyzlmuaokw/editor" class="cta">View in Supabase →</a>
     </div>
   </div>
 </body>

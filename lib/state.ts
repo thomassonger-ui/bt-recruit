@@ -4,12 +4,19 @@
  * Falls back to in-memory if Supabase is unavailable.
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy init — avoids build-time crash when env vars aren't present
+let _supabase: SupabaseClient | null = null;
+function getSupabase(): SupabaseClient {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return _supabase;
+}
 
 export type Stage =
   | "ENGAGE"
@@ -42,7 +49,7 @@ const fallback = new Map<string, ContactState>();
 
 export async function getContact(phone: string): Promise<ContactState> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from("sms_sessions")
       .select("*")
       .eq("phone", phone)
@@ -71,7 +78,7 @@ export async function saveContact(contact: ContactState): Promise<void> {
   contact.messageCount += 1;
 
   try {
-    await supabase.from("sms_sessions").upsert(
+    await getSupabase().from("sms_sessions").upsert(
       {
         phone: contact.phone,
         stage: contact.stage,
@@ -99,7 +106,7 @@ export async function getStaleContacts(
   ).toISOString();
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from("sms_sessions")
       .select("*")
       .lt("last_interaction", threshold)

@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
-const supabase = createClient(
-  (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy init — avoids build-time crash
+function getSupabase() {
+  return createClient(
+    (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
 const TOM_EMAIL = "thomas.songer@gmail.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
@@ -52,7 +58,7 @@ export async function GET(req: NextRequest) {
       const windowStart = new Date(now.getTime() - (step.day * 24 * 60 * 60 * 1000));
       const windowEnd   = new Date(now.getTime() - ((step.day - 1) * 24 * 60 * 60 * 1000));
 
-      const { data: leads, error } = await supabase
+      const { data: leads, error } = await getSupabase()
         .from("leads")
         .select("*")
         .lt("event_end", windowEnd.toISOString())
@@ -76,7 +82,7 @@ export async function GET(req: NextRequest) {
 
         const html = buildDripEmail(step.emailIndex, firstName, lead);
 
-        const { error: emailError } = await resend.emails.send({
+        const { error: emailError } = await getResend().emails.send({
           from: FROM_EMAIL,
           replyTo: REPLY_TO,
           to: lead.email,
@@ -90,7 +96,7 @@ export async function GET(req: NextRequest) {
         }
 
         // Update drip_step and last drip sent timestamp
-        await supabase
+        await getSupabase()
           .from("leads")
           .update({
             drip_step: step.emailIndex + 1,
@@ -110,7 +116,7 @@ export async function GET(req: NextRequest) {
 
     // Notify Tom if any drip emails went out
     if (results.length > 0) {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: FROM_EMAIL,
         to: TOM_EMAIL,
         subject: `[Scout Drip] ${results.length} nurture email(s) sent today`,

@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
-const supabase = createClient(
-  (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+// Lazy init — avoids build-time crash
+function getSupabase() {
+  return createClient(
+    (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
 const TOM_EMAIL = "thomas.songer@gmail.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
@@ -21,7 +27,7 @@ export async function GET(req: NextRequest) {
 
   const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
-  const { data: coldLeads, error } = await supabase
+  const { data: coldLeads, error } = await getSupabase()
     .from("leads")
     .select("id, name, email, phone, brokerage, created_at")
     .eq("stage", "scout_captured")
@@ -43,7 +49,7 @@ export async function GET(req: NextRequest) {
     const firstName = lead.name?.split(" ")[0] || "there";
 
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: FROM_EMAIL,
         replyTo: REPLY_TO,
         to: lead.email,
@@ -79,7 +85,7 @@ export async function GET(req: NextRequest) {
         `,
       });
 
-      await supabase
+      await getSupabase()
         .from("leads")
         .update({
           stage: "cold_recovery",
@@ -96,7 +102,7 @@ export async function GET(req: NextRequest) {
 
   if (sent > 0) {
     const leadRows = recovered.map((l) => `<li>${l}</li>`).join("");
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM_EMAIL,
       replyTo: REPLY_TO,
       to: TOM_EMAIL,

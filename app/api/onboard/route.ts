@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
-const supabase = createClient(
-  (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy init — avoids build-time crash
+function getSupabase() {
+  return createClient(
+    (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
 const TOM_EMAIL = "thomas.songer@gmail.com";
 const TOM_PHONE = "407-758-8102";
@@ -60,7 +66,7 @@ export async function POST(req: NextRequest) {
     // Fetch the full lead record by leadId or email
     let agentData = lead;
     if (leadId || !lead.name) {
-      const query = supabase.from("leads").select("*");
+      const query = getSupabase().from("leads").select("*");
       const { data, error } = leadId
         ? await query.eq("id", leadId).single()
         : await query.eq("email", email.toLowerCase().trim()).single();
@@ -79,7 +85,7 @@ export async function POST(req: NextRequest) {
     const now = new Date();
 
     // ── 1. Send welcome email to new agent ───────────────────────────────────
-    const { error: welcomeEmailError } = await resend.emails.send({
+    const { error: welcomeEmailError } = await getResend().emails.send({
       from: FROM_EMAIL,
       replyTo: REPLY_TO,
       to: email,
@@ -93,7 +99,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 2. Send Tom a new agent alert ─────────────────────────────────────────
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM_EMAIL,
       to: TOM_EMAIL,
       subject: `🎉 New Agent — ${fullName} just joined Bear Team`,
@@ -101,7 +107,7 @@ export async function POST(req: NextRequest) {
     });
 
     // ── 3. Update Supabase — stop drip, advance stage ─────────────────────────
-    await supabase
+    await getSupabase()
       .from("leads")
       .update({
         stage: "Onboarding",
@@ -116,7 +122,7 @@ export async function POST(req: NextRequest) {
     const agentTxtContent = buildAgentTxt(agentData, now);
     const fileName = `${fullName.replace(/\s+/g, "_")}_${now.toISOString().split("T")[0]}.txt`;
 
-    await supabase.storage
+    await getSupabase().storage
       .from("onboarding")
       .upload(`_new-agents/${fileName}`, new Blob([agentTxtContent], { type: "text/plain" }), {
         upsert: true,
@@ -124,7 +130,7 @@ export async function POST(req: NextRequest) {
 
     // ── 5. Log to Supabase agents table (create if not present) ───────────────
     try {
-      await supabase
+      await getSupabase()
         .from("agents")
         .upsert(
           {
@@ -299,7 +305,7 @@ function buildTomAlert(agent: Record<string, string | number | boolean | null>):
         </ul>
       </div>
 
-      <a href="https://supabase.com/dashboard/project/bbithigafmsyzlmuaokw/editor" class="cta">View in Supabase →</a>
+      <a href="https://getSupabase().com/dashboard/project/bbithigafmsyzlmuaokw/editor" class="cta">View in Supabase →</a>
     </div>
   </div>
 </body>

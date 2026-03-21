@@ -3,15 +3,19 @@ import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const resend = new Resend(process.env.RESEND_API_KEY!);
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-const supabase = createClient(
-  (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getOpenAI() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
+
+// Lazy init — avoids build-time crash
+function getSupabase() {
+  return createClient(
+    (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -47,7 +51,7 @@ async function getReturningLead(email: string): Promise<LeadRecord | null> {
   if (!email || !email.includes("@")) return null;
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from("leads")
       .select("*")
       .eq("email", email.toLowerCase().trim())
@@ -69,7 +73,7 @@ async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
   if (!lead.email) return;
 
   try {
-    await supabase
+    await getSupabase()
       .from("leads")
       .upsert(
         {
@@ -394,7 +398,7 @@ export async function POST(req: NextRequest) {
         await upsertLead(leadData);
         // Fire-and-forget Tom alert on full lead capture
         if (bodyName && bodyPhone) {
-          resend.emails.send({
+          getResend().emails.send({
             from: "Scout <scout@joinbearteam.com>",
             to: "thomas.songer@gmail.com",
             subject: `🔔 New Lead: ${bodyName}`,
@@ -416,7 +420,7 @@ export async function POST(req: NextRequest) {
       systemPrompt = systemPrompt + returningLeadBlock;
     }
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
