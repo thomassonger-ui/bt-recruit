@@ -263,41 +263,77 @@ export default function AcademyPage() {
       </nav>
 
       {/* Hero */}
-      <div style={{ background: "#F0F1F3", position: "relative", overflow: "hidden", padding: "80px 24px 72px", textAlign: "center" }}>
-        {/* Blueprint grid background — matches homepage */}
+      <div
+        className="blueprint-hero"
+        style={{
+          position: "relative", overflow: "hidden",
+          padding: "80px 24px 72px", textAlign: "center",
+          backgroundImage: `url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop')`,
+          backgroundSize: "cover", backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        {/* Dark overlay for readability */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(15,28,50,0.72)", pointerEvents: "none" }} />
+        {/* Subtle blueprint grid overlay */}
         <div style={{
           position: "absolute", inset: 0, pointerEvents: "none",
-          backgroundImage: "linear-gradient(rgba(107,114,128,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(107,114,128,0.10) 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(rgba(100,180,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(100,180,255,0.06) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
         }} />
         {/* Frosted glass card */}
-        <div style={{
-          position: "relative", zIndex: 1,
-          maxWidth: 720,
-          margin: "0 auto",
-          background: "rgba(240,241,243,0.72)",
-          backdropFilter: "blur(24px) saturate(180%)",
-          WebkitBackdropFilter: "blur(24px) saturate(180%)",
-          borderRadius: 24,
-          border: "1px solid rgba(255,255,255,0.6)",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.8) inset",
-          padding: "48px 40px",
-        }}>
-          <h1 style={{ color: "#1a1a1a", fontSize: "clamp(2rem, 5vw, 3.2rem)", fontWeight: 800, margin: "0 0 20px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
-            Training Built for<br /><span style={{ color: "#3b5a82" }}>Bear Team Agents</span>
+        <div
+          className="hero-glass-card"
+          style={{
+            position: "relative", zIndex: 1,
+            maxWidth: 720,
+            margin: "0 auto",
+            background: "rgba(255,255,255,0.08)",
+            backdropFilter: "blur(28px) saturate(160%)",
+            WebkitBackdropFilter: "blur(28px) saturate(160%)",
+            borderRadius: 24,
+            border: "1px solid rgba(255,255,255,0.18)",
+            boxShadow: "0 8px 48px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.12) inset",
+            padding: "48px 40px",
+            transition: "transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s cubic-bezier(0.22,1,0.36,1)",
+            cursor: "default",
+          }}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLDivElement;
+            el.style.transform = "translateY(-6px) scale(1.012)";
+            el.style.boxShadow = "0 24px 64px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.18) inset";
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLDivElement;
+            el.style.transform = "translateY(0) scale(1)";
+            el.style.boxShadow = "0 8px 48px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.12) inset";
+          }}
+        >
+          <h1 style={{ color: "#ffffff", fontSize: "clamp(2rem, 5vw, 3.2rem)", fontWeight: 800, margin: "0 0 20px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+            Training Built for<br /><span style={{ color: "#7eb8f7" }}>Bear Team Agents</span>
           </h1>
-          <p style={{ color: "#6b7280", fontSize: "1.05rem", maxWidth: 520, margin: "0 auto 36px", lineHeight: 1.65 }}>
+          <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "1.05rem", maxWidth: 520, margin: "0 auto 36px", lineHeight: 1.65 }}>
             6 courses. Free for every agent. Covers everything from your first day to your first 20-deal year. Every lesson is built around how Bear Team actually operates.
           </p>
-          <p style={{ fontSize: "0.78rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#3b5a82", margin: "0 0 8px" }}>
+          <p style={{ fontSize: "0.78rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7eb8f7", margin: "0 0 8px" }}>
             Scout (Train)
           </p>
-          <p style={{ fontSize: "0.9rem", color: "#4b5563", margin: "0 auto 28px", lineHeight: 1.6, maxWidth: 460 }}>
+          <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.65)", margin: "0 auto 28px", lineHeight: 1.6, maxWidth: 460 }}>
             Scout helps you build skill, reinforce systems, and improve consistency through daily execution.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <a href="https://calendly.com/thomas-songer/bear-team-meet" target="_blank" rel="noopener noreferrer" style={{ background: "#1b365d", color: "#fff", textDecoration: "none", fontWeight: 700, padding: "13px 30px", borderRadius: 9, fontSize: "0.95rem" }}>Book a Call with Tom</a>
-            <a href="/chat?context=academy" style={{ background: "rgba(59,90,130,0.08)", color: "#1b365d", textDecoration: "none", fontWeight: 600, padding: "13px 30px", borderRadius: 9, fontSize: "0.95rem", border: "1px solid rgba(59,90,130,0.2)" }}>Ask Scout</a>
+            <a href="https://calendly.com/thomas-songer/bear-team-meet" target="_blank" rel="noopener noreferrer"
+              className="hero-btn-primary"
+              style={{ background: "#ffffff", color: "#1b365d", textDecoration: "none", fontWeight: 700, padding: "13px 30px", borderRadius: 9, fontSize: "0.95rem", transition: "transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease" }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform="translateY(-2px)"; el.style.boxShadow="0 8px 24px rgba(0,0,0,0.25)"; el.style.background="#f0f4ff"; }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform="translateY(0)"; el.style.boxShadow="none"; el.style.background="#ffffff"; }}
+            >Book a Call with Tom</a>
+            <a href="/chat?context=academy"
+              className="hero-btn-secondary"
+              style={{ background: "rgba(255,255,255,0.12)", color: "#ffffff", textDecoration: "none", fontWeight: 600, padding: "13px 30px", borderRadius: 9, fontSize: "0.95rem", border: "1px solid rgba(255,255,255,0.35)", transition: "transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease" }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform="translateY(-2px)"; el.style.background="rgba(255,255,255,0.22)"; el.style.boxShadow="0 8px 24px rgba(0,0,0,0.2)"; }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform="translateY(0)"; el.style.background="rgba(255,255,255,0.12)"; el.style.boxShadow="none"; }}
+            >Ask Scout</a>
           </div>
         </div>
       </div>
