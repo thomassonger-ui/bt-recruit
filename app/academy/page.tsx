@@ -13,6 +13,12 @@ export default function AcademyPage() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
+  // Force page to top on mount — prevents browser scroll restoration
+  useEffect(() => {
+    window.history.scrollRestoration = "manual";
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, []);
+
   // Coach chat state
   const [coachMessages, setCoachMessages] = useState<CoachMessage[]>([
     { role: "assistant", content: "I'm Coach — Bear Team's training assistant. Ask me anything about real estate practice, the Academy courses, or how to improve your production." },
