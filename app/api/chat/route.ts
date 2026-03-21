@@ -5,6 +5,7 @@ import { Resend } from "resend";
 
 import { getScoutPrompt } from "@/lib/scout/guardrails/systemPrompt";
 import type { ScoutMode } from "@/lib/scout/guardrails/systemPrompt";
+import { checkInboundCompliance } from "@/lib/scout/guardrails/complianceRules";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -219,6 +220,15 @@ export async function POST(req: NextRequest) {
     if (returningLeadBlock && mode === "recruit") {
       systemPrompt = systemPrompt + returningLeadBlock;
     }
+
+    // ── Compliance check — runs before LLM on every request ──────────────────
+    const lastMessage = chatMessages.filter(m => m.role === "user").slice(-1)[0]?.content ?? "";
+    const compliance = checkInboundCompliance(lastMessage);
+    if (compliance.requiresDeflection) {
+      const deflected = compliance.fallbackOverride ?? "That's a great question — your agent will be the best person to guide you on that.";
+      return NextResponse.json({ reply: deflected, role: "assistant", content: deflected, mode, deflected: true });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     const response = await getOpenAI().chat.completions.create({
       model: "gpt-4o",
