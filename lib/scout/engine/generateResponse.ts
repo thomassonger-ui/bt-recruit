@@ -196,7 +196,7 @@ export async function generateScoutResponse(
     }
 
     // ── Step 4: Build prompts ──
-    const systemPrompt = buildSystemPrompt(request.channel);
+    const systemPrompt = buildSystemPrompt("recruit", request.channel);
     let userPrompt = buildUserPrompt(
       request.message,
       classification,
