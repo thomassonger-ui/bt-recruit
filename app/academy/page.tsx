@@ -281,7 +281,13 @@ export default function AcademyPage() {
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <a href="https://calendly.com/thomas-songer/bear-team-meet" target="_blank" rel="noopener noreferrer" style={{ background: "#1b365d", color: "#fff", textDecoration: "none", fontWeight: 700, padding: "13px 30px", borderRadius: 9, fontSize: "0.95rem" }}>Book a Call with Tom</a>
-            <a href="/chat" style={{ background: "rgba(59,90,130,0.08)", color: "#1b365d", textDecoration: "none", fontWeight: 600, padding: "13px 30px", borderRadius: 9, fontSize: "0.95rem", border: "1px solid rgba(59,90,130,0.2)" }}>Ask Scout About Academy</a>
+            <div style={{ marginBottom: 8 }}>
+              <span style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "#3b5a82" }}>Scout (Train)</span>
+            </div>
+            <p style={{ fontSize: "0.9rem", color: "#4b5563", marginBottom: 16, lineHeight: 1.6, maxWidth: 440 }}>
+              Scout helps you build skill, reinforce systems, and improve consistency through daily execution.
+            </p>
+            <a href="/chat?context=academy" style={{ background: "rgba(59,90,130,0.08)", color: "#1b365d", textDecoration: "none", fontWeight: 600, padding: "13px 30px", borderRadius: 9, fontSize: "0.95rem", border: "1px solid rgba(59,90,130,0.2)" }}>Ask Scout</a>
           </div>
         </div>
       </div>
