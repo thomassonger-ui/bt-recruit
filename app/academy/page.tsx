@@ -4,9 +4,48 @@ import { useEffect, useRef, useState } from "react";
 
 export const dynamic = "force-dynamic";
 
+interface CoachMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export default function AcademyPage() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Coach chat state
+  const [coachMessages, setCoachMessages] = useState<CoachMessage[]>([
+    { role: "assistant", content: "I'm Coach — Bear Team's training assistant. Ask me anything about real estate practice, the Academy courses, or how to improve your production." },
+  ]);
+  const [coachInput, setCoachInput] = useState("");
+  const [coachLoading, setCoachLoading] = useState(false);
+  const coachEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    coachEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [coachMessages, coachLoading]);
+
+  async function sendCoach() {
+    const text = coachInput.trim();
+    if (!text || coachLoading) return;
+    const next: CoachMessage[] = [...coachMessages, { role: "user", content: text }];
+    setCoachMessages(next);
+    setCoachInput("");
+    setCoachLoading(true);
+    try {
+      const res = await fetch("/api/coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next }),
+      });
+      const data = await res.json();
+      setCoachMessages([...next, { role: "assistant", content: data.reply || "Something went wrong. Try again." }]);
+    } catch {
+      setCoachMessages([...next, { role: "assistant", content: "Connection error. Please try again." }]);
+    } finally {
+      setCoachLoading(false);
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -196,10 +235,14 @@ export default function AcademyPage() {
       `}</style>
 
       {/* Nav */}
-      <nav style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+      <nav style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", borderBottom: "1px solid rgba(0,0,0,0.08)", padding: "0 clamp(16px,4vw,40px)", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div style={{ width: 32, height: 32, background: "#1b365d", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: "0.75rem" }}>BT</div>
-          <span style={{ color: "#1b365d", fontWeight: 700, fontSize: "0.95rem" }}>Bear Real Estate Team</span>
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="32" height="32" rx="1" stroke="#1a1a1a" strokeWidth="2" fill="none"/>
+            <rect x="4" y="4" width="26" height="26" rx="0.5" stroke="#1a1a1a" strokeWidth="1.5" fill="none"/>
+            <text x="17" y="22.5" textAnchor="middle" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontWeight="800" fontSize="12" fill="#1a1a1a" letterSpacing="0.5">BT</text>
+          </svg>
+          <span style={{ color: "#1a1a1a", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.01em" }}>Bear Real Estate Team</span>
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
           <a href="/#why-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Why Scout</a>
@@ -360,6 +403,149 @@ export default function AcademyPage() {
         </div>
         <p style={{ color: "#9ca3af", fontSize: "0.78rem", marginTop: 20 }}>Tom Songer · Team Lead · Bear Team Real Estate · Orlando, FL</p>
       </div>
+
+      {/* Coach — AI Training Assistant */}
+      <div id="coach" style={{ background: "#f8f9fa", padding: "72px 24px" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#1b365d", borderRadius: 20, padding: "6px 16px", marginBottom: 16 }}>
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.8)" }} />
+              <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" }}>Coach — Training Assistant</span>
+            </div>
+            <h2 style={{ fontSize: "1.8rem", fontWeight: 800, color: "#1a1a1a", margin: "0 0 10px" }}>Ask Coach</h2>
+            <p style={{ color: "#6b7280", fontSize: "0.95rem", maxWidth: 520, margin: "0 auto", lineHeight: 1.6 }}>
+              Coach knows the 6 Academy courses, Florida real estate law, Bear Team systems, and production coaching. Ask anything — this is where you come to learn.
+            </p>
+          </div>
+
+          {/* Chat window */}
+          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e5e7eb", boxShadow: "0 4px 24px rgba(0,0,0,0.07)", overflow: "hidden" }}>
+
+            {/* Messages */}
+            <div style={{ height: 420, overflowY: "auto", padding: "24px 24px 16px", display: "flex", flexDirection: "column", gap: 16 }}>
+              {coachMessages.map((m, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+                  {m.role === "assistant" && (
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1b365d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 10, marginTop: 2 }}>
+                      <span style={{ color: "#fff", fontSize: "0.62rem", fontWeight: 800 }}>C</span>
+                    </div>
+                  )}
+                  <div style={{
+                    maxWidth: "75%",
+                    padding: "12px 16px",
+                    borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                    background: m.role === "user" ? "#1b365d" : "#f3f4f6",
+                    color: m.role === "user" ? "#fff" : "#1a1a1a",
+                    fontSize: "0.875rem",
+                    lineHeight: 1.6,
+                    whiteSpace: "pre-wrap",
+                  }}>
+                    {m.content}
+                  </div>
+                </div>
+              ))}
+              {coachLoading && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1b365d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ color: "#fff", fontSize: "0.62rem", fontWeight: 800 }}>C</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 5, padding: "12px 16px", background: "#f3f4f6", borderRadius: "14px 14px 14px 4px" }}>
+                    {[0, 1, 2].map(d => (
+                      <div key={d} style={{
+                        width: 7, height: 7, borderRadius: "50%", background: "#9ca3af",
+                        animation: "coachPulse 1.2s ease-in-out infinite",
+                        animationDelay: `${d * 0.2}s`,
+                      }} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div ref={coachEndRef} />
+            </div>
+
+            {/* Input */}
+            <div style={{ borderTop: "1px solid #e5e7eb", padding: "16px 20px", display: "flex", gap: 10, background: "#fafafa" }}>
+              <input
+                type="text"
+                value={coachInput}
+                onChange={e => setCoachInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendCoach(); } }}
+                placeholder="Ask Coach about real estate, Academy courses, or your production..."
+                style={{
+                  flex: 1,
+                  padding: "11px 16px",
+                  borderRadius: 9,
+                  border: "1px solid #d1d5db",
+                  fontSize: "0.875rem",
+                  outline: "none",
+                  background: "#fff",
+                  color: "#1a1a1a",
+                  fontFamily: "inherit",
+                }}
+              />
+              <button
+                onClick={sendCoach}
+                disabled={coachLoading || !coachInput.trim()}
+                style={{
+                  padding: "11px 22px",
+                  borderRadius: 9,
+                  border: "none",
+                  background: coachLoading || !coachInput.trim() ? "#e5e7eb" : "#1b365d",
+                  color: coachLoading || !coachInput.trim() ? "#9ca3af" : "#fff",
+                  fontWeight: 700,
+                  fontSize: "0.875rem",
+                  cursor: coachLoading || !coachInput.trim() ? "not-allowed" : "pointer",
+                  transition: "background 0.2s",
+                  fontFamily: "inherit",
+                }}
+              >
+                Ask
+              </button>
+            </div>
+          </div>
+
+          {/* Suggested questions */}
+          <div style={{ marginTop: 20, display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+            {[
+              "What does Course 03 cover?",
+              "How do I build a geographic farm?",
+              "What is transaction broker vs single agent?",
+              "How should I structure my daily schedule?",
+              "What is a material defect in Florida?",
+            ].map(q => (
+              <button
+                key={q}
+                onClick={() => { setCoachInput(q); }}
+                style={{
+                  padding: "7px 14px",
+                  borderRadius: 20,
+                  border: "1px solid #d1d5db",
+                  background: "#fff",
+                  color: "#374151",
+                  fontSize: "0.78rem",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  transition: "border-color 0.2s, color 0.2s",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#1b365d"; (e.currentTarget as HTMLButtonElement).style.color = "#1b365d"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#d1d5db"; (e.currentTarget as HTMLButtonElement).style.color = "#374151"; }}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Coach pulse animation */}
+      <style>{`
+        @keyframes coachPulse {
+          0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
 
       {/* Footer */}
       <footer style={{ borderTop: "1px solid #e5e7eb", background: "#f8f9fa", padding: "24px", textAlign: "center", fontSize: "0.8rem", color: "#9ca3af" }}>
