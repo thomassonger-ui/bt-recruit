@@ -724,37 +724,118 @@ export default function RecruitingClient() {
       ═══════════════════════════════════════════════════════ */}
       <section
         id="try"
-        className="px-4 sm:px-6 lg:px-8"
-        style={{ background: "var(--color-card)" }}
+        className="relative overflow-hidden px-4 sm:px-6 lg:px-8"
+        style={{ background: "rgba(11,22,42,1)" }}
       >
-        <div className="mx-auto max-w-4xl py-24 sm:py-32">
+        {/* Blueprint grid lines overlay */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(rgba(147,197,253,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(147,197,253,0.04) 1px, transparent 1px)`,
+            backgroundSize: "48px 48px",
+            zIndex: 0,
+          }}
+        />
+        {/* Radial glow behind content */}
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2"
+          style={{
+            transform: "translate(-50%, -50%)",
+            width: "700px",
+            height: "400px",
+            background: "radial-gradient(ellipse at center, rgba(59,130,246,0.12) 0%, transparent 70%)",
+            zIndex: 0,
+          }}
+        />
+
+        <div className="relative z-10 mx-auto max-w-4xl py-24 sm:py-32">
           <motion.div
             {...fadeUp}
             transition={{ duration: 0.5 }}
             className="mb-12 text-center sm:mb-16"
           >
-            <p
-              className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-muted"
-              style={{ fontFamily: "Inter, sans-serif" }}
+            {/* Urgency pill */}
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5"
+              style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(147,197,253,0.30)" }}
             >
-              Try It Now
-            </p>
+              <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "#93c5fd" }} />
+              <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: "#93c5fd", fontFamily: "Inter, sans-serif" }}>
+                Live Demo
+              </span>
+            </div>
+
             <h2
-              className="text-heading text-foreground"
-              style={{ fontFamily: "Inter, sans-serif" }}
+              className="text-heading"
+              style={{ fontFamily: "Inter, sans-serif", color: "#ffffff" }}
             >
-              See What Scout Can Do
+              Stop Wondering. Try It Now.
             </h2>
             <p
-              className="mt-4 text-base leading-relaxed text-muted"
-              style={{ fontFamily: "Inter, sans-serif" }}
+              className="mt-4 text-lg leading-relaxed"
+              style={{ fontFamily: "Inter, sans-serif", color: "rgba(255,255,255,0.65)" }}
             >
-              Click generate and watch Scout write a listing description in
-              seconds.
+              Pick a task below and watch Scout work in real time.
+              <br />
+              <span style={{ color: "#93c5fd", fontWeight: 600 }}>No account. No setup. Just results.</span>
             </p>
           </motion.div>
 
           <TryScout />
+
+          {/* Bottom CTA nudge */}
+          <motion.div
+            {...fadeUp}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-14 flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-center"
+          >
+            <a
+              href="https://calendar.app.google/your-link"
+              className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold text-white transition-all"
+              style={{
+                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                boxShadow: "0 0 24px rgba(37,99,235,0.45)",
+                fontFamily: "Inter, sans-serif",
+                textDecoration: "none",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)";
+                (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 36px rgba(37,99,235,0.65)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+                (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 24px rgba(37,99,235,0.45)";
+              }}
+            >
+              Book a Call with Tom
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+            <a
+              href={`sms:+18444072587?body=${SMS_BODY}`}
+              className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold transition-all"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(147,197,253,0.25)",
+                color: "rgba(255,255,255,0.80)",
+                fontFamily: "Inter, sans-serif",
+                textDecoration: "none",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.10)";
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(147,197,253,0.50)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.06)";
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(147,197,253,0.25)";
+              }}
+            >
+              Text Me Scout
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M2 3h12a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 2V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </motion.div>
         </div>
       </section>
 
