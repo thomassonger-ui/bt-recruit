@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Load state
-    const contact = getContact(from);
+    const contact = await getContact(from);
 
     // 2. Classify intent (existing keyword system)
     const intent = classifyIntent(body);
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 6. Save updated state
-    saveContact(contact);
+    await saveContact(contact);
 
     // 7. Return TwiML
     return new NextResponse(buildTwiml(scoutResponse.text), {
@@ -92,3 +92,14 @@ export async function POST(request: NextRequest) {
     });
   }
 }
+```
+
+**Only two lines changed:**
+- Line: `const contact = getContact(from)` → `const contact = await getContact(from)`
+- Line: `saveContact(contact)` → `await saveContact(contact)`
+
+---
+
+Commit message:
+```
+fix: await async state calls in SMS route — Supabase persistence now active
