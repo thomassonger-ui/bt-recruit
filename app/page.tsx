@@ -1976,7 +1976,7 @@ export default function HomePage() {
           <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
           <a href="#proof" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Track Record</a>
         </div>
-        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)", marginTop: "28px" }}>© 2026 WorldTeachPathways. All rights reserved.</div>
+        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)", marginTop: "28px" }}>© 2026 Copyright WorldTeachPathways | Bear Team Real Estate · Bethanne Baer, Broker/Owner · Orlando, FL</div>
       </footer>
     </main>
   );
