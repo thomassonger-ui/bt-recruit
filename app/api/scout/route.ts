@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Step 3: Build system prompt ───────────────────────────────────────────
-    const systemPrompt = buildSystemPrompt(channel, mode);
+    const systemPrompt = buildSystemPrompt(mode, channel);
     const params = MODE_LLM_PARAMS[mode];
 
     // ── Step 4: Generate response ─────────────────────────────────────────────
