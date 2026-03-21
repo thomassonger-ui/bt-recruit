@@ -159,23 +159,22 @@ function HeroParallaxContent() {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Layer 0: Blueprint photo — deepest background */}
-      <motion.div
-        className="pointer-events-none absolute inset-[-20px]"
+      {/* Layer 0: Blueprint photo — <img> tag, deepest background */}
+      <img
+        src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute"
         style={{
-          y: gridY,
-          willChange: "transform",
-          backgroundImage: "url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          opacity: 0.18,
-          filter: "saturate(0.4) brightness(0.9)",
+          inset: "-20px", width: "calc(100% + 40px)", height: "calc(100% + 40px)",
+          objectFit: "cover", objectPosition: "center",
+          opacity: 0.2, filter: "saturate(0.35) brightness(0.9)",
+          zIndex: 0,
         }}
       />
 
-      {/* Layer 0b: Dark overlay to keep text readable */}
-      <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(240,243,248,0.88) 0%, rgba(220,228,240,0.82) 100%)", zIndex: 0 }} />
+      {/* Layer 0b: Light gradient overlay to keep text readable */}
+      <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(240,243,248,0.86) 0%, rgba(220,228,240,0.80) 100%)", zIndex: 1 }} />
 
       {/* Layer 1: Blueprint grid */}
       <motion.div
