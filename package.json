@@ -37,4 +37,6 @@
     "typescript": "^5",
     "vitest": "^4.1.0"
   }
+,
+  "_buildTag": "blueprint-deploy-fix"
 }
