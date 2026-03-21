@@ -21,13 +21,17 @@ export default function AcademyPage() {
   const [coachLoading, setCoachLoading] = useState(false);
   const coachEndRef = useRef<HTMLDivElement>(null);
 
+  // Only auto-scroll coach panel after user interaction — never on initial load
+  const coachHasInteracted = useRef(false);
   useEffect(() => {
+    if (!coachHasInteracted.current) return;
     coachEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [coachMessages, coachLoading]);
 
   async function sendCoach() {
     const text = coachInput.trim();
     if (!text || coachLoading) return;
+    coachHasInteracted.current = true;
     const next: CoachMessage[] = [...coachMessages, { role: "user", content: text }];
     setCoachMessages(next);
     setCoachInput("");
