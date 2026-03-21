@@ -143,8 +143,3 @@ function freshState(phone: string): ContactState {
     lastInteraction: Date.now(),
   };
 }
-```
-
-Commit message to use:
-```
-fix: persist SMS state to Supabase, remove in-memory cold start vulnerability
