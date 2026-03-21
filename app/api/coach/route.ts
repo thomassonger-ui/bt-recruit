@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Build system prompt: Scout in Academy mode, web channel
-    const systemPrompt = buildSystemPrompt("web", "academy");
+    const systemPrompt = buildSystemPrompt("academy", "web");
 
     const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
@@ -68,3 +68,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ reply: FALLBACKS.error }, { status: 500 });
   }
 }
+
