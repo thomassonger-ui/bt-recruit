@@ -11,8 +11,7 @@ export default function AcademyPage() {
       tagColor: "#2d4a6b",
       duration: "~45 min",
       description: "Start here. Learn how Bear Team operates, what we expect from every agent, and what you can expect from us. This course covers our culture, communication standards, and the BearTeamOS™ framework that runs everything.",
-      topics: ["Bear Team culture and operating principles", "Agent expectations and accountability standards", "How BearTeamOS™ supports your business", "Your first 30 days roadmap"],
-      icon: "🏠",
+      topics: ["Bear Team culture and operating principles", "Agent expectations and accountability standards", "How BearTeamOS™ supports your business", "Your first 30 days roadmap"]
     },
     {
       number: "02",
@@ -21,8 +20,7 @@ export default function AcademyPage() {
       tagColor: "#2d4a6b",
       duration: "~60 min",
       description: "Understand exactly how your money works here. Commission tiers, the $16K cap model, fee structure, and how you advance from 60/40 to 90/10 automatically as you produce.",
-      topics: ["Progressive split tiers: 60/40 → 70/30 → 80/20 → 90/10", "$16,000 company dollar cap — how it works", "Zero monthly fees, zero desk fees, zero tech fees", "$150 flat transaction fee — the only cost per closing", "E&O insurance: fully covered by Bear Team"],
-      icon: "📊",
+      topics: ["Progressive split tiers: 60/40 to 70/30 to 80/20 to 90/10", "$16,000 company dollar cap — how it works", "Zero monthly fees, zero desk fees, zero tech fees", "$150 flat transaction fee — the only cost per closing", "E&O insurance: fully covered by Bear Team"]
     },
     {
       number: "03",
@@ -31,8 +29,7 @@ export default function AcademyPage() {
       tagColor: "#2d4a6b",
       duration: "~50 min",
       description: "Know what keeps your license clean and your clients protected. Florida license law, Fair Housing requirements, contract obligations, and how Bear Team handles E&O — so you never have to worry about coverage.",
-      topics: ["Florida real estate license law essentials", "Fair Housing: what it means in practice", "Contract execution and disclosure requirements", "E&O coverage and how claims are handled", "Compliance escalation procedures"],
-      icon: "🛡️",
+      topics: ["Florida real estate license law essentials", "Fair Housing: what it means in practice", "Contract execution and disclosure requirements", "E&O coverage and how claims are handled", "Compliance escalation procedures"]
     },
     {
       number: "04",
@@ -41,8 +38,7 @@ export default function AcademyPage() {
       tagColor: "#2d4a6b",
       duration: "~60 min",
       description: "The full transaction workflow from contract to close. Checklists, CRM discipline, submission procedures, and how to run a clean deal every time using Bear Team's proven systems.",
-      topics: ["Transaction workflow: contract to close", "CRM usage and follow-up standards", "Checklist-based execution for every deal", "File submission and document management", "Coordination with Bethanne and the team"],
-      icon: "⚙️",
+      topics: ["Transaction workflow: contract to close", "CRM usage and follow-up standards", "Checklist-based execution for every deal", "File submission and document management", "Coordination with Bethanne and the team"]
     },
     {
       number: "05",
@@ -51,8 +47,7 @@ export default function AcademyPage() {
       tagColor: "#1a6b3c",
       duration: "~90 min",
       description: "Build a business that runs without you grinding. Lead generation systems, buyer and listing mastery, personal brand strategy, and the habits that separate top producers from the rest.",
-      topics: ["Lead generation: digital, referral, and community channels", "Buyer representation from first call to closing", "Listing strategy: pricing, staging, negotiation", "Personal brand and marketing toolkit", "90-day business plan framework"],
-      icon: "📈",
+      topics: ["Lead generation: digital, referral, and community channels", "Buyer representation from first call to closing", "Listing strategy: pricing, staging, negotiation", "Personal brand and marketing toolkit", "90-day business plan framework"]
     },
     {
       number: "06",
@@ -61,8 +56,7 @@ export default function AcademyPage() {
       tagColor: "#6b4a1a",
       duration: "~60 min",
       description: "For agents building toward team leadership. Scaling your production, mentoring others, and contributing to the Bear Team culture that attracted you here in the first place.",
-      topics: ["Scaling production to 20+ deals/year", "Mentoring and accountability partnerships", "Building your personal brand within Bear Team", "Leadership within BearTeamOS™", "Pathways to team lead and beyond"],
-      icon: "🎯",
+      topics: ["Scaling production to 20+ deals/year", "Mentoring and accountability partnerships", "Building your personal brand within Bear Team", "Leadership within BearTeamOS™", "Pathways to team lead and beyond"]
     },
   ];
 
@@ -130,7 +124,7 @@ export default function AcademyPage() {
               <div style={{ display: "flex", alignItems: "flex-start", gap: 20, padding: "28px 32px" }}>
                 {/* Number */}
                 <div style={{ width: 56, height: 56, borderRadius: 12, background: "#1b365d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "1.4rem" }}>
-                  {course.icon}
+                  {course.number}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
@@ -141,7 +135,7 @@ export default function AcademyPage() {
                   <p style={{ color: "#4b5563", fontSize: "0.9rem", lineHeight: 1.6, margin: "0 0 16px" }}>{course.description}</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {course.topics.map((t) => (
-                      <span key={t} style={{ fontSize: "0.75rem", background: "#f3f4f6", color: "#374151", padding: "4px 10px", borderRadius: 6, fontWeight: 500 }}>✓ {t}</span>
+                      <span key={t} style={{ fontSize: "0.75rem", background: "#f3f4f6", color: "#374151", padding: "4px 10px", borderRadius: 6, fontWeight: 500 }}>{t}</span>
                     ))}
                   </div>
                 </div>
@@ -159,7 +153,7 @@ export default function AcademyPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 14, textAlign: "left" }}>
             {outcomes.map((o, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 14, background: "rgba(255,255,255,0.07)", borderRadius: 10, padding: "14px 18px" }}>
-                <span style={{ color: "#4ade80", fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✓</span>
+                <span style={{ color: "#4ade80", fontWeight: 700, flexShrink: 0, marginTop: 1, fontSize: "1rem" }}>—</span>
                 <span style={{ color: "rgba(255,255,255,0.9)", fontSize: "0.9rem", lineHeight: 1.5 }}>{o}</span>
               </div>
             ))}
