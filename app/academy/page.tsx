@@ -13,10 +13,11 @@ export default function AcademyPage() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Force page to top on mount — prevents browser scroll restoration
+  // Disable browser scroll restoration — prevents mid-page landing on back-nav
   useEffect(() => {
-    window.history.scrollRestoration = "manual";
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    if (typeof window !== "undefined") {
+      window.history.scrollRestoration = "manual";
+    }
   }, []);
 
   // Coach chat state
@@ -262,24 +263,43 @@ export default function AcademyPage() {
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* Hero — full viewport height, matches homepage */}
       <div
         className="blueprint-hero"
-        style={{ position: "relative", overflow: "hidden", padding: "80px 24px 72px", textAlign: "center" }}
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: "80px 24px",
+        }}
       >
-        {/* Blueprint photo — <img> tag bypasses CSP restrictions */}
+        {/* Blueprint photo — fills full hero height */}
         <img
           src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1600&q=80&auto=format&fit=crop"
           alt=""
           aria-hidden="true"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", pointerEvents: "none" }}
+          style={{
+            position: "absolute", inset: 0,
+            width: "100%", height: "100%",
+            objectFit: "cover", objectPosition: "center",
+            pointerEvents: "none",
+          }}
         />
-        {/* Dark overlay for readability */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(15,28,50,0.75)", pointerEvents: "none" }} />
+        {/* Dark base overlay */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(11,22,42,0.72)", pointerEvents: "none" }} />
+        {/* Bottom fade — matches homepage gradient fade */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "linear-gradient(to bottom, rgba(11,22,42,0.3) 0%, rgba(11,22,42,0.55) 60%, rgba(15,25,50,0.9) 100%)",
+        }} />
         {/* Subtle blueprint grid overlay */}
         <div style={{
           position: "absolute", inset: 0, pointerEvents: "none",
-          backgroundImage: "linear-gradient(rgba(100,180,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(100,180,255,0.06) 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(rgba(100,180,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(100,180,255,0.05) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
         }} />
         {/* Frosted glass card */}
