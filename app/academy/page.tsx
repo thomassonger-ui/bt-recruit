@@ -298,8 +298,8 @@ export default function AcademyPage() {
 
       {/* Courses */}
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "64px 24px" }}>
-        <h2 style={{ textAlign: "center", fontSize: "1.8rem", fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>The 6 Courses</h2>
-        <p style={{ textAlign: "center", color: "#6b7280", marginBottom: 48, fontSize: "0.95rem" }}>Courses 1–4 are required for all new agents. Courses 5–6 are available immediately for agents ready to grow.</p>
+        <h2 style={{ textAlign: "center", fontSize: "1.8rem", fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>Bear Academy</h2>
+        <p style={{ textAlign: "center", color: "#6b7280", marginBottom: 48, fontSize: "0.95rem" }}>Complete the courses in order — from orientation and onboarding through compliance, operations, agent development, and leadership. Each course builds on the last.</p>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 24 }}>
           {courses.map((course) => (
