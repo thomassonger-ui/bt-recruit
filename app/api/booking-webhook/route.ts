@@ -105,6 +105,36 @@ export async function POST(req: NextRequest) {
 
     // Calendly sends event type in payload.event
     const eventType = body.event
+
+    // CR-3 fix: Handle invitee.canceled.
+    // Without this, a lead who books then cancels keeps event_end set and the drip
+    // cron fires Email 1 ("Great talking with you") after the call slot passes —
+    // even though the call never happened. Cancellation clears event_end so the
+    // drip cron can't pick them up. Stage is reset to scout_captured (they chatted
+    // with Scout) or Follow-Up Queue if they were further in pipeline.
+    if (eventType === "invitee.canceled") {
+      const cancelPayload = body.payload
+      const cancelEmail   = cancelPayload?.invitee?.email || ""
+      if (cancelEmail && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+        const { data: lead } = await supabase.from("leads").select("id, stage, drip_step")
+          .eq("email", cancelEmail.toLowerCase().trim()).maybeSingle()
+        if (lead) {
+          await supabase.from("leads").update({
+            event_end:   null,              // clear so drip cron doesn't fire on the slot
+            event_start: null,
+            status:      "cancelled",
+            // Only reset stage if still pre-call — don't overwrite mid-drip state
+            ...(lead.drip_step === 0 || lead.drip_step === null
+              ? { stage: "Follow-Up Queue" } : {}),
+            updated_at: new Date().toISOString(),
+          }).eq("id", lead.id)
+          console.log(`Cancellation handled for ${cancelEmail} — event_end cleared`)
+        }
+      }
+      return NextResponse.json({ ok: true, handled: "cancellation" })
+    }
+
     if (eventType !== "invitee.created") {
       return NextResponse.json({ ok: true, skipped: true })
     }
@@ -140,11 +170,21 @@ export async function POST(req: NextRequest) {
         })
       : "Time not captured"
 
+    // ── SW-1 fix: isRebooking hoisted here so it's in scope for all downstream logic.
+    // Previously declared inside the SUPABASE_URL conditional — if that env var was
+    // missing, isRebooking was undefined, !isRebooking evaluated true, and Email 1
+    // fired to every booking unconditionally. Default false = safest fallback.
+    let isRebooking = false
+
     // ── Write to Supabase ──────────────────────────────────────────────────────
-    if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+    // SW-5 fix: use SERVICE_ROLE_KEY for all writes in this route.
+    // Previously used SUPABASE_ANON_KEY. If RLS is enabled on the leads table,
+    // anon key writes silently fail. Service role bypasses RLS — consistent with
+    // drip, noshow, and onboard routes which all use the service role key.
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const supabase = createClient(
         process.env.SUPABASE_URL,
-        process.env.SUPABASE_ANON_KEY
+        process.env.SUPABASE_SERVICE_ROLE_KEY
       )
 
       // Fix 3-D: Check if this lead already exists and has an active drip sequence.
@@ -157,7 +197,8 @@ export async function POST(req: NextRequest) {
         .eq("email", email.toLowerCase().trim())
         .maybeSingle()
 
-      const isRebooking = existingLead && (existingLead.drip_step ?? 0) > 0
+      // SW-1 fix: isRebooking now written to the outer-scope variable declared above.
+      isRebooking = !!(existingLead && (existingLead.drip_step ?? 0) > 0)
 
       if (isRebooking) {
         // Mid-drip re-booking: update call timestamps and basic info only.
@@ -175,12 +216,12 @@ export async function POST(req: NextRequest) {
             // drip_step intentionally NOT reset — sequence continues from current step
             // drip_unsubscribed intentionally NOT changed — respect existing opt-out state
           })
-          .eq("id", existingLead.id)
+          .eq("id", existingLead!.id)
 
         if (error) {
           console.error("Supabase re-booking update error:", error)
         } else {
-          console.log(`Re-booking detected for ${email} at drip_step ${existingLead.drip_step} — drip preserved`)
+          console.log(`Re-booking detected for ${email} at drip_step ${existingLead!.drip_step} — drip preserved`)
         }
       } else {
         // New lead or pre-drip re-booking: full upsert
@@ -205,17 +246,26 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── TA-1: Email 1 — send immediately on booking confirmation ──────────────
-    // Fires within seconds of invitee.created. For new leads only (drip_step = 0).
-    // Re-bookings (drip_step > 0) skip this — they're mid-sequence already.
+    // ── SW-2/CR-1 fix: Email 1 split into pre-call confirmation + post-call recap.
+    // invitee.created fires at BOOKING, not after the call completes. The previous
+    // subject "Great talking with you today" was factually false for any agent who
+    // booked more than a few minutes in advance — a CAN-SPAM § 7704(a)(2) risk.
+    //
+    // New model:
+    //   invitee.created  → "Looking forward to our call" (booking confirmation)
+    //   event_end passes → drip cron fires Email 1 recap ("Great talking with you")
+    //
+    // Email 1 subject in DRIP_SCHEDULE is restored to Day 1 for the post-call recap.
+    // drip_step is NOT set here — the drip cron owns step 1 now that we've split them.
+    // This confirmation email is step 0 — it doesn't count as a drip step.
     if (process.env.RESEND_API_KEY && !isRebooking) {
       const firstName = name?.split(" ")[0] || "there"
-      // Fetch lead record to get deal_count, avg_price, notes for personalization
+      // Fetch lead for personalization (deal_count, brokerage, notes)
       let leadRecord: Record<string, string | number | boolean | null> = { name, email }
-      if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+      if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
         const { data: freshLead } = await createClient(
           process.env.SUPABASE_URL,
-          process.env.SUPABASE_ANON_KEY
+          process.env.SUPABASE_SERVICE_ROLE_KEY
         ).from("leads").select("*").eq("email", email.toLowerCase().trim()).maybeSingle()
         if (freshLead) leadRecord = freshLead
       }
@@ -224,21 +274,11 @@ export async function POST(req: NextRequest) {
         from: FROM_EMAIL,
         replyTo: REPLY_TO,
         to: email,
-        subject: "Great talking with you today",
-        html: buildEmail1(firstName, leadRecord),
-        tags: [{ name: "drip_step", value: "1" }, { name: "sequence", value: "drip" }],
-      }).catch((err: unknown) => console.error("Email 1 send error:", err))
-
-      // Mark drip_step = 1 so the drip cron (which now starts at Day 3) doesn't resend
-      if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
-        await createClient(
-          process.env.SUPABASE_URL,
-          process.env.SUPABASE_ANON_KEY
-        ).from("leads").update({
-          drip_step: 1,
-          drip_last_sent_at: new Date().toISOString(),
-        }).eq("email", email.toLowerCase().trim())
-      }
+        subject: `Looking forward to our call, ${firstName}`,
+        html: buildBookingConfirmationEmail(firstName, leadRecord, formattedTime),
+        tags: [{ name: "sequence", value: "booking_confirmation" }],
+      }).catch((err: unknown) => console.error("Booking confirmation email error:", err))
+      // Note: drip_step intentionally NOT set here. The drip cron owns Email 1 (post-call recap).
     }
 
     // ── Send email to Tom ──────────────────────────────────────────────────────
@@ -287,60 +327,35 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ─── EMAIL 1 BUILDER ─────────────────────────────────────────────────────────
-// Mirror of drip/route.ts Email 1 — kept in sync manually.
-// If you update the Email 1 copy in the drip cron, update this too.
+// ─── BOOKING CONFIRMATION EMAIL ───────────────────────────────────────────────
+// SW-2/CR-1 fix: Replaces the old "Great talking with you today" Email 1 that
+// fired at booking time. This is now a true pre-call confirmation — accurate,
+// useful, and CAN-SPAM compliant. The post-call recap (Email 1) is now owned
+// by the drip cron and fires after event_end.
 
-function buildEmail1(
+function buildBookingConfirmationEmail(
   firstName: string,
-  lead: Record<string, string | number | boolean | null>
+  lead: Record<string, string | number | boolean | null>,
+  formattedTime: string
 ): string {
-  const dealCount = lead.deal_count as number | null
-  const avgPrice  = (lead.avg_price as number) || 415000
-  const notes     = (lead.notes as string) || ""
-  const leadId    = (lead.id as string) || undefined
-
-  let mathBlock = ""
-  if (dealCount && dealCount > 0) {
-    const gci           = avgPrice * 0.025
-    const bearTeamNet60 = gci * 0.6 * dealCount
-    const bearTeamNet70 = gci * 0.7 * dealCount
-    const fees          = dealCount * 150
-    const priceLabel    = (lead.avg_price as number) ? `$${avgPrice.toLocaleString()} avg` : `$${avgPrice.toLocaleString()} Orlando avg`
-    mathBlock = `
-    <div style="background:#f8f4e8;border-left:4px solid #c9a84c;padding:16px 20px;margin:20px 0;border-radius:4px;">
-      <p style="margin:0 0 8px;font-weight:600;color:#1a1a1a;">Your numbers at Bear Team — ${dealCount} deals · ${priceLabel}:</p>
-      <p style="margin:0 0 4px;color:#333;">GCI per deal: $${Math.round(gci).toLocaleString()}</p>
-      <p style="margin:0 0 4px;color:#333;">Your net at Tier 1 (60/40): $${Math.round(bearTeamNet60 - fees).toLocaleString()} after $150/deal fee</p>
-      <p style="margin:0 0 4px;color:#333;">Your net at Tier 2 (70/30): $${Math.round(bearTeamNet70 - fees).toLocaleString()} — kicks in at $16K company dollar</p>
-      <p style="margin:0 0 4px;color:#888;font-size:13px;">Zero monthly fees. Zero desk fees. Zero E&O. Only pay when you close.</p>
-      <p style="margin:0;color:#aaa;font-size:11px;">Estimates based on information you provided. Actual earnings will vary based on transaction volume, sale price, and other factors.</p>
-    </div>`
-  }
-
-  let notesCallout = ""
-  if (notes && notes.length > 10) {
-    notesCallout = `
-    <div style="background:#f0f4ff;border-left:4px solid #3b82f6;padding:14px 18px;margin:16px 0;border-radius:4px;">
-      <p style="margin:0 0 6px;font-weight:600;color:#1e3a8a;font-size:13px;">FROM OUR CHAT BEFORE THE CALL</p>
-      <p style="margin:0;color:#374151;font-size:14px;line-height:1.6;">${notes}</p>
-    </div>`
-  }
+  const brokerage = (lead.brokerage as string) || null
+  const brokerageNote = brokerage
+    ? `<p>I know you're weighing your options at ${brokerage}. Come with your questions — I'd rather give you the real numbers than a pitch.</p>`
+    : `<p>Come with your questions — I'd rather give you the real numbers than a pitch.</p>`
 
   const body = `<p>Hey ${firstName},</p>
-    <p>Really enjoyed our conversation today. I want to make sure you have everything you need to think it through clearly.</p>
-    ${notesCallout}
-    <p>Here's the short version of what we covered:</p>
+    <p>You're booked — looking forward to the call.</p>
+    <p style="background:#f8f4e8;border-left:4px solid #c9a84c;padding:12px 16px;border-radius:4px;"><strong>📅 ${formattedTime} ET</strong></p>
+    ${brokerageNote}
+    <p>A few things worth having in mind before we talk:</p>
     <ul style="color:#333;line-height:1.8;">
-      <li>Progressive tiers: 60/40 → 70/30 → 80/20 → 90/10</li>
-      <li>$16K company dollar cap = automatic tier promotion, not a ceiling</li>
-      <li>Zero monthly fees, zero desk fees, zero E&O costs</li>
-      <li>$150 flat per closing — same whether it's $200K or $2M</li>
+      <li>How many deals did you close last year?</li>
+      <li>What's your average sale price?</li>
+      <li>What's the one thing about your current setup that's most in the way?</li>
     </ul>
-    ${mathBlock}
-    <p>If any questions came up after we hung up, just reply here — or if you'd rather talk it through, grab 15 minutes whenever it works: <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">Schedule a call →</a></p>`
+    <p>If anything comes up before the call, just reply here. Otherwise, I'll see you then.</p>`
 
-  return wrapEmailBooking(body, leadId)
+  return wrapEmailBooking(body, undefined)
 }
 
 function wrapEmailBooking(body: string, leadId?: string): string {
@@ -380,6 +395,7 @@ function wrapEmailBooking(body: string, leadId?: string): string {
     </div>
     <div class="footer">
       <p>Bear Team Real Estate · Orlando, FL</p>
+      <p style="font-size:12px;color:#aaa;">Licensed under Bethanne Baer, Broker/Owner</p>
       <p style="font-size:12px;color:#aaa;">${unsubLink}</p>
     </div>
   </div>
