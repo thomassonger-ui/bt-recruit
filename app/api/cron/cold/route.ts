@@ -42,8 +42,10 @@ export async function GET(req: NextRequest) {
   }
 
   const now = new Date();
-  const cutoff48h = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
-  const cutoff30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  // TA-2: 48h → 72h — Scout-captured leads need more consideration time before cold outreach
+  // TA-3: 30d → 14d — Stalled pipeline leads go cold faster; 30 days is too long to wait
+  const cutoff72h = new Date(now.getTime() - 72 * 60 * 60 * 1000).toISOString();
+  const cutoff14d_stalled = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
   const cutoff7d  = new Date(now.getTime() - 7  * 24 * 60 * 60 * 1000).toISOString();
   const cutoff14d = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -52,7 +54,7 @@ export async function GET(req: NextRequest) {
     .from("leads")
     .select("id, name, email, phone, brokerage, created_at, stage")
     .eq("stage", "scout_captured")
-    .lt("created_at", cutoff48h)
+    .lt("created_at", cutoff72h)  // TA-2: was 48h, now 72h
     .not("email", "is", null)
     .neq("email", "");
 
@@ -61,15 +63,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: errorA.message }, { status: 500 });
   }
 
-  // ── Segment B: Stalled pipeline — booked/follow-up queue, silent 30d ────
+  // ── Segment B: Stalled pipeline — booked/follow-up queue, silent 14d ────
   // Fix 3-B: event_end must be null — leads with event_end had an actual call
   // and are owned by the drip cron. This prevents double-sequencing no-shows
   // who land in Follow-Up Queue but still have event_end set from their booking.
+  // TA-3: was 30d — reduced to 14d. A stalled lead at 30 days is nearly cold.
   const { data: stalledLeads, error: errorB } = await getSupabase()
     .from("leads")
     .select("id, name, email, phone, brokerage, last_contact, stage")
     .in("stage", ["Follow-Up Queue", "booked"])
-    .or(`last_contact.is.null,last_contact.lt.${cutoff30d}`)
+    .or(`last_contact.is.null,last_contact.lt.${cutoff14d_stalled}`)  // TA-3: was cutoff30d
     .is("event_end", null)  // Fix 3-B: exclude leads who had a real call (drip owns them)
     .not("email", "is", null)
     .neq("email", "");
@@ -132,6 +135,10 @@ export async function GET(req: NextRequest) {
         to: lead.email,
         subject,
         html,
+        tags: [
+          { name: "sequence", value: "cold" },
+          { name: "segment",  value: lead.segment },
+        ],
       });
 
       // Segment C: final touch — move to dead stage, alert Tom to call manually
