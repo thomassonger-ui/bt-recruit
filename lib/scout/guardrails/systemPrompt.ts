@@ -15,7 +15,7 @@
  *   messenger — 2–3 sentences, conversational
  */
 
-import { TONE, RESPONSE_STRUCTURE, CALENDLY_LINK, BROKERAGE_ABBREVIATIONS } from "../config/scoutConfig";
+import { TONE, RESPONSE_STRUCTURE, CALENDLY_LINK } from "../config/scoutConfig";
 
 export type Channel = "sms" | "web" | "messenger";
 export type ScoutMode = "recruit" | "academy" | "os";
