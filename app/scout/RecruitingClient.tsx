@@ -812,33 +812,30 @@ export default function RecruitingClient() {
       </section>
 
 
-      {/* ═══════════════════════════════════════════════════════
-          SECTION — WHAT SCOUT BUILDS FOR YOU
-      ═══════════════════════════════════════════════════════ */}
-      <style>{`
-        .scout-flip-card { perspective: 1000px; cursor: default; }
-        .scout-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
-        .scout-flip-card:hover .scout-flip-inner { transform: rotateY(180deg); }
-        .scout-flip-front, .scout-flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; padding: 28px 24px; }
-        .scout-flip-front { background: #1b365d; }
-        .scout-flip-back { background: #1b365d; transform: rotateY(180deg); align-items: flex-start; }
-        @media (max-width: 640px) {
-          .scout-flip-card:hover .scout-flip-inner { transform: none; }
-          .scout-flip-front { display: none; }
-          .scout-flip-back { position: relative; inset: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; }
-          .scout-flip-inner { transform: none !important; }
-        }
-      `}</style>
-      <section className="px-4 sm:px-6 lg:px-8" style={{ background: "var(--color-surface, #0b1d3a)" }}>
-        <div className="mx-auto max-w-7xl py-16 sm:py-20">
-          <div className="mb-12 text-center">
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest" style={{ color: "#7eb8f7" }}>Real Outputs. Not Generic AI.</p>
-            <h2 className="text-heading" style={{ fontFamily: "Inter, sans-serif", color: "#ffffff" }}>What Scout Builds For You</h2>
-            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: "rgba(255,255,255,0.6)" }}>
+      {/* ── WHAT SCOUT BUILDS FOR YOU ── */}
+      <section style={{ background: "#0b1d3a", padding: "clamp(60px,8vw,96px) clamp(20px,5vw,40px)" }}>
+        <style>{`
+          .scout-flip-card { perspective: 1000px; cursor: default; }
+          .scout-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
+          .scout-flip-card:hover .scout-flip-inner { transform: rotateY(180deg); }
+          .scout-flip-front, .scout-flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; padding: 32px 28px; background: #1b365d; }
+          .scout-flip-back { transform: rotateY(180deg); align-items: flex-start; }
+          @media (max-width: 640px) {
+            .scout-flip-card:hover .scout-flip-inner { transform: none; }
+            .scout-flip-front { display: none; }
+            .scout-flip-back { position: relative; inset: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; }
+            .scout-flip-inner { transform: none !important; }
+          }
+        `}</style>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7eb8f7", marginBottom: 10 }}>Real Outputs. Not Generic AI.</p>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#ffffff", marginBottom: 16, lineHeight: 1.15 }}>What Scout Builds For You</h2>
+            <p style={{ color: "rgba(255,255,255,0.6)", maxWidth: 520, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
               Every tool is built around Bear Team systems and the Orlando market — not a generic template you have to rewrite.
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
             {[
               { title: "Follow-Up Sequences", body: "Give Scout a lead's situation. Get a personalized 5-touch email and text sequence — ready to send in 60 seconds." },
               { title: "Commission Calculator", body: "Input your current split and volume. Scout shows what you'd net at Bear Team vs. where you are now — exact math." },
@@ -847,24 +844,24 @@ export default function RecruitingClient() {
               { title: "Weekly Business Audit", body: "Tell Scout your calls, appointments, and closings. It diagnoses your bottleneck and tells you exactly what to fix." },
               { title: "Sphere Reactivation", body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message for the Orlando market." },
             ].map((item, i) => (
-              <div key={i} className="scout-flip-card" style={{ height: 160 }}>
+              <div key={i} className="scout-flip-card" style={{ height: 200 }}>
                 <div className="scout-flip-inner" style={{ height: "100%" }}>
                   <div className="scout-flip-front">
-                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.05rem", textAlign: "center", fontFamily: "Inter, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
+                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.1rem", textAlign: "center", fontFamily: "Inter, -apple-system, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
                   </div>
                   <div className="scout-flip-back">
                     <div>
-                      <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.7rem", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>{item.title}</div>
-                      <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.85rem", lineHeight: 1.65, fontFamily: "Inter, sans-serif" }}>{item.body}</div>
+                      <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>{item.title}</div>
+                      <div style={{ color: "rgba(255,255,255,0.88)", fontSize: "0.88rem", lineHeight: 1.7, fontFamily: "Inter, -apple-system, sans-serif" }}>{item.body}</div>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
+          
         </div>
       </section>
-
       {/* ═══════════════════════════════════════════════════════
           SECTION 6 — TRUST + PROOF
       ═══════════════════════════════════════════════════════ */}
