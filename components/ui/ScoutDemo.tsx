@@ -155,7 +155,7 @@ function AgentBubble({ text }: { text: string }) {
       className="flex justify-end"
     >
       <div
-        className="max-w-[80%] rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed"
+        className="max-w-[88%] sm:max-w-[80%] rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed break-words"
         style={{
           background: "var(--color-primary)",
           color: "var(--color-text-light)",
@@ -185,7 +185,7 @@ function ScoutTypingBubble({
       className="flex justify-start"
     >
       <div
-        className="max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed text-foreground"
+        className="max-w-[88%] sm:max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed break-words text-foreground"
         style={{
           background: "var(--color-background)",
           border: "1px solid var(--color-border-light)",
@@ -215,7 +215,7 @@ function ScoutBubble({ text }: { text: string }) {
       className="flex justify-start"
     >
       <div
-        className="max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed text-foreground"
+        className="max-w-[88%] sm:max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed break-words text-foreground"
         style={{
           background: "var(--color-background)",
           border: "1px solid var(--color-border-light)",
@@ -338,7 +338,7 @@ export default function ScoutDemo({
   return (
     <section
       ref={sectionRef}
-      className={`px-4 py-24 sm:px-6 sm:py-32 lg:px-8 ${className}`}
+      className={`w-full overflow-x-hidden px-4 py-16 sm:px-6 sm:py-24 lg:px-8 ${className}`}
     >
       <div className="mx-auto max-w-7xl">
         {/* Header */}
@@ -372,10 +372,10 @@ export default function ScoutDemo({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mx-auto max-w-2xl"
+          className="mx-auto w-full max-w-2xl"
         >
           <div
-            className="overflow-hidden"
+            className="w-full overflow-hidden"
             style={{
               background: "var(--color-card)",
               border: "1px solid var(--color-border)",
@@ -414,8 +414,8 @@ export default function ScoutDemo({
             {/* Messages area */}
             <div
               ref={chatContainerRef}
-              className="flex flex-col gap-4 overflow-y-auto p-6"
-              style={{ minHeight: "340px", maxHeight: "520px" }}
+              className="flex flex-col gap-4 overflow-x-hidden overflow-y-auto p-4 sm:p-6"
+              style={{ minHeight: "280px", maxHeight: "440px" }}
             >
               {/* Completed pairs — rendered as static bubbles */}
               {completedPairs.map((pi) => {
@@ -543,7 +543,7 @@ export default function ScoutDemo({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mx-auto mt-12 grid max-w-2xl grid-cols-2 gap-6 sm:grid-cols-4"
+          className="mx-auto mt-10 grid w-full max-w-2xl grid-cols-2 gap-4 sm:mt-12 sm:gap-6 sm:grid-cols-4"
         >
           {[
             "Deal analysis",
@@ -565,3 +565,4 @@ export default function ScoutDemo({
     </section>
   );
 }
+
