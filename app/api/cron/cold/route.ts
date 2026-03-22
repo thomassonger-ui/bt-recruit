@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { verifyWrite } from "@/lib/db/verifyWrite";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,12 +21,12 @@ const REPLY_TO = "thomas.songer@gmail.com";
 
 // ─── COLD CRON — THREE SEGMENTS ───────────────────────────────────────────────
 //
-// Segment A — Scout-captured leads who never booked (48h+ since chat, no call)
-//   stage = 'scout_captured', created_at > 48h ago
+// Segment A — Scout-captured leads who never booked (72h+ since chat, no call)
+//   stage = 'scout_captured', created_at > 72h ago
 //   Email: "Still open to a quick conversation?"
 //
-// Segment B — Stalled pipeline leads (had a call, no movement in 30+ days)
-//   stage IN ('Follow-Up Queue', 'booked') AND last_contact < 30 days ago
+// Segment B — Stalled pipeline leads (had a call, no movement in 14+ days)
+//   stage IN ('Follow-Up Queue', 'booked') AND last_contact < 14 days ago
 //   Fix 3-B: Added event_end IS NULL filter — no-shows have event_end set and
 //   are eligible for drip. Segment B should only catch leads who stalled
 //   WITHOUT a completed call (e.g., booked but then lost track of).
@@ -33,6 +34,11 @@ const REPLY_TO = "thomas.songer@gmail.com";
 //
 // Segment C — cold_recovery second touch (7–14 days after first email)
 //   Got one cold email, went silent. Final touch → Closed Lost + Tom alert.
+//
+// TICKET-04: write-verify-send pattern enforced.
+//   Stage is written first (SW-3/CB-4 pattern preserved). verifyWrite confirms
+//   both the new stage and drip_unsubscribed=false before any Resend call.
+//   If verification fails, send is skipped and error is logged.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
@@ -142,7 +148,7 @@ export async function GET(req: NextRequest) {
       // doesn't receive the email — recoverable. Tom alert still fires if isRecovery.
       // Best case: both succeed normally. This mirrors the noshow cron's Fix 3-A pattern.
       const newStage = isRecovery ? "Closed Lost" : "cold_recovery";
-      await getSupabase()
+      const { error: writeError } = await getSupabase()
         .from("leads")
         .update({
           stage: newStage,
@@ -151,6 +157,34 @@ export async function GET(req: NextRequest) {
         })
         .eq("id", lead.id);
 
+      if (writeError) {
+        console.error(`Cold cron stage write failed for ${lead.email}:`, writeError);
+        continue; // do not send if we can't record the state change
+      }
+
+      // ── TICKET-04: Verify write before sending ────────────────────────────
+      // Confirms the new stage is persisted and drip_unsubscribed is still false
+      // before any Resend call is made. Guards against RLS blocks and silent failures.
+      const isVerified = await verifyWrite({
+        supabase: getSupabase(),
+        table: "leads",
+        match: { id: lead.id },
+        expected: {
+          stage: newStage,
+          drip_unsubscribed: false,
+        },
+      });
+
+      if (!isVerified) {
+        console.error("WRITE VERIFICATION FAILED", {
+          route: "cold",
+          leadId: lead.id,
+          expectedStage: newStage,
+        });
+        continue; // skip send — state not confirmed
+      }
+
+      // Verification passed — safe to send
       await getResend().emails.send({
         from: FROM_EMAIL,
         replyTo: REPLY_TO,
