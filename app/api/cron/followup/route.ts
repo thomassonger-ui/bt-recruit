@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { verifyWrite } from "@/lib/db/verifyWrite";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -27,6 +28,12 @@ const REPLY_TO = "thomas.songer@gmail.com";
 //
 // Query: leads where follow_up_date = today AND drip_unsubscribed = false
 //        AND stage NOT IN (Closed Won, Closed Lost, Active Convo, Onboarding)
+//
+// TICKET-04: write-verify-send pattern enforced.
+//   follow_up_date is cleared and last_contact is written BEFORE the email send.
+//   verifyWrite confirms drip_unsubscribed=false and follow_up_date=null after
+//   the write, before any Resend call. If verification fails, send is skipped.
+//   This prevents a retry from double-sending if the cron re-runs mid-execution.
 //
 // Cron runs daily at 9 AM ET (13:00 UTC) — after drip (12:00 UTC) so they
 // don't overlap on the same lead on the same day.
@@ -96,6 +103,47 @@ export async function GET(req: NextRequest) {
 
       const html = buildFollowUpEmail(firstName, brokerage, mathBlock, lead.id as string);
 
+      // ── TICKET-04: Write BEFORE send ──────────────────────────────────────
+      // Clear follow_up_date and record last_contact before dispatching email.
+      // This prevents a cron retry from re-queuing this lead (follow_up_date = null
+      // means the query above won't pick them up again). Idempotent: worst case is
+      // the email doesn't send but the follow_up_date is cleared — Tom can re-set it.
+      const { error: writeError } = await getSupabase()
+        .from("leads")
+        .update({
+          last_contact: now.toISOString(),
+          follow_up_date: null,  // cleared before send so retries can't re-fire
+          updated_at: now.toISOString(),
+        })
+        .eq("id", lead.id);
+
+      if (writeError) {
+        console.error(`Follow-up write failed for ${lead.email}:`, writeError);
+        continue; // do not send if we can't record the state change
+      }
+
+      // ── TICKET-04: Verify write before sending ────────────────────────────
+      // Confirms follow_up_date is cleared and drip_unsubscribed is still false.
+      // If the write failed silently (RLS, constraint), the verify catches it here.
+      const isVerified = await verifyWrite({
+        supabase: getSupabase(),
+        table: "leads",
+        match: { id: lead.id },
+        expected: {
+          follow_up_date: null,
+          drip_unsubscribed: false,
+        },
+      });
+
+      if (!isVerified) {
+        console.error("WRITE VERIFICATION FAILED", {
+          route: "followup",
+          leadId: lead.id,
+        });
+        continue; // skip send — state not confirmed
+      }
+
+      // Verification passed — safe to send
       const { error: emailError } = await getResend().emails.send({
         from: FROM_EMAIL,
         replyTo: REPLY_TO,
@@ -108,16 +156,6 @@ export async function GET(req: NextRequest) {
         console.error(`Follow-up email failed for ${lead.email}:`, emailError);
         continue;
       }
-
-      // Update last_contact; clear follow_up_date so it doesn't re-fire tomorrow
-      await getSupabase()
-        .from("leads")
-        .update({
-          last_contact: now.toISOString(),
-          follow_up_date: null,
-          updated_at: now.toISOString(),
-        })
-        .eq("id", lead.id);
 
       results.push({ name: lead.name, email: lead.email });
     }
