@@ -7,6 +7,9 @@ interface FunnelStage { name: string; count: number; dropoff: number; dropoffRat
 interface StalledLead { id: string; name: string; email: string; phone: string; stage: string; brokerage: string; deal_count: number; last_activity: string; days_stalled: number; estimated_value: number; drip_step: number }
 interface SourceData { leads: number; booked: number; joined: number; gciValue: number }
 interface RTBucket { bucket: string; label: string; total: number; booked: number; bookRate: number; joinRate: number }
+interface DripLead { id: string; name: string; email: string; brokerage: string; stage: string; drip_step: number; drip_last_sent_at: string | null; event_end: string; days_since_call: number; next_step_due: string | null; next_subject: string | null; sequence_complete: boolean }
+interface DripDueLead { id: string; name: string; email: string; brokerage: string; drip_step: number; next_step: number; next_subject: string; event_end: string; drip_last_sent_at: string | null }
+interface DripStepCount { step: number; label: string; count: number }
 
 interface DashboardData {
   summary: { totalLeads: number; weekLeads: number; monthLeads: number; uniqueSessions: number; convCount: number }
@@ -19,6 +22,7 @@ interface DashboardData {
   responseTime: { avgDisplay: string; avgMinutes: number; correlation: RTBucket[]; speedMultiplier: number | null; sampleSize: number }
   sourceAttribution: { breakdown: Record<string, SourceData>; bestSource: string; bestSourceConvRate: number; bestSourceByValue: string; bestSourceGCI: number }
   stalledLeads: { leads: StalledLead[]; totalCount: number; totalValue: number }
+  drip: { activeCount: number; completedCount: number; notStartedCount: number; totalEligible: number; dueToday: DripDueLead[]; stepCounts: DripStepCount[]; leads: DripLead[] }
   weeklyTrend: { week: string; leads: number }[]
 }
 
@@ -40,7 +44,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [joiningId, setJoiningId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "leads" | "stalled">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "leads" | "stalled" | "drip">("overview")
 
   const markJoined = async (leadId: string) => {
     if (!confirm("Mark this agent as joined? This will send them a welcome email and alert Tom.")) return
@@ -100,7 +104,7 @@ export default function DashboardPage() {
   }
 
   if (!data) return null
-  const { summary, funnel, statusCounts, recentLeads, pipeline, forecast, funnelLeaks, responseTime, sourceAttribution, stalledLeads, weeklyTrend } = data
+  const { summary, funnel, statusCounts, recentLeads, pipeline, forecast, funnelLeaks, responseTime, sourceAttribution, stalledLeads, drip, weeklyTrend } = data
   const maxWeeklyLeads = Math.max(...(weeklyTrend || []).map(w => w.leads), 1)
 
   const tabStyle = (tab: string) => ({
@@ -118,9 +122,13 @@ export default function DashboardPage() {
           <div style={{ color: "#93C5FD", fontSize: 12, marginTop: 2 }}>Bear Team Real Estate · Live recruiting funnel · Auto-refreshes every 60s</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {(["overview", "pipeline", "leads", "stalled"] as const).map(tab => (
+          {(["overview", "pipeline", "leads", "stalled", "drip"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={tabStyle(tab)}>
-              {tab === "overview" ? "Overview" : tab === "pipeline" ? `Pipeline ${fmt$(pipeline?.weightedValue || 0)}` : tab === "leads" ? "All Leads" : `Stalled (${stalledLeads?.totalCount || 0})`}
+              {tab === "overview" ? "Overview"
+                : tab === "pipeline" ? `Pipeline ${fmt$(pipeline?.weightedValue || 0)}`
+                : tab === "leads" ? "All Leads"
+                : tab === "stalled" ? `Stalled (${stalledLeads?.totalCount || 0})`
+                : `Drip${drip?.dueToday?.length > 0 ? ` 🔔${drip.dueToday.length}` : ""}`}
             </button>
           ))}
           <button onClick={() => fetchData(password)} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, padding: "8px 14px", fontSize: 12, cursor: "pointer", marginLeft: 8 }}>↺</button>
@@ -388,6 +396,164 @@ export default function DashboardPage() {
               </table>
             </div>
           </div>
+        )}
+
+        {/* ── DRIP CAMPAIGN TAB ── */}
+        {activeTab === "drip" && (
+          <>
+            {/* Summary cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+              {[
+                { label: "Active in Drip", value: drip?.activeCount || 0, sub: "In sequence (steps 1–4)", color: "#0B1D3A" },
+                { label: "Due Today", value: drip?.dueToday?.length || 0, sub: "Next email fires today", color: drip?.dueToday?.length > 0 ? "#C62828" : "#1B8C3A" },
+                { label: "Sequence Complete", value: drip?.completedCount || 0, sub: "All 5 emails sent", color: "#7C3AED" },
+                { label: "Not Started", value: drip?.notStartedCount || 0, sub: "Had call, no drip yet", color: "#E6A817" },
+              ].map(card => (
+                <div key={card.label} style={{ background: "#fff", borderRadius: 10, padding: "18px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: card.color }}>{card.value}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginTop: 4 }}>{card.label}</div>
+                  <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{card.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Step distribution bar */}
+            <div style={{ background: "#fff", borderRadius: 10, padding: "22px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 16 }}>Sequence Step Distribution</div>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-end", height: 64 }}>
+                {(drip?.stepCounts || []).map((s, i) => {
+                  const maxCount = Math.max(...(drip?.stepCounts || []).map(x => x.count), 1)
+                  const barColors = ["#E5E7EB", "#93C5FD", "#60A5FA", "#3B82F6", "#1D4ED8", "#7C3AED"]
+                  return (
+                    <div key={s.step} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#374151" }}>{s.count > 0 ? s.count : ""}</div>
+                      <div style={{ width: "100%", background: barColors[i] || "#9CA3AF", borderRadius: "3px 3px 0 0", height: `${Math.max(s.count > 0 ? (s.count / maxCount) * 44 : 2, 2)}px`, transition: "height 0.4s" }} />
+                      <div style={{ fontSize: 10, color: "#9CA3AF", textAlign: "center", lineHeight: 1.3 }}>{s.label}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Due today alert */}
+            {drip?.dueToday?.length > 0 && (
+              <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "20px 24px", marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#C62828" }}>🔔 {drip.dueToday.length} Drip Email{drip.dueToday.length > 1 ? "s" : ""} Fire Today</div>
+                  <div style={{ fontSize: 12, color: "#9CA3AF" }}>Auto-sent by cron at 8 AM ET — verify in Resend if needed</div>
+                </div>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: "rgba(198,40,40,0.07)" }}>
+                      {["Agent", "Brokerage", "Current Step", "Sending Next", "Subject Preview"].map(h => (
+                        <th key={h} style={{ padding: "8px 12px", textAlign: "left", color: "#C62828", fontWeight: 600, fontSize: 11 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {drip.dueToday.map((lead: DripDueLead) => (
+                      <tr key={lead.id} style={{ borderBottom: "1px solid rgba(198,40,40,0.1)" }}>
+                        <td style={{ padding: "9px 12px" }}>
+                          <div style={{ fontWeight: 600, color: "#0B1D3A" }}>{lead.name || "—"}</div>
+                          <div style={{ fontSize: 11, color: "#9CA3AF" }}>{lead.email}</div>
+                        </td>
+                        <td style={{ padding: "9px 12px", color: "#374151" }}>{lead.brokerage || "—"}</td>
+                        <td style={{ padding: "9px 12px" }}>
+                          <span style={{ background: "#DBEAFE", color: "#1D4ED8", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>
+                            {lead.drip_step === 0 ? "None sent" : `Email ${lead.drip_step} sent`}
+                          </span>
+                        </td>
+                        <td style={{ padding: "9px 12px" }}>
+                          <span style={{ background: "#FEE2E2", color: "#C62828", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700 }}>
+                            Email {lead.next_step} → Today
+                          </span>
+                        </td>
+                        <td style={{ padding: "9px 12px", color: "#6B7280", fontStyle: "italic", fontSize: 12 }}>{lead.next_subject}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Full drip sequence table */}
+            <div style={{ background: "#fff", borderRadius: 10, padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>All Leads in Drip Sequence</div>
+              <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 20 }}>
+                {drip?.totalEligible || 0} leads eligible (had a call, not closed) · Auto-sent via cron daily at 8 AM ET
+              </div>
+              {(!drip?.leads || drip.leads.length === 0) && (
+                <div style={{ color: "#9CA3AF", textAlign: "center", padding: 40 }}>No leads in drip sequence yet. Leads appear here after a call is completed.</div>
+              )}
+              {drip?.leads?.length > 0 && (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ background: "#F3F4F6" }}>
+                        {["Agent", "Brokerage", "Stage", "Days Since Call", "Step", "Last Sent", "Next Email Due", "Status"].map(h => (
+                          <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {drip.leads.map((lead: DripLead, i: number) => {
+                        const isOverdue = lead.next_step_due && !lead.sequence_complete && new Date(lead.next_step_due).getTime() <= Date.now()
+                        const isDueToday = drip.dueToday.some((d: DripDueLead) => d.id === lead.id)
+                        let rowBg = i % 2 === 0 ? "#fff" : "#F9FAFB"
+                        if (isDueToday) rowBg = "#FFF7ED"
+                        return (
+                          <tr key={lead.id} style={{ background: rowBg, borderBottom: "1px solid #F3F4F6" }}>
+                            <td style={{ padding: "10px 14px" }}>
+                              <div style={{ fontWeight: 600, color: "#0B1D3A" }}>{lead.name || "—"}</div>
+                              <div style={{ fontSize: 11, color: "#9CA3AF" }}>{lead.email}</div>
+                            </td>
+                            <td style={{ padding: "10px 14px", color: "#374151" }}>{lead.brokerage || "—"}</td>
+                            <td style={{ padding: "10px 14px" }}>
+                              <span style={{ background: "#F3F4F6", color: "#374151", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 500 }}>{lead.stage || "—"}</span>
+                            </td>
+                            <td style={{ padding: "10px 14px", color: lead.days_since_call > 14 ? "#C62828" : "#374151", fontWeight: lead.days_since_call > 14 ? 600 : 400 }}>
+                              {lead.days_since_call}d
+                            </td>
+                            <td style={{ padding: "10px 14px" }}>
+                              {lead.sequence_complete ? (
+                                <span style={{ background: "#F3E8FF", color: "#7C3AED", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>✓ Done</span>
+                              ) : lead.drip_step === 0 ? (
+                                <span style={{ background: "#FEF3C7", color: "#92400E", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>Not started</span>
+                              ) : (
+                                <span style={{ background: "#DBEAFE", color: "#1D4ED8", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>Email {lead.drip_step}/5</span>
+                              )}
+                            </td>
+                            <td style={{ padding: "10px 14px", color: "#6B7280", fontSize: 12 }}>
+                              {lead.drip_last_sent_at ? new Date(lead.drip_last_sent_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
+                            </td>
+                            <td style={{ padding: "10px 14px", fontSize: 12 }}>
+                              {lead.sequence_complete ? (
+                                <span style={{ color: "#7C3AED" }}>Sequence complete</span>
+                              ) : lead.next_step_due ? (
+                                <div>
+                                  <span style={{ color: isDueToday ? "#C62828" : isOverdue ? "#E6A817" : "#374151", fontWeight: isDueToday ? 700 : 400 }}>
+                                    {isDueToday ? "⚡ Today" : new Date(lead.next_step_due).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  </span>
+                                  <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>Email {lead.drip_step + 1}</div>
+                                </div>
+                              ) : "—"}
+                            </td>
+                            <td style={{ padding: "10px 14px" }}>
+                              {lead.sequence_complete ? null : lead.next_subject ? (
+                                <div style={{ fontSize: 11, color: "#6B7280", fontStyle: "italic", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {lead.next_subject}
+                                </div>
+                              ) : null}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* ── STALLED LEADS TAB ── */}
