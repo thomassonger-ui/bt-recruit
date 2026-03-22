@@ -199,14 +199,11 @@ function Nav() {
       </a>
       {/* Desktop links */}
       <div style={{ display: "flex", gap: "28px", alignItems: "center" }} className="nav-desktop">
-        <a href="#why-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+        <a href="/scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
           Why Scout
         </a>
-        <a href="#see-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
-          See Scout
-        </a>
-        <a href="#try-it" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
-          Try It
+        <a href="/chat" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+          Try Scout
         </a>
         <a
           href="sms:+14077588102"
@@ -238,9 +235,8 @@ function Nav() {
       {/* Mobile dropdown — full-width, generous padding, tap-friendly links */}
       {menuOpen && (
         <div style={{ position: "absolute", top: "60px", left: 0, right: 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", padding: "12px 24px 24px", display: "flex", flexDirection: "column", gap: "0", borderBottom: "1px solid rgba(0,0,0,0.08)", zIndex: 99 }}>
-          <a href="#why-scout" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Why Scout</a>
-          <a href="#see-scout" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>See Scout</a>
-          <a href="#try-it" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Try It</a>
+          <a href="/scout" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Why Scout</a>
+          <a href="/chat" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Try Scout</a>
           <a href="#systems" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>The System</a>
           <a href="#proof" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Track Record</a>
           <div onClick={() => setMenuOpen(false)} style={{ paddingTop: "16px" }}><ScoutCTA size="sm" label="Start with Scout" /></div>
