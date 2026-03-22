@@ -26,17 +26,20 @@ const REPLY_TO = "thomas.songer@gmail.com";
 // stage is NOT Closed Won/Lost, and they haven't unsubscribed).
 //
 // Schedule (days after call):
-//   Email 1 — Day 1:  "Great talking with you" — recap + math
+//   Email 1 — fires immediately from booking-webhook/route.ts on invitee.created
+//             (TA-1: moved out of the cron to capture post-call momentum)
 //   Email 2 — Day 3:  "The number most agents miss" — fee comparison
 //   Email 3 — Day 7:  "What agents say after 90 days" — social proof
 //   Email 4 — Day 10: "Still thinking it over?" — objection handling
 //   Email 5 — Day 14: "Last one from me" — final soft close
 //
 // Cron runs daily at 8 AM ET via vercel.json.
+// IMPORTANT: booking-webhook sets drip_step = 1 after sending Email 1.
+// This cron picks up from step 1 onward — the .or() filter below prevents re-send.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DRIP_SCHEDULE = [
-  { day: 1,  emailIndex: 0, subject: "Great talking with you today" },
+  // emailIndex 0 (Day 1) intentionally removed — fires from booking-webhook on confirmation.
   { day: 3,  emailIndex: 1, subject: "The number most agents never calculate" },
   { day: 7,  emailIndex: 2, subject: "What agents tell us after 90 days at Bear Team" },
   { day: 10, emailIndex: 3, subject: "Still thinking it over?" },
@@ -89,6 +92,10 @@ export async function GET(req: NextRequest) {
           to: lead.email,
           subject,
           html,
+          tags: [
+            { name: "drip_step", value: String(step.emailIndex + 1) },
+            { name: "sequence",  value: "drip" },
+          ],
         });
 
         if (emailError) {
