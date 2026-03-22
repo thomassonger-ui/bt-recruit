@@ -44,6 +44,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [joiningId, setJoiningId] = useState<string | null>(null)
+  const [pausingDripId, setPausingDripId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "leads" | "stalled" | "drip">("overview")
 
   const markJoined = async (leadId: string) => {
@@ -63,6 +64,23 @@ export default function DashboardPage() {
       }
     } catch { alert("Failed to send.") }
     finally { setJoiningId(null) }
+  }
+
+  const pauseDrip = async (leadId: string, action: "pause" | "resume") => {
+    setPausingDripId(leadId)
+    try {
+      const res = await fetch("/api/drip-pause", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId, pw: password, action }),
+      })
+      if (res.ok) {
+        fetchData(password)
+      } else {
+        alert("Something went wrong. Try again.")
+      }
+    } catch { alert("Failed.") }
+    finally { setPausingDripId(null) }
   }
 
   const fetchData = useCallback(async (pw: string) => {
@@ -490,7 +508,7 @@ export default function DashboardPage() {
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                     <thead>
                       <tr style={{ background: "#F3F4F6" }}>
-                        {["Agent", "Brokerage", "Stage", "Days Since Call", "Step", "Last Sent", "Next Email Due", "Status"].map(h => (
+                        {["Agent", "Brokerage", "Stage", "Days Since Call", "Step", "Last Sent", "Next Email Due", "Status", "Action"].map(h => (
                           <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                         ))}
                       </tr>
@@ -544,6 +562,17 @@ export default function DashboardPage() {
                                   {lead.next_subject}
                                 </div>
                               ) : null}
+                            </td>
+                            <td style={{ padding: "10px 14px" }}>
+                              {!lead.sequence_complete && (
+                                <button
+                                  onClick={() => pauseDrip(lead.id, "pause")}
+                                  disabled={pausingDripId === lead.id}
+                                  title="Agent replied — pause drip sequence"
+                                  style={{ background: pausingDripId === lead.id ? "#E5E7EB" : "#FEF2F2", color: "#C62828", border: "1px solid #FECACA", borderRadius: 6, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: pausingDripId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
+                                  {pausingDripId === lead.id ? "..." : "⏸ Pause"}
+                                </button>
+                              )}
                             </td>
                           </tr>
                         )
