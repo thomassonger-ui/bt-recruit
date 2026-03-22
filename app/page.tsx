@@ -125,8 +125,9 @@ function ScoutCTA({ size = "lg", label = "Start with Scout" }: ScoutCTAProps) {
   const pad = size === "lg" ? "14px 32px" : "10px 22px";
   const fontSize = size === "lg" ? "1rem" : "0.875rem";
   return (
-    <Link href="https://www.joinbearteam.com/scout" style={{ display: "inline-block" }}>
+    <Link href="https://www.joinbearteam.com/scout" style={{ display: "inline-block", maxWidth: "100%" }}>
       <button
+        className="scout-cta-btn"
         style={{
           padding: pad,
           fontSize,
@@ -139,6 +140,7 @@ function ScoutCTA({ size = "lg", label = "Start with Scout" }: ScoutCTAProps) {
           cursor: "pointer",
           boxShadow: "0 4px 20px rgba(59,90,130,0.45)",
           transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          minHeight: "44px",
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
@@ -222,10 +224,10 @@ function Nav() {
           Text Me Scout
         </a>
       </div>
-      {/* Mobile hamburger */}
+      {/* Mobile hamburger — 44×44 tap target */}
       <button
         onClick={() => setMenuOpen(o => !o)}
-        style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "8px", color: "#1a1a1a" }}
+        style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "10px", color: "#1a1a1a", minWidth: "44px", minHeight: "44px", alignItems: "center", justifyContent: "center" }}
         className="nav-hamburger"
         aria-label="Menu"
       >
@@ -233,12 +235,15 @@ function Nav() {
         <div style={{ width: 22, height: 2, background: "#1a1a1a", marginBottom: 5, opacity: menuOpen ? 0 : 1, transition: "all 0.2s" }} />
         <div style={{ width: 22, height: 2, background: "#1a1a1a", transition: "all 0.2s", transform: menuOpen ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
       </button>
-      {/* Mobile dropdown */}
+      {/* Mobile dropdown — full-width, generous padding, tap-friendly links */}
       {menuOpen && (
-        <div style={{ position: "absolute", top: "60px", left: 0, right: 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(14px)", padding: "20px 24px 28px", display: "flex", flexDirection: "column", gap: "20px", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
-          <a href="#systems" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600 }}>The System</a>
-          <a href="#proof" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600 }}>Track Record</a>
-          <div onClick={() => setMenuOpen(false)}><ScoutCTA size="sm" label="Start with Scout" /></div>
+        <div style={{ position: "absolute", top: "60px", left: 0, right: 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", padding: "12px 24px 24px", display: "flex", flexDirection: "column", gap: "0", borderBottom: "1px solid rgba(0,0,0,0.08)", zIndex: 99 }}>
+          <a href="#why-scout" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Why Scout</a>
+          <a href="#see-scout" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>See Scout</a>
+          <a href="#try-it" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Try It</a>
+          <a href="#systems" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>The System</a>
+          <a href="#proof" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Track Record</a>
+          <div onClick={() => setMenuOpen(false)} style={{ paddingTop: "16px" }}><ScoutCTA size="sm" label="Start with Scout" /></div>
         </div>
       )}
     </nav>
@@ -569,6 +574,7 @@ function HeroParallax() {
   return (
     <div
       ref={ref}
+      className="hero-parallax-container"
       style={{ height: "200vh", overflow: "hidden", position: "relative", background: "#F0F1F3" }}
     >
       {/* Blueprint photo — base64, lowest layer */}
@@ -585,10 +591,11 @@ function HeroParallax() {
       <BlueprintGrid />
 
       {/* Sticky hero text */}
-      <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none" }}>
-        <div style={{
+      <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none", padding: "0 16px" }}>
+        <div className="hero-sticky-panel" style={{
           maxWidth: "860px",
-          padding: "40px 48px",
+          width: "100%",
+          padding: "clamp(24px, 5vw, 48px) clamp(20px, 5vw, 48px)",
           textAlign: "center",
           pointerEvents: "all",
           background: "rgba(240,241,243,0.72)",
@@ -622,7 +629,7 @@ function HeroParallax() {
 
       {/* 3D card grid */}
       <div style={{ position: "absolute", inset: 0, zIndex: 5 }}>
-        <motion.div style={{ rotateX, rotateZ, translateY, opacity, transformStyle: "preserve-3d", paddingTop: "45vh" }}>
+        <motion.div className="hero-parallax-rows" style={{ rotateX, rotateZ, translateY, opacity, transformStyle: "preserve-3d", paddingTop: "45vh" }}>
           <motion.div style={{ display: "flex", flexDirection: "row-reverse", gap: "24px", marginBottom: "24px", paddingLeft: "40px", paddingRight: "40px" }}>
             {row1.map((child, i) => <ScreenCard key={i} translate={translateX}>{child}</ScreenCard>)}
           </motion.div>
@@ -743,9 +750,9 @@ function ScoutVisual() {
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKey}
           placeholder="Ask Scout anything about Bear Team..."
-          style={{ flex: 1, padding: "9px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", fontSize: "0.8rem", color: "#fff", outline: "none" }}
+          style={{ flex: 1, padding: "9px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", fontSize: "16px", color: "#fff", outline: "none" }}
         />
-        <button onClick={send} disabled={loading || !input.trim()} style={{ width: 34, height: 34, borderRadius: "8px", background: loading || !input.trim() ? "rgba(59,90,130,0.3)" : "linear-gradient(135deg, #3b5a82, #2c4a72)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: loading || !input.trim() ? "default" : "pointer", flexShrink: 0, transition: "background 0.2s" }}>
+        <button onClick={send} disabled={loading || !input.trim()} style={{ width: 40, height: 40, minWidth: 40, minHeight: 40, borderRadius: "8px", background: loading || !input.trim() ? "rgba(59,90,130,0.3)" : "linear-gradient(135deg, #3b5a82, #2c4a72)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: loading || !input.trim() ? "default" : "pointer", flexShrink: 0, transition: "background 0.2s" }}>
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
       </div>
@@ -1354,9 +1361,20 @@ export default function HomePage() {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         background: "#f0f3f8",
         color: "#1a1a1a",
+        overflowX: "hidden",
       }}
     >
       <style>{`
+        /* ── Smooth scroll ── */
+        html { scroll-behavior: smooth; }
+
+        /* ── Global overflow guard ── */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        /* ── Anchor offset for sticky nav ── */
+        [id] { scroll-margin-top: 72px; }
+
+        /* ── Nav ── */
         @media (max-width: 768px) {
           .nav-desktop { display: none !important; }
           .nav-hamburger { display: flex !important; flex-direction: column; justify-content: center; }
@@ -1364,13 +1382,27 @@ export default function HomePage() {
         @media (min-width: 769px) {
           .nav-hamburger { display: none !important; }
         }
-        /* SystemPanel mobile stacking */
+
+        /* ── Hero parallax card rows — hide overflow on mobile ── */
+        @media (max-width: 767px) {
+          .hero-parallax-rows { display: none !important; }
+          .hero-sticky-panel {
+            padding: 24px 20px !important;
+            max-width: 100% !important;
+            border-radius: 16px !important;
+          }
+          .hero-sticky-panel h1 {
+            font-size: clamp(1.8rem, 8vw, 2.4rem) !important;
+          }
+        }
+
+        /* ── SystemPanel mobile stacking ── */
         @media (max-width: 768px) {
           .system-panel-inner {
             flex-direction: column !important;
-            padding: 40px 20px !important;
+            padding: 32px 16px !important;
             min-height: unset !important;
-            gap: 32px !important;
+            gap: 24px !important;
           }
           .system-panel-text {
             flex: none !important;
@@ -1378,15 +1410,46 @@ export default function HomePage() {
             max-width: 100% !important;
           }
           .system-panel-visual {
-            min-height: 320px !important;
-            max-height: 380px !important;
+            min-height: 260px !important;
+            max-height: 320px !important;
+            width: 100% !important;
           }
-          .proof-grid { grid-template-columns: 1fr !important; }
-          .testimonial-grid { grid-template-columns: 1fr !important; }
-          .compare-grid { grid-template-columns: 1fr !important; }
-          .compare-grid { grid-template-columns: 1fr !important; }
+        }
+
+        /* ── Grid overrides ── */
+        @media (max-width: 640px) {
+          .proof-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+          .testimonial-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
+          .compare-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
           .hero-card-grid { padding-left: 16px !important; padding-right: 16px !important; }
         }
+        @media (min-width: 641px) and (max-width: 900px) {
+          .testimonial-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .proof-grid { grid-template-columns: repeat(3, 1fr) !important; }
+        }
+
+        /* ── Tap-friendly scout CTA ── */
+        @media (max-width: 768px) {
+          .scout-cta-btn { padding: 13px 24px !important; font-size: 0.95rem !important; width: 100%; text-align: center; }
+          .cta-flex-row { flex-direction: column !important; align-items: stretch !important; }
+          .cta-flex-row a, .cta-flex-row button { width: 100% !important; text-align: center; justify-content: center; }
+        }
+
+        /* ── Footer links wrap ── */
+        .footer-links { flex-wrap: wrap; gap: 16px !important; justify-content: center; }
+
+        /* ── Section padding mobile ── */
+        @media (max-width: 640px) {
+          .section-padded { padding-top: 48px !important; padding-bottom: 48px !important; }
+        }
+
+        /* ── Hero parallax — collapse height on mobile so users don't over-scroll ── */
+        @media (max-width: 767px) {
+          .hero-parallax-container { height: 100vh !important; }
+        }
+
+        /* ── Prevent iOS font zoom ── */
+        input, textarea, select { font-size: 16px !important; }
       `}</style>
       <Nav />
 
@@ -1533,7 +1596,7 @@ export default function HomePage() {
                   { from: "scout", text: "At 8 deals on a $415K average, you&rsquo;d net roughly $87K+ at current splits — with zero fees coming out. That&rsquo;s the math. Want me to run your specific numbers?" },
                 ].map((msg, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: msg.from === "agent" ? "flex-end" : "flex-start", marginBottom: "16px" }}>
-                    <div style={{ maxWidth: "72%", padding: "12px 16px", borderRadius: msg.from === "agent" ? "16px 16px 4px 16px" : "16px 16px 16px 4px", background: msg.from === "agent" ? "rgba(255,255,255,0.15)" : "rgba(59,90,130,0.5)", color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.55 }} dangerouslySetInnerHTML={{ __html: msg.text }} />
+                    <div style={{ maxWidth: "min(72%, 480px)", wordBreak: "break-word", padding: "12px 16px", borderRadius: msg.from === "agent" ? "16px 16px 4px 16px" : "16px 16px 16px 4px", background: msg.from === "agent" ? "rgba(255,255,255,0.15)" : "rgba(59,90,130,0.5)", color: "#ffffff", fontSize: "clamp(0.82rem, 2.2vw, 0.9rem)", lineHeight: 1.55 }} dangerouslySetInnerHTML={{ __html: msg.text }} />
                   </div>
                 ))}
               </div>
@@ -1795,7 +1858,7 @@ export default function HomePage() {
       </section>
 
       {/* ── TESTIMONIAL ── */}
-      <section style={{ background: "#0B1D3A", padding: "80px 40px", textAlign: "center" }}>
+      <section style={{ background: "#0B1D3A", padding: "clamp(48px,8vw,80px) clamp(16px,5vw,40px)", textAlign: "center" }}>
         <div style={{ maxWidth: "680px", margin: "0 auto" }}>
           <svg width="40" height="28" viewBox="0 0 40 28" fill="none" style={{ marginBottom: "28px", opacity: 0.4 }}>
             <path d="M0 28V17.2C0 12.533 1.067 8.667 3.2 5.6C5.333 2.533 8.533 0.8 12.8 0L14.4 3.2C11.733 3.867 9.733 5.2 8.4 7.2C7.067 9.2 6.4 11.467 6.4 14H12.8V28H0ZM22.4 28V17.2C22.4 12.533 23.467 8.667 25.6 5.6C27.733 2.533 30.933 0.8 35.2 0L36.8 3.2C34.133 3.867 32.133 5.2 30.8 7.2C29.467 9.2 28.8 11.467 28.8 14H35.2V28H22.4Z" fill="white"/>
@@ -1814,18 +1877,19 @@ export default function HomePage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: "#060e1c", padding: "60px 40px", textAlign: "center" }}>
+      <footer style={{ background: "#060e1c", padding: "clamp(40px,8vw,60px) clamp(16px,5vw,40px)", textAlign: "center" }}>
         <div style={{ fontSize: "1rem", fontWeight: 700, color: "#ffffff", marginBottom: "8px", letterSpacing: "0.04em" }}>Bear Team Real Estate</div>
-        <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.35)", marginBottom: "24px" }}>Orlando, FL · Independent Licensed Brokerage · Bethanne Baer, Broker</div>
-        <div style={{ display: "flex", gap: "32px", justifyContent: "center" }}>
-          <a href="/chat" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Talk to Scout</a>
-          <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
-          <a href="#systems" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>The System</a>
-          <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
-          <a href="#proof" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Track Record</a>
+        <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.35)", marginBottom: "24px", lineHeight: 1.6 }}>Orlando, FL · Independent Licensed Brokerage · Bethanne Baer, Broker</div>
+        <div className="footer-links" style={{ display: "flex", gap: "32px", justifyContent: "center", flexWrap: "wrap" }}>
+          <a href="/chat" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Talk to Scout</a>
+          <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
+          <a href="#systems" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>The System</a>
+          <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
+          <a href="#proof" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Track Record</a>
         </div>
         <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)", marginTop: "28px" }}>© 2026 WorldTeachPathways. All rights reserved.</div>
       </footer>
     </main>
   );
 }
+
