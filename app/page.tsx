@@ -1583,21 +1583,20 @@ export default function HomePage() {
 
 
       {/* ── WHAT SCOUT DOES FOR YOU ── */}
-      <style>{`
-        .home-flip-card { perspective: 1000px; cursor: default; }
-        .home-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
-        .home-flip-card:hover .home-flip-inner { transform: rotateY(180deg); }
-        .home-flip-front, .home-flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; padding: 28px 24px; }
-        .home-flip-front { background: #1b365d; }
-        .home-flip-back { background: #1b365d; transform: rotateY(180deg); align-items: flex-start; }
-        @media (max-width: 640px) {
-          .home-flip-card:hover .home-flip-inner { transform: none; }
-          .home-flip-front { display: none; }
-          .home-flip-back { position: relative; inset: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; }
-          .home-flip-inner { transform: none !important; }
-        }
-      `}</style>
       <section style={{ background: "#0b1d3a", padding: "clamp(60px,8vw,96px) clamp(20px,5vw,40px)" }}>
+        <style>{`
+          .home-flip-card { perspective: 1000px; cursor: default; }
+          .home-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
+          .home-flip-card:hover .home-flip-inner { transform: rotateY(180deg); }
+          .home-flip-front, .home-flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; padding: 32px 28px; background: #1b365d; }
+          .home-flip-back { transform: rotateY(180deg); align-items: flex-start; }
+          @media (max-width: 640px) {
+            .home-flip-card:hover .home-flip-inner { transform: none; }
+            .home-flip-front { display: none; }
+            .home-flip-back { position: relative; inset: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; }
+            .home-flip-inner { transform: none !important; }
+          }
+        `}</style>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7eb8f7", marginBottom: 10 }}>Real Outputs. Not Generic AI.</p>
@@ -1615,22 +1614,22 @@ export default function HomePage() {
               { title: "Weekly Business Audit", body: "Tell Scout your calls, appointments, and closings. It diagnoses your bottleneck and tells you exactly what to fix." },
               { title: "Sphere Reactivation", body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message for the Orlando market." },
             ].map((item, i) => (
-              <div key={i} className="home-flip-card" style={{ height: 160 }}>
+              <div key={i} className="home-flip-card" style={{ height: 200 }}>
                 <div className="home-flip-inner" style={{ height: "100%" }}>
                   <div className="home-flip-front">
-                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.05rem", textAlign: "center", fontFamily: "Inter, -apple-system, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
+                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.1rem", textAlign: "center", fontFamily: "Inter, -apple-system, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
                   </div>
                   <div className="home-flip-back">
                     <div>
-                      <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.7rem", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>{item.title}</div>
-                      <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.85rem", lineHeight: 1.65, fontFamily: "Inter, -apple-system, sans-serif" }}>{item.body}</div>
+                      <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>{item.title}</div>
+                      <div style={{ color: "rgba(255,255,255,0.88)", fontSize: "0.88rem", lineHeight: 1.7, fontFamily: "Inter, -apple-system, sans-serif" }}>{item.body}</div>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ textAlign: "center", marginTop: 48 }}>
+                    <div style={{ textAlign: "center", marginTop: 48 }}>
             <ScoutCTA label="Try Scout Now" />
           </div>
         </div>
