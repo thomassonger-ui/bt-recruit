@@ -24,6 +24,13 @@ export const runtime = "nodejs"
 //   Calendly sends header: Calendly-Webhook-Signature: t=<timestamp>,v1=<hmac>
 //   HMAC is SHA-256 of "<timestamp>.<raw_body>" using your webhook signing key.
 //   If CALENDLY_WEBHOOK_SECRET is not set, verification is skipped (dev/test mode).
+//
+// Fix 3-D: Re-booking deduplication
+//   If a lead already has drip_step > 0, they are mid-sequence from a prior call.
+//   Re-booking should update event_end (resetting the call timestamp) but NOT
+//   reset drip_step or drip_unsubscribed. This prevents duplicate emails from
+//   re-entering the drip from Day 1 when the lead has already received some emails.
+//   If drip_step is null/0, they haven't started drip yet — safe to write full record.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function verifyCalendlySignature(
@@ -129,23 +136,61 @@ export async function POST(req: NextRequest) {
         process.env.SUPABASE_ANON_KEY
       )
 
-      const { error } = await supabase.from("leads").upsert(
-        {
-          name,
-          email,
-          phone,
-          event_start: eventStart,
-          event_end: eventEnd,
-          calendly_event_uri: calendlyEventUri,
-          calendly_invitee_uri: calendlyInviteeUri,
-          notes,
-          status: "booked",
-        },
-        { onConflict: "calendly_event_uri" }
-      )
+      // Fix 3-D: Check if this lead already exists and has an active drip sequence.
+      // If drip_step > 0, they're mid-sequence — update event_end only, don't
+      // reset drip fields. This prevents a re-booked lead from getting duplicate
+      // early-sequence emails or spawning a second parallel drip thread.
+      const { data: existingLead } = await supabase
+        .from("leads")
+        .select("id, drip_step, drip_unsubscribed")
+        .eq("email", email.toLowerCase().trim())
+        .maybeSingle()
 
-      if (error) {
-        console.error("Supabase insert error:", error)
+      const isRebooking = existingLead && (existingLead.drip_step ?? 0) > 0
+
+      if (isRebooking) {
+        // Mid-drip re-booking: update call timestamps and basic info only.
+        // Preserve drip_step so the sequence doesn't restart from Email 1.
+        const { error } = await supabase
+          .from("leads")
+          .update({
+            name,
+            phone,
+            event_start: eventStart,
+            event_end: eventEnd,
+            calendly_event_uri: calendlyEventUri,
+            calendly_invitee_uri: calendlyInviteeUri,
+            status: "booked",
+            // drip_step intentionally NOT reset — sequence continues from current step
+            // drip_unsubscribed intentionally NOT changed — respect existing opt-out state
+          })
+          .eq("id", existingLead.id)
+
+        if (error) {
+          console.error("Supabase re-booking update error:", error)
+        } else {
+          console.log(`Re-booking detected for ${email} at drip_step ${existingLead.drip_step} — drip preserved`)
+        }
+      } else {
+        // New lead or pre-drip re-booking: full upsert
+        const { error } = await supabase.from("leads").upsert(
+          {
+            name,
+            email,
+            phone,
+            event_start: eventStart,
+            event_end: eventEnd,
+            calendly_event_uri: calendlyEventUri,
+            calendly_invitee_uri: calendlyInviteeUri,
+            notes,
+            status: "booked",
+          },
+          { onConflict: "calendly_event_uri" }
+        )
+
+        if (error) {
+          console.error("Supabase insert error:", error)
+        }
       }
     }
 
