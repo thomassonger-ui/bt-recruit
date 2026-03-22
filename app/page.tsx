@@ -1583,40 +1583,50 @@ export default function HomePage() {
 
 
       {/* ── WHAT SCOUT DOES FOR YOU ── */}
-      <section style={{ background: "#ffffff", padding: "clamp(60px,8vw,96px) clamp(20px,5vw,40px)" }}>
+      <style>{`
+        .home-flip-card { perspective: 1000px; cursor: default; }
+        .home-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
+        .home-flip-card:hover .home-flip-inner { transform: rotateY(180deg); }
+        .home-flip-front, .home-flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; padding: 28px 24px; }
+        .home-flip-front { background: #1b365d; }
+        .home-flip-back { background: #1b365d; transform: rotateY(180deg); align-items: flex-start; }
+        @media (max-width: 640px) {
+          .home-flip-card:hover .home-flip-inner { transform: none; }
+          .home-flip-front { display: none; }
+          .home-flip-back { position: relative; inset: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; }
+          .home-flip-inner { transform: none !important; }
+        }
+      `}</style>
+      <section style={{ background: "#0b1d3a", padding: "clamp(60px,8vw,96px) clamp(20px,5vw,40px)" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#3b6ea8", marginBottom: 10 }}>Real Outputs. Not Generic AI.</p>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: 16, lineHeight: 1.15 }}>What Scout Does For You</h2>
-            <p style={{ color: "#6b7280", maxWidth: 520, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7eb8f7", marginBottom: 10 }}>Real Outputs. Not Generic AI.</p>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#ffffff", marginBottom: 16, lineHeight: 1.15 }}>What Scout Does For You</h2>
+            <p style={{ color: "rgba(255,255,255,0.6)", maxWidth: 520, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
               Every tool is built around Bear Team systems and the Orlando market. Not a generic template — a real output you can use today.
             </p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
             {[
-              { icon: "✉️", title: "Follow-Up Sequences", body: "Give Scout a lead's situation. Get a personalized 5-touch email and text sequence — ready to send in 60 seconds." },
-              { icon: "📊", title: "Commission Calculator", body: "Input your current split and volume. Scout shows what you'd net at Bear Team vs. where you are — exact math, no guessing." },
-              { icon: "🏡", title: "Listing Presentation Script", body: "Input the address and seller objections. Scout builds a custom talking track with pricing rationale and closes." },
-              { icon: "📍", title: "Geo Farm Scripts", body: "Input a neighborhood and price range. Scout writes the door-knock script, mailer copy, and follow-up text." },
-              { icon: "📅", title: "Weekly Business Audit", body: "Tell Scout your calls, appointments, and closings this week. It diagnoses your bottleneck and tells you what to fix." },
-              { icon: "🔄", title: "Sphere Reactivation", body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message for the Orlando market." },
+              { title: "Follow-Up Sequences", body: "Give Scout a lead's situation. Get a personalized 5-touch email and text sequence — ready to send in 60 seconds." },
+              { title: "Commission Calculator", body: "Input your current split and volume. Scout shows what you'd net at Bear Team vs. where you are now — exact math." },
+              { title: "Listing Presentation", body: "Input the address and seller objections. Scout builds a custom talking track — pricing rationale, proof points, closes." },
+              { title: "Geo Farm Scripts", body: "Input a neighborhood and price range. Scout writes the door-knock script, mailer copy, and follow-up text." },
+              { title: "Weekly Business Audit", body: "Tell Scout your calls, appointments, and closings. It diagnoses your bottleneck and tells you exactly what to fix." },
+              { title: "Sphere Reactivation", body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message for the Orlando market." },
             ].map((item, i) => (
-              <div
-                key={i}
-                style={{
-                  background: "#f9fafb",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 14,
-                  padding: "24px 22px",
-                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                  cursor: "default",
-                }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-3px)"; el.style.boxShadow = "0 8px 28px rgba(0,0,0,0.08)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
-              >
-                <div style={{ fontSize: "1.5rem", marginBottom: 12 }}>{item.icon}</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0b1d3a", marginBottom: 8 }}>{item.title}</div>
-                <div style={{ fontSize: "0.85rem", color: "#6b7280", lineHeight: 1.65 }}>{item.body}</div>
+              <div key={i} className="home-flip-card" style={{ height: 160 }}>
+                <div className="home-flip-inner" style={{ height: "100%" }}>
+                  <div className="home-flip-front">
+                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.05rem", textAlign: "center", fontFamily: "Inter, -apple-system, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
+                  </div>
+                  <div className="home-flip-back">
+                    <div>
+                      <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.7rem", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>{item.title}</div>
+                      <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.85rem", lineHeight: 1.65, fontFamily: "Inter, -apple-system, sans-serif" }}>{item.body}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
