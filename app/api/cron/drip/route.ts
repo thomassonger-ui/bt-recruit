@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { verifyWrite } from "@/lib/db/verifyWrite";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -43,6 +44,12 @@ const REPLY_TO = "thomas.songer@gmail.com";
 // Email 2 as their first contact. The drip_step.is.null branch is removed for
 // all steps except Day 1 — null means Email 1 hasn't fired and the lead is not
 // ready for step 2+.
+//
+// TICKET-04: write-verify-send pattern enforced for every drip email.
+//   drip_step is written BEFORE the email send. verifyWrite confirms the new
+//   drip_step and drip_unsubscribed=false before any Resend call. If verification
+//   fails, the send is skipped and an error is logged. This prevents duplicate
+//   sends even if the cron retries after a partial execution.
 //
 // Cron runs daily at 8 AM ET (noon UTC) via vercel.json.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -105,7 +112,50 @@ export async function GET(req: NextRequest) {
       for (const lead of leads) {
         const firstName = lead.name?.split(" ")[0] || "there";
         const subject = step.subject.replace("[firstName]", firstName);
+        const newDripStep = step.emailIndex + 1;
 
+        // ── TICKET-04: Write BEFORE send ──────────────────────────────────────
+        // drip_step is written first so that if the email send fails, the lead
+        // is not re-queued for this step on the next cron run. Idempotent: a
+        // lead already at newDripStep will not match the stepFilter query above.
+        const { error: updateError } = await getSupabase()
+          .from("leads")
+          .update({
+            drip_step: newDripStep,
+            drip_last_sent_at: now.toISOString(),
+            updated_at: now.toISOString(),
+            ...(newDripStep >= 5 ? { stage: "Long-Term Nurture" } : {}),
+          })
+          .eq("id", lead.id);
+
+        if (updateError) {
+          console.error(`Drip step write failed for ${lead.email}:`, updateError);
+          continue; // do not send if we can't record the step
+        }
+
+        // ── TICKET-04: Verify write before sending ────────────────────────────
+        // Confirm drip_step and drip_unsubscribed are exactly as expected before
+        // any email is dispatched. Guards against silent write failures (RLS, etc.)
+        const isVerified = await verifyWrite({
+          supabase: getSupabase(),
+          table: "leads",
+          match: { id: lead.id },
+          expected: {
+            drip_step: newDripStep,
+            drip_unsubscribed: false,
+          },
+        });
+
+        if (!isVerified) {
+          console.error("WRITE VERIFICATION FAILED", {
+            route: "drip",
+            leadId: lead.id,
+            expectedStep: newDripStep,
+          });
+          continue; // skip send — state not confirmed
+        }
+
+        // Verification passed — safe to send
         const html = buildDripEmail(step.emailIndex, firstName, lead);
 
         const { error: emailError } = await getResend().emails.send({
@@ -124,20 +174,6 @@ export async function GET(req: NextRequest) {
           console.error(`Drip email error for ${lead.email}:`, emailError);
           continue;
         }
-
-        const newDripStep = step.emailIndex + 1;
-
-        // Update drip_step and last drip sent timestamp
-        // If this is the final email (step 5), also update stage to Long-Term Nurture
-        await getSupabase()
-          .from("leads")
-          .update({
-            drip_step: newDripStep,
-            drip_last_sent_at: now.toISOString(),
-            updated_at: now.toISOString(),
-            ...(newDripStep >= 5 ? { stage: "Long-Term Nurture" } : {}),
-          })
-          .eq("id", lead.id);
 
         // If sequence just completed, alert Tom to take manual action
         if (newDripStep >= 5) {
@@ -414,4 +450,3 @@ function buildTomDripSummary(results: Array<{ email: string; name: string; drip_
 </body>
 </html>`.trim();
 }
-
