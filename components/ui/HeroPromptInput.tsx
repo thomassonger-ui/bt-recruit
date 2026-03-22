@@ -5,22 +5,22 @@ import { motion, AnimatePresence } from "framer-motion"
 
 const quickPrompts = [
   "What would I net at Bear Team vs where I am now?",
-  "I'm at KW and I never hit my cap. Is that normal?",
-  "What does it cost to join Bear Team?",
+  "I'm at KW and I never hit my cap — is that normal?",
+  "What does it actually cost to join Bear Team?",
   "How does the $16K cap work?",
-  "I just got my license. Is Bear Team a good first brokerage?",
+  "I just got my license — is Bear Team a good first home?",
 ]
 
 const simulatedResponses: Record<string, string> = {
   "What would I net at Bear Team vs where I am now?":
     "At 8 deals and a $415K average, you'd net approximately $66,975 at Bear Team after splits and the $150 flat fee — with zero monthly costs. Most agents at KW in that range net around $64,000 after fees. Bear Team wins year 1, and year 2 you start at Tier 2 automatically.",
-  "I'm at KW and I never hit my cap. Is that normal?":
+  "I'm at KW and I never hit my cap — is that normal?":
     "Very normal. Most KW agents doing 6–14 deals per year never hit their cap. You pay the full 70/30 + 6% royalty all year, reset, and pay it again. That's the cap treadmill. Bear Team's $16K cap is a graduation trigger — once the broker collects $16K, your split improves automatically. No reset.",
-  "What does it cost to join Bear Team?":
+  "What does it actually cost to join Bear Team?":
     "Zero upfront. Zero monthly fees. Zero desk fees. Zero tech fees. E&O insurance is covered by Bear Team. Your only cost is a flat $150 per closing — same whether the deal is $200K or $2M. That's it.",
   "How does the $16K cap work?":
     "The $16K cap is a graduation trigger, not a ceiling. Once Bear Team collects $16K from your deals, you automatically promote to the next tier — 70/30. Keep producing and you move to 80/20, then 90/10. The brokerage earns at every tier. You just keep more as you grow.",
-  "I just got my license. Is Bear Team a good first brokerage?":
+  "I just got my license — is Bear Team a good first home?":
     "Bear Team is one of the best first moves you can make. Zero monthly fees means a slow month costs you nothing. BearTeam Academy covers everything: commission structure, transaction workflow, and compliance — free and self-paced. And Scout is here for questions anytime.",
 }
 
@@ -39,9 +39,8 @@ export default function HeroPromptInput() {
 
     const answer =
       simulatedResponses[text] ||
-      "Scout can help with that. Try the full experience to get a real-time AI response tailored to your needs."
+      "Scout can help with that. Try the full experience to get a real-time AI response tailored to your situation."
 
-    // Simulate typing
     let i = 0
     const interval = setInterval(() => {
       i++
@@ -71,8 +70,8 @@ export default function HeroPromptInput() {
             if (e.key === "Enter") handleSubmit("")
           }}
           placeholder="Ask Scout about splits, fees, or joining Bear Team..."
-          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted/50 outline-none"
-          style={{ fontFamily: "Inter, sans-serif" }}
+          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-white/40 outline-none"
+          style={{ fontFamily: "Inter, sans-serif", color: "#ffffff" }}
         />
         <button
           onClick={() => handleSubmit("")}
@@ -92,26 +91,26 @@ export default function HeroPromptInput() {
         </button>
       </div>
 
-      {/* Quick prompts */}
+      {/* Quick prompt pills */}
       <div className="mt-3 flex flex-wrap gap-2">
         {quickPrompts.map((prompt) => (
           <button
             key={prompt}
             onClick={() => handleSubmit(prompt)}
-            className="rounded-lg px-3 py-1.5 text-xs transition-colors"
+            className="rounded-lg px-3 py-1.5 text-xs transition-all"
             style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(160,175,195,0.1)",
-              color: "var(--color-muted)",
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              color: "#ffffff",
               fontFamily: "Inter, sans-serif",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(59,90,130,0.3)"
-              e.currentTarget.style.color = "var(--color-foreground)"
+              e.currentTarget.style.background = "rgba(255,255,255,0.14)"
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.30)"
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "rgba(160,175,195,0.1)"
-              e.currentTarget.style.color = "var(--color-muted)"
+              e.currentTarget.style.background = "rgba(255,255,255,0.08)"
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"
             }}
           >
             {prompt}
@@ -131,7 +130,7 @@ export default function HeroPromptInput() {
             style={{
               background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(160,175,195,0.1)",
-              color: "var(--color-foreground)",
+              color: "#ffffff",
               fontFamily: "Inter, sans-serif",
             }}
           >
@@ -142,14 +141,14 @@ export default function HeroPromptInput() {
               >
                 S
               </div>
-              <span className="text-xs font-medium text-muted">Scout</span>
+              <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.55)" }}>Scout</span>
               {isTyping && (
                 <span className="inline-flex items-center gap-0.5">
                   {[0, 1, 2].map((i) => (
                     <motion.span
                       key={i}
                       className="h-1 w-1 rounded-full"
-                      style={{ background: "var(--color-muted)" }}
+                      style={{ background: "rgba(255,255,255,0.45)" }}
                       animate={{ opacity: [0.3, 1, 0.3] }}
                       transition={{
                         duration: 1,
