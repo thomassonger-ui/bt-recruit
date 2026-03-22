@@ -192,7 +192,8 @@ function buildDripEmail(
       <p style="margin:0 0 4px;color:#333;">GCI per deal: $${Math.round(gci).toLocaleString()}</p>
       <p style="margin:0 0 4px;color:#333;">Your net at Tier 1 (60/40): $${Math.round(bearTeamTotal).toLocaleString()} after $150/deal fee</p>
       <p style="margin:0 0 4px;color:#333;">Your net at Tier 2 (70/30): $${Math.round(bearTeamNet70 - fees).toLocaleString()} — kicks in at $16K company dollar</p>
-      <p style="margin:0;color:#888;font-size:13px;">Zero monthly fees. Zero desk fees. Zero E&O. Only pay when you close.</p>
+      <p style="margin:0 0 4px;color:#888;font-size:13px;">Zero monthly fees. Zero desk fees. Zero E&O. Only pay when you close.</p>
+      <p style="margin:0;color:#aaa;font-size:11px;">Estimates based on information you provided. Actual earnings will vary based on transaction volume, sale price, and other factors.</p>
     </div>`;
   }
 
@@ -238,7 +239,7 @@ function buildDripEmail(
     `<p>Hey ${firstName},</p>
     <p>One thing I didn't spend enough time on in our call — the number most agents never actually calculate:</p>
     <p><strong>What are you paying your brokerage every year in fees before a single deal closes?</strong></p>
-    <p>At most brokerages, that number is $1,200–$3,600/year in monthly fees alone. Add desk fees, tech fees, E&O — you're often at $4,000–$6,000 out of pocket before your first commission check.</p>
+    <p>At most major brokerages, that number is typically $1,200–$3,600/year in monthly fees alone. Add desk fees, tech fees, E&O — agents at KW, EXP, and Compass are often at $4,000–$6,000 out of pocket before their first commission check.</p>
     <p>At Bear Team: <strong>$0</strong>. The only time money leaves your pocket is when a deal closes — $150 flat.</p>
     ${mathBlock}
     <p>If you're at ${brokerage}, I can run your exact numbers in about 10 minutes. No pitch — just the math side by side so you can make the call yourself: <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">Grab a slot →</a></p>`,
@@ -260,7 +261,7 @@ function buildDripEmail(
       <li><strong>Tier 4 (90/10)</strong> — top of the stack, no cap on earnings</li>
     </ul>
     ${mathBlock}
-    <p>Producers at your volume don't stay at Tier 1 long. The cap is not a ceiling — it's a milestone. Is there anything on the math side that's still unclear? <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">15 minutes and we can run it exactly →</a></p>`;
+    <p>Producers at your volume typically don't stay at Tier 1 long. The cap is not a ceiling — it's a milestone. Is there anything on the math side that's still unclear? <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">15 minutes and we can run it exactly →</a></p>`;
       }
       return `<p>Hey ${firstName},</p>
     <p>Something agents tell us pretty consistently after 90 days: the biggest change isn't the math — it's the shift from <em>paying to produce</em> to just producing.</p>
