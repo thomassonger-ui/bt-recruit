@@ -175,73 +175,67 @@ function Nav() {
         left: 0,
         right: 0,
         zIndex: 100,
-        padding: "0 clamp(16px, 4vw, 40px)",
         height: "60px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        background: scrolled ? "rgba(255,255,255,0.96)" : "rgba(255,255,255,0)",
-        backdropFilter: scrolled ? "blur(14px)" : "none",
-        borderBottom: scrolled ? "1px solid rgba(0,0,0,0.08)" : "none",
-        transition: "all 0.35s ease",
+        background: "rgba(11,22,42,0.92)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      <a href="#top" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
-        {/* BT Logo — double-bordered square */}
-        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="1" y="1" width="32" height="32" rx="1" stroke="#1a1a1a" strokeWidth="2" fill="none"/>
-          <rect x="4" y="4" width="26" height="26" rx="0.5" stroke="#1a1a1a" strokeWidth="1.5" fill="none"/>
-          <text x="17" y="22.5" textAnchor="middle" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontWeight="800" fontSize="12" fill="#1a1a1a" letterSpacing="0.5">BT</text>
-        </svg>
-        <span style={{ color: "#1a1a1a", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.01em" }}>
-          Bear Real Estate Team
-        </span>
-      </a>
-      {/* Desktop links */}
-      <div style={{ display: "flex", gap: "32px", alignItems: "center" }} className="nav-desktop">
-        <a href="/scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
-          Why Scout
+      <div style={{ maxWidth: 1280, margin: "0 auto", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(16px,4vw,40px)" }}>
+        <a href="#top" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+          <svg width="32" height="32" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="32" height="32" rx="2" stroke="white" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <text x="17" y="22.5" textAnchor="middle" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif" fontWeight="800" fontSize="12" fill="white">BT</text>
+          </svg>
+          <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.01em" }}>
+            Bear Real Estate Team
+          </span>
         </a>
-        <a href="/chat" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
-          Try Scout
-        </a>
-        <a
-          href="sms:+14077588102"
-          style={{
-            background: "#2d4a6b",
-            color: "#ffffff",
-            textDecoration: "none",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            padding: "9px 20px",
-            borderRadius: "8px",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Text Me Scout
-        </a>
-      </div>
-      {/* Mobile hamburger — 44×44 tap target */}
-      <button
-        onClick={() => setMenuOpen(o => !o)}
-        style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "10px", color: "#1a1a1a", minWidth: "44px", minHeight: "44px", alignItems: "center", justifyContent: "center" }}
-        className="nav-hamburger"
-        aria-label="Menu"
-      >
-        <div style={{ width: 22, height: 2, background: "#1a1a1a", marginBottom: 5, transition: "all 0.2s", transform: menuOpen ? "rotate(45deg) translate(5px,5px)" : "none" }} />
-        <div style={{ width: 22, height: 2, background: "#1a1a1a", marginBottom: 5, opacity: menuOpen ? 0 : 1, transition: "all 0.2s" }} />
-        <div style={{ width: 22, height: 2, background: "#1a1a1a", transition: "all 0.2s", transform: menuOpen ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
-      </button>
-      {/* Mobile dropdown — full-width, generous padding, tap-friendly links */}
-      {menuOpen && (
-        <div style={{ position: "absolute", top: "60px", left: 0, right: 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", padding: "12px 24px 24px", display: "flex", flexDirection: "column", gap: "0", borderBottom: "1px solid rgba(0,0,0,0.08)", zIndex: 99 }}>
-          <a href="/scout" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Why Scout</a>
-          <a href="/chat" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Try Scout</a>
-          <a href="#systems" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>The System</a>
-          <a href="#proof" onClick={() => setMenuOpen(false)} style={{ color: "#1a1a1a", textDecoration: "none", fontSize: "1rem", fontWeight: 600, padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>Track Record</a>
-          <div onClick={() => setMenuOpen(false)} style={{ paddingTop: "16px" }}><ScoutCTA size="sm" label="Start with Scout" /></div>
+        {/* Desktop links */}
+        <div style={{ display: "flex", gap: "32px", alignItems: "center" }} className="nav-desktop">
+          <a href="/scout" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+            Why Scout
+          </a>
+          <a href="/chat" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
+            Try Scout
+          </a>
+          <a
+            href="sms:+14077588102"
+            style={{
+              background: "#3b6ea8",
+              color: "#ffffff",
+              textDecoration: "none",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              padding: "9px 20px",
+              borderRadius: "8px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Text Me Scout
+          </a>
         </div>
-      )}
+        {/* Mobile hamburger — 44×44 tap target */}
+        <button
+          onClick={() => setMenuOpen(o => !o)}
+          style={{ display: "none", background: "rgba(255,255,255,0.08)", border: "none", cursor: "pointer", padding: "10px", minWidth: "44px", minHeight: "44px", alignItems: "center", justifyContent: "center", borderRadius: "8px" }}
+          className="nav-hamburger"
+          aria-label="Menu"
+        >
+          <div style={{ width: 18, height: 1.5, background: "white", marginBottom: 4.5, transition: "all 0.2s", transform: menuOpen ? "rotate(45deg) translate(4px,4px)" : "none" }} />
+          <div style={{ width: 18, height: 1.5, background: "white", marginBottom: 4.5, opacity: menuOpen ? 0 : 1, transition: "all 0.2s" }} />
+          <div style={{ width: 18, height: 1.5, background: "white", transition: "all 0.2s", transform: menuOpen ? "rotate(-45deg) translate(4px,-4px)" : "none" }} />
+        </button>
+        {/* Mobile dropdown */}
+        {menuOpen && (
+          <div style={{ position: "absolute", top: "60px", left: 0, right: 0, background: "rgba(11,22,42,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", padding: "8px 16px 16px", display: "flex", flexDirection: "column", gap: "0", borderBottom: "1px solid rgba(255,255,255,0.08)", zIndex: 99 }}>
+            <a href="/scout" onClick={() => setMenuOpen(false)} style={{ color: "rgba(255,255,255,0.80)", textDecoration: "none", fontSize: "0.95rem", fontWeight: 500, padding: "14px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>Why Scout</a>
+            <a href="/chat" onClick={() => setMenuOpen(false)} style={{ color: "rgba(255,255,255,0.80)", textDecoration: "none", fontSize: "0.95rem", fontWeight: 500, padding: "14px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>Try Scout</a>
+            <a href="sms:+14077588102" onClick={() => setMenuOpen(false)} style={{ marginTop: 8, background: "#3b6ea8", color: "#ffffff", textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, padding: "12px 16px", borderRadius: "8px", textAlign: "center" }}>Text Me Scout</a>
+          </div>
+        )}
+      </div>
     </nav>
   );
 }
