@@ -286,37 +286,38 @@ export default function AcademyPage() {
       `}</style>
 
       {/* ── Nav ── */}
-      <nav style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", borderBottom: "1px solid rgba(0,0,0,0.08)", padding: "0 clamp(16px,4vw,40px)", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="1" width="32" height="32" rx="1" stroke="#1a1a1a" strokeWidth="2" fill="none"/>
-            <rect x="4" y="4" width="26" height="26" rx="0.5" stroke="#1a1a1a" strokeWidth="1.5" fill="none"/>
-            <text x="17" y="22.5" textAnchor="middle" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontWeight="800" fontSize="12" fill="#1a1a1a" letterSpacing="0.5">BT</text>
-          </svg>
-          <span style={{ color: "#1a1a1a", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.01em" }}>Bear Real Estate Team</span>
-        </a>
-        {/* Desktop links */}
-        <div className="nav-links" style={{ display: "flex", gap: "32px", alignItems: "center" }}>
-          <a href="/scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Why Scout</a>
-          <a href="/chat" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Try Scout</a>
-          <a href="sms:+14077588102" style={{ background: "#2d4a6b", color: "#ffffff", textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, padding: "9px 20px", borderRadius: "8px", whiteSpace: "nowrap" }}>Text Me Scout</a>
-        </div>
-        {/* Mobile hamburger */}
-        <button className="nav-hamburger" onClick={() => setNavOpen(!navOpen)} aria-label={navOpen ? "Close menu" : "Open menu"} style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {navOpen ? (
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><line x1="4" y1="4" x2="18" y2="18" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round"/><line x1="18" y1="4" x2="4" y2="18" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round"/></svg>
-          ) : (
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><line x1="3" y1="7" x2="19" y2="7" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round"/><line x1="3" y1="11" x2="19" y2="11" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round"/><line x1="3" y1="15" x2="19" y2="15" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round"/></svg>
-          )}
-        </button>
-        {navOpen && (
-          <div className="nav-mobile-menu" onClick={() => setNavOpen(false)}>
-            <a href="/scout">Why Scout</a>
-            <a href="/chat">Try Scout</a>
-            <a href="#coach">Ask Coach</a>
-            <a href="sms:+14077588102" style={{ color: "#1b365d", fontWeight: 700 }}>Text Me Scout</a>
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, height: 60, background: "rgba(11,22,42,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(16px,4vw,40px)" }}>
+          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+            <svg width="32" height="32" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="1" width="32" height="32" rx="2" stroke="white" strokeWidth="1.5" fill="none" opacity="0.6"/>
+              <text x="17" y="22.5" textAnchor="middle" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif" fontWeight="800" fontSize="12" fill="white">BT</text>
+            </svg>
+            <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.01em" }}>Bear Real Estate Team</span>
+          </a>
+          {/* Desktop links */}
+          <div className="nav-links" style={{ display: "flex", gap: "32px", alignItems: "center" }}>
+            <a href="/scout" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Why Scout</a>
+            <a href="/chat" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Try Scout</a>
+            <a href="sms:+14077588102" style={{ background: "#3b6ea8", color: "#ffffff", textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, padding: "9px 20px", borderRadius: "8px", whiteSpace: "nowrap" }}>Text Me Scout</a>
           </div>
-        )}
+          {/* Mobile hamburger */}
+          <button className="nav-hamburger" onClick={() => setNavOpen(!navOpen)} aria-label={navOpen ? "Close menu" : "Open menu"} style={{ background: "rgba(255,255,255,0.08)", border: "none", cursor: "pointer", padding: 0, minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8 }}>
+            {navOpen ? (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 4L14 14M14 4L4 14" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 4.5H16M2 9H16M2 13.5H16" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            )}
+          </button>
+          {navOpen && (
+            <div style={{ position: "absolute", top: 60, left: 0, right: 0, background: "rgba(11,22,42,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", padding: "8px 16px 16px", display: "flex", flexDirection: "column", borderBottom: "1px solid rgba(255,255,255,0.08)", zIndex: 99 }} onClick={() => setNavOpen(false)}>
+              <a href="/scout" style={{ color: "rgba(255,255,255,0.80)", textDecoration: "none", fontSize: "0.95rem", fontWeight: 500, padding: "14px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "block" }}>Why Scout</a>
+              <a href="/chat" style={{ color: "rgba(255,255,255,0.80)", textDecoration: "none", fontSize: "0.95rem", fontWeight: 500, padding: "14px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "block" }}>Try Scout</a>
+              <a href="#coach" style={{ color: "rgba(255,255,255,0.80)", textDecoration: "none", fontSize: "0.95rem", fontWeight: 500, padding: "14px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "block" }}>Ask Coach</a>
+              <a href="sms:+14077588102" style={{ marginTop: 8, background: "#3b6ea8", color: "#ffffff", textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, padding: "12px 16px", borderRadius: "8px", textAlign: "center", display: "block" }}>Text Me Scout</a>
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* Hero — full viewport height, blueprint photo via CSS background */}
