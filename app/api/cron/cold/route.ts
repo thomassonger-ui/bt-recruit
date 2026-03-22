@@ -41,6 +41,8 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const cutoff48h = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
   const cutoff30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const cutoff7d  = new Date(now.getTime() - 7  * 24 * 60 * 60 * 1000).toISOString();
+  const cutoff14d = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
   // ── Segment A: Scout-captured, never booked ──────────────────────────────
   const { data: coldLeads, error: errorA } = await getSupabase()
@@ -70,9 +72,26 @@ export async function GET(req: NextRequest) {
     // Non-fatal — continue with Segment A
   }
 
+  // ── Segment C: cold_recovery second touch — 7–14 days after first email ──
+  // Got one cold email, went silent. One final touch then Tom alert to call manually.
+  const { data: recoveryLeads, error: errorC } = await getSupabase()
+    .from("leads")
+    .select("id, name, email, phone, brokerage, last_contact, stage")
+    .eq("stage", "cold_recovery")
+    .lt("last_contact", cutoff7d)
+    .gt("last_contact", cutoff14d)
+    .not("email", "is", null)
+    .neq("email", "");
+
+  if (errorC) {
+    console.error("Cold cron Segment C error:", errorC);
+    // Non-fatal
+  }
+
   const allLeads = [
     ...(coldLeads || []).map(l => ({ ...l, segment: "A" as const })),
     ...(stalledLeads || []).map(l => ({ ...l, segment: "B" as const })),
+    ...(recoveryLeads || []).map(l => ({ ...l, segment: "C" as const })),
   ];
 
   if (allLeads.length === 0) {
@@ -84,12 +103,19 @@ export async function GET(req: NextRequest) {
 
   for (const lead of allLeads) {
     const firstName = lead.name?.split(" ")[0] || "there";
-    const isStalled = lead.segment === "B";
-    const subject = isStalled
+    const isRecovery = lead.segment === "C";
+    const isStalled  = lead.segment === "B";
+
+    const subject = isRecovery
+      ? `One last thing, ${firstName}`
+      : isStalled
       ? `Checking back in — still exploring options?`
       : `Still open to a quick conversation?`;
-    const html = isStalled
-      ? buildStalledEmail(firstName, lead.brokerage)
+
+    const html = isRecovery
+      ? buildFinalRecoveryEmail(firstName, (lead as { brokerage?: string }).brokerage)
+      : isStalled
+      ? buildStalledEmail(firstName, (lead as { brokerage?: string }).brokerage)
       : buildColdEmail(firstName);
 
     try {
@@ -101,17 +127,40 @@ export async function GET(req: NextRequest) {
         html,
       });
 
+      // Segment C: final touch — move to dead stage, alert Tom to call manually
+      const newStage = isRecovery ? "Closed Lost" : "cold_recovery";
       await getSupabase()
         .from("leads")
         .update({
-          stage: "cold_recovery",
+          stage: newStage,
           last_contact: now.toISOString(),
           updated_at: now.toISOString(),
         })
         .eq("id", lead.id);
 
+      if (isRecovery) {
+        await getResend().emails.send({
+          from: FROM_EMAIL,
+          replyTo: REPLY_TO,
+          to: TOM_EMAIL,
+          subject: `[Final Touch Sent] ${lead.name || lead.email} — no response after 2 emails`,
+          html: `
+            <div style="font-family:sans-serif;max-width:520px;">
+              <div style="background:#7f1d1d;padding:14px 20px;border-radius:6px 6px 0 0;">
+                <p style="color:#fca5a5;font-weight:700;margin:0;">📵 Final recovery email sent — no response</p>
+              </div>
+              <div style="background:#fff;border:1px solid #e5e7eb;padding:18px 20px;border-radius:0 0 6px 6px;">
+                <p style="margin:0 0 8px;font-size:14px;color:#374151;"><strong>${lead.name || "Unknown"}</strong>${(lead as { brokerage?: string }).brokerage ? ` · ${(lead as { brokerage?: string }).brokerage}` : ""}</p>
+                <p style="margin:0 0 8px;font-size:14px;color:#374151;">Email: ${lead.email}</p>
+                <p style="margin:0 0 16px;font-size:14px;color:#374151;">Phone: ${(lead as { phone?: string }).phone || "Not captured"}</p>
+                <p style="margin:0;font-size:13px;color:#6b7280;">Stage moved to <strong>Closed Lost</strong>. If worth a personal call, now is the time.</p>
+              </div>
+            </div>`,
+        }).catch(() => {});
+      }
+
       sent++;
-      recovered.push(`[${lead.segment}] ${lead.name} <${lead.email}> (was: ${lead.stage})`);
+      recovered.push(`[${lead.segment}] ${lead.name} <${lead.email}> (was: ${lead.stage} → ${newStage})`);
     } catch (emailErr) {
       console.error(`Failed cold recovery for ${lead.email}:`, emailErr);
     }
@@ -120,6 +169,7 @@ export async function GET(req: NextRequest) {
   if (sent > 0) {
     const segACount = recovered.filter(l => l.startsWith("[A]")).length;
     const segBCount = recovered.filter(l => l.startsWith("[B]")).length;
+    const segCCount = recovered.filter(l => l.startsWith("[C]")).length;
     const leadRows = recovered.map(l => `<li style="margin-bottom:4px;">${l}</li>`).join("");
     await getResend().emails.send({
       from: FROM_EMAIL,
@@ -138,10 +188,13 @@ export async function GET(req: NextRequest) {
               <td style="padding:4px 16px 4px 0;color:#6B7280;">Segment B (stalled pipeline):</td>
               <td style="font-weight:600;">${segBCount}</td>
             </tr>
+            <tr>
+              <td style="padding:4px 16px 4px 0;color:#6B7280;">Segment C (final touch → Closed Lost):</td>
+              <td style="font-weight:600;">${segCCount}</td>
+            </tr>
           </table>
           <ul style="font-size:13px;color:#374151;">${leadRows}</ul>
-          <p>Stage updated to <code>cold_recovery</code> for all.
-          View in your <a href="https://joinbearteam.com/dashboard">dashboard</a>.</p>
+          <p>Stages updated automatically. View in your <a href="https://joinbearteam.com/dashboard">dashboard</a>.</p>
           <p style="color:#888;font-size:12px;">— Scout Automation | Bear Team Real Estate</p>
         </div>
       `,
@@ -153,8 +206,24 @@ export async function GET(req: NextRequest) {
     recovered,
     segmentA: (coldLeads || []).length,
     segmentB: (stalledLeads || []).length,
+    segmentC: (recoveryLeads || []).length,
     message: `Cold recovery complete. ${sent} email${sent !== 1 ? "s" : ""} sent.`,
   });
+}
+
+function buildFinalRecoveryEmail(firstName: string, brokerage?: string): string {
+  const brokerageRef = brokerage ? ` at ${brokerage}` : "";
+  return `
+    <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
+      <p>Hi ${firstName},</p>
+      <p>Last one from me — I don't want to fill your inbox.</p>
+      <p>We connected a couple of weeks ago about what your numbers might look like${brokerageRef} vs. Bear Team.
+      If the timing wasn't right then, I get it. Markets move, contracts renew, priorities shift.</p>
+      <p>If you ever want to run the math — zero pressure, no pitch — my calendar is always open:</p>
+      <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes →</a></p>
+      <p>Either way, good luck with your production. Orlando is a strong market right now.</p>
+      <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
+    </div>`;
 }
 
 function buildColdEmail(firstName: string): string {
