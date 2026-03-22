@@ -141,60 +141,86 @@ function buildDripEmail(
 ): string {
   const brokerage = (lead.brokerage as string) || "your current brokerage";
   const dealCount = lead.deal_count as number | null;
+  const avgPrice = (lead.avg_price as number) || 415000;
+  const notes = (lead.notes as string) || "";
+  const objections = (lead.objections as string) || "";
+  const stage = (lead.stage as string) || "";
 
-  // Calculate Bear Team math if we have deal count
+  // ── Personalized math block ─────────────────────────────────────────────────
+  // Uses actual avg_price from Scout if captured, falls back to $415K Orlando average
   let mathBlock = "";
   if (dealCount && dealCount > 0) {
-    const avgPrice = (lead.avg_price as number) || 415000;
     const commission = 0.025;
     const gci = avgPrice * commission;
-    const bearTeamNet = gci * 0.6 * dealCount; // conservative Tier 1
-    const typicalNet = gci * 0.7 * dealCount;  // typical 70/30 elsewhere
+    const bearTeamNet60 = gci * 0.6 * dealCount;   // Tier 1 (60/40)
+    const bearTeamNet70 = gci * 0.7 * dealCount;   // Tier 2 (70/30) after $16K cap
     const fees = dealCount * 150;
-    const bearTeamTotal = bearTeamNet - fees;
+    const bearTeamTotal = bearTeamNet60 - fees;
+    const priceLabel = (lead.avg_price as number) ? `$${avgPrice.toLocaleString()} avg` : `$${avgPrice.toLocaleString()} Orlando avg`;
     mathBlock = `
     <div style="background:#f8f4e8;border-left:4px solid #c9a84c;padding:16px 20px;margin:20px 0;border-radius:4px;">
-      <p style="margin:0 0 8px;font-weight:600;color:#1a1a1a;">Your numbers at Bear Team (${dealCount} deals, conservative):</p>
-      <p style="margin:0 0 4px;color:#333;">GCI per deal: $${gci.toLocaleString()}</p>
-      <p style="margin:0 0 4px;color:#333;">Your net (60/40 Tier 1): $${bearTeamTotal.toLocaleString()}</p>
-      <p style="margin:0 0 4px;color:#333;">Transaction fees: $${fees.toLocaleString()} total</p>
-      <p style="margin:0;color:#888;font-size:13px;">Zero monthly fees. Zero desk fees. Zero E&O.</p>
+      <p style="margin:0 0 8px;font-weight:600;color:#1a1a1a;">Your numbers at Bear Team — ${dealCount} deals · ${priceLabel}:</p>
+      <p style="margin:0 0 4px;color:#333;">GCI per deal: $${Math.round(gci).toLocaleString()}</p>
+      <p style="margin:0 0 4px;color:#333;">Your net at Tier 1 (60/40): $${Math.round(bearTeamTotal).toLocaleString()} after $150/deal fee</p>
+      <p style="margin:0 0 4px;color:#333;">Your net at Tier 2 (70/30): $${Math.round(bearTeamNet70 - fees).toLocaleString()} — kicks in at $16K company dollar</p>
+      <p style="margin:0;color:#888;font-size:13px;">Zero monthly fees. Zero desk fees. Zero E&O. Only pay when you close.</p>
     </div>`;
   }
 
+  // ── Scout notes block — only appears in Email 1 if Scout captured context ───
+  // Pulls what the agent told Scout during their pre-call chat
+  let notesCallout = "";
+  if (notes && notes.length > 10) {
+    notesCallout = `
+    <div style="background:#f0f4ff;border-left:4px solid #3b82f6;padding:14px 18px;margin:16px 0;border-radius:4px;">
+      <p style="margin:0 0 6px;font-weight:600;color:#1e3a8a;font-size:13px;">FROM OUR CHAT BEFORE THE CALL</p>
+      <p style="margin:0;color:#374151;font-size:14px;line-height:1.6;">${notes}</p>
+    </div>`;
+  }
+
+  // ── Objection callback — used in Email 4 if Scout captured a specific objection
+  const objectionLine = objections
+    ? `<p>You mentioned <em>"${objections}"</em> — let me address that directly.</p>`
+    : "";
+
+  // ── Stage-aware context ─────────────────────────────────────────────────────
+  const isFollowUpQueue = stage === "Follow-Up Queue";
+
   const emails = [
-    // Email 1 — Day 1: Recap + math
+    // Email 1 — Day 1: Recap + math + Scout notes callback
     `<p>Hey ${firstName},</p>
     <p>Really enjoyed our conversation today. I want to make sure you have everything you need to think it through clearly.</p>
+    ${notesCallout}
     <p>Here's the short version of what we covered:</p>
     <ul style="color:#333;line-height:1.8;">
       <li>Progressive tiers: 60/40 → 70/30 → 80/20 → 90/10</li>
-      <li>$16K cap = automatic promotion, not a ceiling</li>
+      <li>$16K company dollar cap = automatic tier promotion, not a ceiling</li>
       <li>Zero monthly fees, zero desk fees, zero E&O costs</li>
       <li>$150 flat per closing — same whether it's $200K or $2M</li>
     </ul>
     ${mathBlock}
     <p>If any questions came up after we hung up, just reply here. I'm easy to reach.</p>`,
 
-    // Email 2 — Day 3: The number most agents miss
+    // Email 2 — Day 3: The number most agents miss — personalized with their avg_price
     `<p>Hey ${firstName},</p>
     <p>One thing I didn't spend enough time on in our call — the number most agents never actually calculate:</p>
     <p><strong>What are you paying your brokerage every year in fees before a single deal closes?</strong></p>
     <p>At most brokerages, that number is $1,200–$3,600/year in monthly fees alone. Add desk fees, tech fees, E&O — you're often at $4,000–$6,000 out of pocket before your first commission check.</p>
     <p>At Bear Team: <strong>$0</strong>. The only time money leaves your pocket is when a deal closes — $150 flat.</p>
     ${mathBlock}
-    <p>If you're at ${brokerage}, what does that number actually look like for you? Worth running before you decide anything.</p>`,
+    <p>If you're at ${brokerage}, what does that number actually look like for you? Worth running the math before you decide anything.</p>`,
 
     // Email 3 — Day 7: Social proof
     `<p>Hey ${firstName},</p>
     <p>I want to share something agents tell us pretty consistently about 90 days in:</p>
     <p><em>"I didn't realize how much mental overhead I had from the fees until they were gone."</em></p>
     <p>It's not just the math — though the math is real. It's the shift from paying to produce to just producing. No monthly invoice in the back of your mind. No desk fee when you have a slow month.</p>
-    <p>The agents who fit best here are the ones who are already producing and just want the platform to get out of their way. That's what we built.</p>
+    ${isFollowUpQueue ? `<p>You mentioned you were weighing your options — that's exactly where most agents are when they reach out. The ones who fit best here are already producing and just want the platform to get out of their way.</p>` : `<p>The agents who fit best here are the ones who are already producing and just want the platform to get out of their way. That's what we built.</p>`}
     <p>Is there anything specific that's still giving you pause? I'd rather answer it directly than let it sit.</p>`,
 
-    // Email 4 — Day 10: Objection handling
+    // Email 4 — Day 10: Objection handling — uses Scout-captured objection if available
     `<p>Hey ${firstName},</p>
+    ${objectionLine}
     <p>I'll be direct — when agents go quiet at this stage, it's usually one of three things:</p>
     <ol style="color:#333;line-height:2;">
       <li><strong>"I just renewed my agreement"</strong> — When does it come up? This is the right time to plan, not when you're rushed at renewal.</li>
@@ -208,6 +234,7 @@ function buildDripEmail(
     `<p>Hey ${firstName},</p>
     <p>Last one from me — I don't believe in wearing people down.</p>
     <p>If Bear Team is the right move, you already know it. The math works, the model is clean, and the support is real. When the timing is right, the door is open.</p>
+    ${mathBlock}
     <p>If you want to revisit at any point — next month, next quarter, or at your next renewal — just reply to this email or grab 15 minutes whenever it works:</p>
     <a href="${CALENDLY_LINK}" style="display:inline-block;background:#c9a84c;color:#1a1a1a;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:6px;margin:16px 0;">Schedule a Call →</a>
     <p>Either way, good luck with your production. Orlando is a good market right now — go close something.</p>`,
