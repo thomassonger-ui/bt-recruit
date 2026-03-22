@@ -28,6 +28,10 @@ const FROM_EMAIL = "Scout <scout@joinbearteam.com>";
 // 3. stage is NOT 'Closed Won' or 'Closed Lost'
 // 4. noshow_followup_sent is NULL or false
 //
+// Fix 3-A: Supabase is updated BEFORE sending emails so that if the email
+// send fails, the lead is already marked as processed. This prevents the drip
+// cron from treating a no-show as a completed call the next morning.
+//
 // Cron runs every 30 minutes via vercel.json cron config.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -65,6 +69,27 @@ export async function GET(req: NextRequest) {
     for (const lead of noShows) {
       const firstName = lead.name?.split(" ")[0] || "there";
 
+      // ── FIX 3-A: Mark as processed FIRST, then send emails ───────────────
+      // This prevents the drip cron from picking up this lead the next morning
+      // if the email send fails. Worst case: marked sent but email failed
+      // (recoverable). Without this, a failed email leaves noshow_followup_sent
+      // null and drip fires a warm "Great talking with you" to someone you
+      // never actually spoke to.
+      const { error: updateError } = await getSupabase()
+        .from("leads")
+        .update({
+          noshow_followup_sent: true,
+          noshow_followup_at: now.toISOString(),
+          stage: "Follow-Up Queue",
+          updated_at: now.toISOString(),
+        })
+        .eq("id", lead.id);
+
+      if (updateError) {
+        console.error(`Failed to mark no-show for ${lead.email}:`, updateError);
+        continue; // skip this lead if we can't update — safer than proceeding
+      }
+
       // ── Email to recruit ──────────────────────────────────────────────────
       const recruitEmail = buildRecruitEmail(firstName, lead.email);
       const { error: recruitEmailError } = await getResend().emails.send({
@@ -76,7 +101,7 @@ export async function GET(req: NextRequest) {
 
       if (recruitEmailError) {
         console.error(`Failed to send recruit email to ${lead.email}:`, recruitEmailError);
-        continue;
+        // Lead already marked — Tom still gets notified below, can follow up manually
       }
 
       // ── Notification email to Tom ─────────────────────────────────────────
@@ -87,17 +112,6 @@ export async function GET(req: NextRequest) {
         subject: `[No-Show] ${lead.name || lead.email} missed their call`,
         html: tomEmail,
       });
-
-      // ── Update Supabase — mark follow-up sent, update stage ──────────────
-      await getSupabase()
-        .from("leads")
-        .update({
-          noshow_followup_sent: true,
-          noshow_followup_at: now.toISOString(),
-          stage: "Follow-Up Queue",
-          updated_at: now.toISOString(),
-        })
-        .eq("id", lead.id);
 
       results.push({ email: lead.email, name: lead.name, status: "followup_sent" });
     }
