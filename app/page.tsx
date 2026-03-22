@@ -198,7 +198,7 @@ function Nav() {
         </span>
       </a>
       {/* Desktop links */}
-      <div style={{ display: "flex", gap: "28px", alignItems: "center" }} className="nav-desktop">
+      <div style={{ display: "flex", gap: "32px", alignItems: "center" }} className="nav-desktop">
         <a href="/scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>
           Why Scout
         </a>
