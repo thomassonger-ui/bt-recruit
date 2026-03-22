@@ -293,6 +293,7 @@ function ChatPageInner() {
           {/* Desktop links */}
           <div className="hidden items-center gap-6 md:flex">
             <a href="/scout" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Why Scout</a>
+            <a href="/#see-scout" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Try Scout</a>
             <a href="/chat" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Try Scout</a>
             <a
               href="sms:+14077588102"
@@ -321,8 +322,8 @@ function ChatPageInner() {
             background: "#FFFFFF",
             boxShadow: "0 8px 48px rgba(0,0,0,0.30)",
             border: "1px solid rgba(255,255,255,0.12)",
-            /* Full height on mobile so it fills the remaining viewport */
-            minHeight: "calc(100vh - 60px)",
+            /* Full height only when conversation is active */
+            minHeight: isEmpty ? "auto" : "calc(100vh - 60px)",
           }}
         >
           {/* ── CHAT HEADER ── */}
@@ -356,7 +357,7 @@ function ChatPageInner() {
               flex-1 so it stretches to fill, overflow-y-auto for independent scroll */}
           <div
             ref={chatContainerRef}
-            className="flex-1 overflow-x-hidden overflow-y-auto px-4 pt-3 pb-2 sm:px-6"
+            className={`${isEmpty ? "" : "flex-1"} overflow-x-hidden overflow-y-auto px-4 pt-3 pb-2 sm:px-6`}
             style={{
               /* On mobile fill remaining space; on desktop cap at comfortable reading height */
               minHeight: isEmpty ? "auto" : "0",
