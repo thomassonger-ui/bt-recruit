@@ -470,7 +470,7 @@ export default function AcademyPage() {
               const isActive = idx < activeNodes;
               const isLeft = idx % 2 === 0;
               return (
-                <div key={idx} className={`timeline-node ${isActive ? "active" : ""}`} style={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start", position: "relative", opacity: isActive ? 1 : 0.45 }}>
+                <div key={idx} className={`timeline-node ${isActive ? "active" : ""}`} style={{ display: "flex", justifyContent: isLeft ? "flex-end" : "flex-start", alignItems: "flex-start", position: "relative", opacity: isActive ? 1 : 0.45 }}>
                   {/* Center dot — desktop only */}
                   <div className="timeline-dot" style={{ position: "absolute", left: "50%", top: 20, transform: "translateX(-50%)", width: 18, height: 18, borderRadius: "50%", background: isActive ? item.color : "rgba(255,255,255,0.2)", border: `3px solid ${isActive ? "#fff" : "rgba(255,255,255,0.2)"}`, transition: "background 0.4s ease, border 0.4s ease", zIndex: 2 }} />
 
