@@ -296,9 +296,8 @@ export default function AcademyPage() {
           <span style={{ color: "#1a1a1a", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.01em" }}>Bear Real Estate Team</span>
         </a>
         {/* Desktop links */}
-        <div className="nav-links">
+        <div className="nav-links" style={{ display: "flex", gap: "32px", alignItems: "center" }}>
           <a href="/scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Why Scout</a>
-          <a href="/#see-scout" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Try Scout</a>
           <a href="/chat" style={{ color: "#374151", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500 }}>Try Scout</a>
           <a href="sms:+14077588102" style={{ background: "#2d4a6b", color: "#ffffff", textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, padding: "9px 20px", borderRadius: "8px", whiteSpace: "nowrap" }}>Text Me Scout</a>
         </div>
@@ -313,7 +312,6 @@ export default function AcademyPage() {
         {navOpen && (
           <div className="nav-mobile-menu" onClick={() => setNavOpen(false)}>
             <a href="/scout">Why Scout</a>
-            <a href="/#see-scout">Try Scout</a>
             <a href="/chat">Try Scout</a>
             <a href="#coach">Ask Coach</a>
             <a href="sms:+14077588102" style={{ color: "#1b365d", fontWeight: 700 }}>Text Me Scout</a>
