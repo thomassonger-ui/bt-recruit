@@ -18,7 +18,7 @@ const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
 const FROM_EMAIL = "Tom Songer <tom@joinbearteam.com>";
 const REPLY_TO = "thomas.songer@gmail.com";
 
-// ─── COLD CRON — TWO SEGMENTS ─────────────────────────────────────────────────
+// ─── COLD CRON — THREE SEGMENTS ───────────────────────────────────────────────
 //
 // Segment A — Scout-captured leads who never booked (48h+ since chat, no call)
 //   stage = 'scout_captured', created_at > 48h ago
@@ -26,10 +26,13 @@ const REPLY_TO = "thomas.songer@gmail.com";
 //
 // Segment B — Stalled pipeline leads (had a call, no movement in 30+ days)
 //   stage IN ('Follow-Up Queue', 'booked') AND last_contact < 30 days ago
-//   Higher-value targets — they engaged but stalled post-call
-//   Email: "Checking back in — still exploring options?"
+//   Fix 3-B: Added event_end IS NULL filter — no-shows have event_end set and
+//   are eligible for drip. Segment B should only catch leads who stalled
+//   WITHOUT a completed call (e.g., booked but then lost track of).
+//   Leads with event_end are managed by the drip cron, not this one.
 //
-// Both segments update stage to 'cold_recovery' and set last_contact.
+// Segment C — cold_recovery second touch (7–14 days after first email)
+//   Got one cold email, went silent. Final touch → Closed Lost + Tom alert.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
@@ -59,11 +62,15 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Segment B: Stalled pipeline — booked/follow-up queue, silent 30d ────
+  // Fix 3-B: event_end must be null — leads with event_end had an actual call
+  // and are owned by the drip cron. This prevents double-sequencing no-shows
+  // who land in Follow-Up Queue but still have event_end set from their booking.
   const { data: stalledLeads, error: errorB } = await getSupabase()
     .from("leads")
     .select("id, name, email, phone, brokerage, last_contact, stage")
     .in("stage", ["Follow-Up Queue", "booked"])
     .or(`last_contact.is.null,last_contact.lt.${cutoff30d}`)
+    .is("event_end", null)  // Fix 3-B: exclude leads who had a real call (drip owns them)
     .not("email", "is", null)
     .neq("email", "");
 
@@ -73,7 +80,6 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Segment C: cold_recovery second touch — 7–14 days after first email ──
-  // Got one cold email, went silent. One final touch then Tom alert to call manually.
   const { data: recoveryLeads, error: errorC } = await getSupabase()
     .from("leads")
     .select("id, name, email, phone, brokerage, last_contact, stage")
