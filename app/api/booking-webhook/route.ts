@@ -198,7 +198,7 @@ export async function POST(req: NextRequest) {
     if (process.env.RESEND_API_KEY && process.env.NOTIFY_EMAIL) {
       const resend = new Resend(process.env.RESEND_API_KEY)
       await resend.emails.send({
-        from: "Scout <onboarding@resend.dev>",
+        from: "Scout <scout@joinbearteam.com>",
         to: process.env.NOTIFY_EMAIL,
         subject: `📞 Call booked — ${name} · ${formattedTime}`,
         html: `
@@ -239,3 +239,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 }
+
