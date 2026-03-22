@@ -69,7 +69,6 @@ function MobileNav() {
           onClick={() => setOpen(false)}
         >
           <a href="/scout" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Why Scout</a>
-          <a href="/#see-scout" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Try Scout</a>
           <a href="/chat" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Try Scout</a>
           <a
             href="sms:+14077588102"
