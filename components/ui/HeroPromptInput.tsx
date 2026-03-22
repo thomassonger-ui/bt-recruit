@@ -53,7 +53,7 @@ export default function HeroPromptInput() {
   }
 
   return (
-    <div className="w-full max-w-xl">
+    <div className="w-full max-w-full sm:max-w-xl">
       {/* Input field */}
       <div
         className="flex items-center gap-2 rounded-xl px-4 py-3"
@@ -75,7 +75,7 @@ export default function HeroPromptInput() {
         />
         <button
           onClick={() => handleSubmit("")}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-opacity hover:opacity-80"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-opacity hover:opacity-80 sm:h-8 sm:w-8"
           style={{ background: "var(--color-primary)" }}
           aria-label="Send prompt"
         >
@@ -92,17 +92,19 @@ export default function HeroPromptInput() {
       </div>
 
       {/* Quick prompt pills */}
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2" style={{ maxWidth: "100%" }}>
         {quickPrompts.map((prompt) => (
           <button
             key={prompt}
             onClick={() => handleSubmit(prompt)}
-            className="rounded-lg px-3 py-1.5 text-xs transition-all"
+            className="rounded-lg px-3 py-1.5 text-xs transition-all text-left leading-snug"
             style={{
               background: "rgba(255,255,255,0.08)",
               border: "1px solid rgba(255,255,255,0.18)",
               color: "#ffffff",
               fontFamily: "Inter, sans-serif",
+              maxWidth: "100%",
+              wordBreak: "break-word",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "rgba(255,255,255,0.14)"
@@ -175,3 +177,4 @@ export default function HeroPromptInput() {
     </div>
   )
 }
+
