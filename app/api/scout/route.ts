@@ -96,6 +96,7 @@ function normalizeBrokerage(text: string): string | null {
 
 interface RecruitContext {
   brokerage: string | null;
+  newLicensee: boolean;
   dealCount: number | null;
   yearsExperience: number | null;
   painSignal: string | null;
@@ -129,6 +130,7 @@ const BROKERAGE_PATTERNS: Array<{ pattern: RegExp; name: string }> = [
 function extractRecruitContext(messages: Message[]): RecruitContext {
   const ctx: RecruitContext = {
     brokerage: null,
+    newLicensee: false,
     dealCount: null,
     yearsExperience: null,
     painSignal: null,
@@ -156,6 +158,26 @@ function extractRecruitContext(messages: Message[]): RecruitContext {
             break;
           }
         }
+      }
+    }
+
+    // ── New licensee detection ──
+    if (!ctx.newLicensee) {
+      const newLicenseePatterns = [
+        /just (?:got|received|passed|earned) (?:my |the )?(?:license|exam|test)/i,
+        /brand[- ]?new (?:agent|licensee)/i,
+        /new (?:agent|to (?:real estate|the business|realty))/i,
+        /exploring (?:where to hang|my options|brokerages)/i,
+        /looking for (?:a |my first )?brokerage/i,
+        /first brokerage/i,
+        /where (?:should i hang|to hang my)/i,
+        /haven't (?:decided|chosen|picked)(?: a brokerage)?/i,
+        /not (?:with|at) (?:a |any )?brokerage(?: yet)?/i,
+        /no (?:current )?brokerage/i,
+      ];
+      if (newLicenseePatterns.some((p) => p.test(text))) {
+        ctx.newLicensee = true;
+        ctx.brokerage = "none — new licensee";
       }
     }
 
@@ -218,7 +240,7 @@ function buildStateBlock(ctx: RecruitContext): string {
     "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
     "CONVERSATION STATE — DO NOT RE-ASK FOR ANYTHING MARKED COLLECTED",
     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-    `Brokerage: ${ctx.brokerage ? `COLLECTED — ${ctx.brokerage}` : "NOT YET — ask this first before anything else"}`,
+    `Brokerage: ${ctx.newLicensee ? "NEW LICENSEE — no current brokerage. DO NOT ask where they hang their license." : ctx.brokerage ? `COLLECTED — ${ctx.brokerage}` : "NOT YET — ask this first before anything else"}``,
     `Deal count: ${ctx.dealCount !== null ? `COLLECTED — ${ctx.dealCount} deals/year` : ctx.brokerage ? "NOT YET — ask after brokerage" : "NOT YET"}`,
     `Years experience: ${ctx.yearsExperience !== null ? `COLLECTED — ${ctx.yearsExperience} years` : "unknown"}`,
     `Pain signal: ${ctx.painSignal ? `COLLECTED — "${ctx.painSignal}"` : ctx.dealCount !== null ? "NOT YET — ask what their biggest frustration is" : "NOT YET"}`,
@@ -230,6 +252,8 @@ function buildStateBlock(ctx: RecruitContext): string {
 
   if (!ctx.brokerage) {
     lines.push("→ Ask where they currently hang their license. Nothing else.");
+  } else if (ctx.newLicensee) {
+    lines.push(`→ NEW LICENSEE — answer their actual question first. Then pitch Bear Team as the best first home: zero monthly fees, zero desk fees, $150 flat per close, BearTeam Academy training, and personal support. Invite them to book a call: ${CALENDLY_LINK}`);
   } else if (ctx.dealCount === null) {
     lines.push(`→ Brokerage is ${ctx.brokerage}. Ask how many deals they close per year.`);
   } else if (!ctx.painSignal) {
