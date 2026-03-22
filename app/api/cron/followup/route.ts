@@ -43,11 +43,19 @@ export async function GET(req: NextRequest) {
     // Match follow_up_date = today (date only, not timestamp)
     const todayDate = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
 
+    // SW-6 fix: added noshow_followup_sent filter.
+    // A no-show lead can have follow_up_date set by Tom and sit in Follow-Up Queue.
+    // Without this guard, they'd receive a re-engagement email with a math block
+    // framed as post-call follow-up — after already receiving a no-show email.
+    // The messaging sequence would be jarring and out of order.
+    // noshow_followup_sent = true means the no-show path already owns this lead's
+    // next touchpoint; the followup cron should not also fire.
     const { data: leads, error } = await getSupabase()
       .from("leads")
       .select("*")
       .eq("follow_up_date", todayDate)
       .eq("drip_unsubscribed", false)
+      .or("noshow_followup_sent.is.null,noshow_followup_sent.eq.false")  // SW-6 fix
       .not("stage", "in", '("Closed Won","Closed Lost","Active Convo","Onboarding")')
       .not("email", "is", null)
       .neq("email", "");
@@ -190,6 +198,7 @@ function buildFollowUpEmail(
     </div>
     <div class="footer">
       <p>Bear Team Real Estate · Orlando, FL</p>
+      <p style="font-size:12px;color:#aaa;">Licensed under Bethanne Baer, Broker/Owner</p>
       <p style="font-size:12px;color:#aaa;">${unsubLink}</p>
     </div>
   </div>
