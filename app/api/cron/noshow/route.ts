@@ -19,6 +19,7 @@ const TOM_EMAIL = "thomas.songer@gmail.com";
 const TOM_PHONE = "407-758-8102";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
 const FROM_EMAIL = "Scout <scout@joinbearteam.com>";
+const REPLY_TO = "thomas.songer@gmail.com"; // Fix: replies from agents now route to Tom, not a void
 
 // ─── NO-SHOW DETECTION LOGIC ──────────────────────────────────────────────────
 //
@@ -94,6 +95,7 @@ export async function GET(req: NextRequest) {
       const recruitEmail = buildRecruitEmail(firstName, lead.email);
       const { error: recruitEmailError } = await getResend().emails.send({
         from: FROM_EMAIL,
+        replyTo: REPLY_TO, // Fix: agents who want to reschedule now have somewhere to reply
         to: lead.email,
         subject: `We missed you today, ${firstName}`,
         html: recruitEmail,
