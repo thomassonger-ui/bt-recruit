@@ -815,62 +815,50 @@ export default function RecruitingClient() {
       {/* ═══════════════════════════════════════════════════════
           SECTION — WHAT SCOUT BUILDS FOR YOU
       ═══════════════════════════════════════════════════════ */}
-      <section className="px-4 sm:px-6 lg:px-8" style={{ background: "var(--color-surface, #f8f9fa)" }}>
+      <style>{`
+        .scout-flip-card { perspective: 1000px; cursor: default; }
+        .scout-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
+        .scout-flip-card:hover .scout-flip-inner { transform: rotateY(180deg); }
+        .scout-flip-front, .scout-flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; padding: 28px 24px; }
+        .scout-flip-front { background: #1b365d; }
+        .scout-flip-back { background: #1b365d; transform: rotateY(180deg); align-items: flex-start; }
+        @media (max-width: 640px) {
+          .scout-flip-card:hover .scout-flip-inner { transform: none; }
+          .scout-flip-front { display: none; }
+          .scout-flip-back { position: relative; inset: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; }
+          .scout-flip-inner { transform: none !important; }
+        }
+      `}</style>
+      <section className="px-4 sm:px-6 lg:px-8" style={{ background: "var(--color-surface, #0b1d3a)" }}>
         <div className="mx-auto max-w-7xl py-16 sm:py-20">
           <div className="mb-12 text-center">
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-primary)" }}>Real Outputs. Not Generic AI.</p>
-            <h2 className="text-heading text-foreground" style={{ fontFamily: "Inter, sans-serif" }}>What Scout Builds For You</h2>
-            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-              Every tool below is built around Bear Team systems and the Orlando market — not a generic template you have to rewrite.
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest" style={{ color: "#7eb8f7" }}>Real Outputs. Not Generic AI.</p>
+            <h2 className="text-heading" style={{ fontFamily: "Inter, sans-serif", color: "#ffffff" }}>What Scout Builds For You</h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: "rgba(255,255,255,0.6)" }}>
+              Every tool is built around Bear Team systems and the Orlando market — not a generic template you have to rewrite.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              {
-                icon: "✉️",
-                title: "Follow-Up Sequences",
-                body: "Give Scout a lead's situation. Get a personalized 5-touch email and text sequence — ready to send, not ready to edit.",
-              },
-              {
-                icon: "📊",
-                title: "Commission Calculator",
-                body: "Input your current split and volume. Scout runs the exact math and shows what you'd net at Bear Team vs. where you are now.",
-              },
-              {
-                icon: "🏡",
-                title: "Listing Presentation Script",
-                body: "Input the address and seller objections. Scout builds a custom talking track — pricing rationale, proof points, closes.",
-              },
-              {
-                icon: "📍",
-                title: "Geo Farm Scripts",
-                body: "Input a neighborhood and price range. Scout writes the door-knock script, mailer copy, and follow-up text — in 60 seconds.",
-              },
-              {
-                icon: "📅",
-                title: "Weekly Business Audit",
-                body: "Tell Scout your calls, appointments, and closings this week. It diagnoses your bottleneck and tells you exactly what to fix.",
-              },
-              {
-                icon: "🔄",
-                title: "Sphere Reactivation",
-                body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message positioned for the Orlando market right now.",
-              },
+              { title: "Follow-Up Sequences", body: "Give Scout a lead's situation. Get a personalized 5-touch email and text sequence — ready to send in 60 seconds." },
+              { title: "Commission Calculator", body: "Input your current split and volume. Scout shows what you'd net at Bear Team vs. where you are now — exact math." },
+              { title: "Listing Presentation", body: "Input the address and seller objections. Scout builds a custom talking track — pricing rationale, proof points, closes." },
+              { title: "Geo Farm Scripts", body: "Input a neighborhood and price range. Scout writes the door-knock script, mailer copy, and follow-up text." },
+              { title: "Weekly Business Audit", body: "Tell Scout your calls, appointments, and closings. It diagnoses your bottleneck and tells you exactly what to fix." },
+              { title: "Sphere Reactivation", body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message for the Orlando market." },
             ].map((item, i) => (
-              <div
-                key={i}
-                className="rounded-xl p-5"
-                style={{
-                  background: "var(--color-card)",
-                  border: "1px solid var(--color-border-light)",
-                  transition: "transform 180ms ease, box-shadow 180ms ease",
-                }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-3px)"; el.style.boxShadow = "0 8px 24px rgba(0,0,0,0.08)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
-              >
-                <div className="mb-3 text-2xl">{item.icon}</div>
-                <div className="mb-2 text-sm font-bold text-foreground" style={{ fontFamily: "Inter, sans-serif" }}>{item.title}</div>
-                <div className="text-sm leading-relaxed text-muted">{item.body}</div>
+              <div key={i} className="scout-flip-card" style={{ height: 160 }}>
+                <div className="scout-flip-inner" style={{ height: "100%" }}>
+                  <div className="scout-flip-front">
+                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.05rem", textAlign: "center", fontFamily: "Inter, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
+                  </div>
+                  <div className="scout-flip-back">
+                    <div>
+                      <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.7rem", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>{item.title}</div>
+                      <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.85rem", lineHeight: 1.65, fontFamily: "Inter, sans-serif" }}>{item.body}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
