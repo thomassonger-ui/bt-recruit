@@ -358,7 +358,7 @@ function ChatPageInner() {
               flex-1 so it stretches to fill, overflow-y-auto for independent scroll */}
           <div
             ref={chatContainerRef}
-            className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-4 sm:px-6"
+            className="flex-1 overflow-x-hidden overflow-y-auto px-4 pt-3 pb-2 sm:px-6"
             style={{
               /* On mobile fill remaining space; on desktop cap at comfortable reading height */
               minHeight: isEmpty ? "auto" : "0",
@@ -367,7 +367,7 @@ function ChatPageInner() {
           >
             {isEmpty ? (
               context === "public" ? (
-                <div className="py-4 sm:py-6">
+                <div className="py-2">
                   <div className="mb-4 text-center sm:mb-5">
                     <div className="text-sm font-semibold sm:text-base" style={{ color: "#0B1D3A" }}>
                       Most agents overpay their brokerage by $4,000–$12,000 a year.
