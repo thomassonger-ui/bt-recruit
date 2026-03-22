@@ -185,7 +185,7 @@ function HeroParallaxContent() {
   return (
     <section
       ref={heroRef}
-      className="relative overflow-hidden" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
+      className="relative overflow-hidden w-full" style={{ minHeight: "100svh", display: "flex", flexDirection: "column" }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -413,22 +413,21 @@ function HeroParallaxContent() {
       </div>
 
       {/* Hero content */}
-      <div className="relative z-10 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl py-24 sm:py-32 lg:py-40">
-          <div className="grid items-center gap-16 lg:grid-cols-2">
+      <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl py-16 sm:py-24 lg:py-32">
+          <div className="grid items-center gap-8 lg:gap-16 lg:grid-cols-2">
             {/* Left */}
             <motion.div
               variants={stagger}
               initial="initial"
               animate="animate"
-              className="flex flex-col gap-6"
+              className="flex flex-col gap-5 sm:gap-6 p-5 sm:p-8 lg:p-10"
               style={{
                 background: "rgba(11,22,42,0.72)",
                 backdropFilter: "blur(16px)",
                 WebkitBackdropFilter: "blur(16px)",
-                borderRadius: "20px",
+                borderRadius: "16px",
                 border: "1px solid rgba(147,197,253,0.18)",
-                padding: "40px 36px",
                 boxShadow: "0 8px 40px rgba(0,0,0,0.35)",
                 transition: "transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s cubic-bezier(0.22,1,0.36,1)",
               }}
@@ -465,8 +464,8 @@ function HeroParallaxContent() {
                   className="mt-3 text-lg font-medium sm:text-xl"
                   style={{ fontFamily: "Inter, sans-serif", color: "rgba(255,255,255,0.75)" }}
                 >
-                  Most agents aren&apos;t falling behind because of effort.
-                  <br />
+                  Most agents aren&apos;t falling behind because of effort.{" "}
+                  <span className="hidden sm:inline"><br /></span>
                   They&apos;re missing structure, systems, and consistency.
                 </p>
               </motion.div>
@@ -519,7 +518,7 @@ function HeroParallaxContent() {
 export default function RecruitingClient() {
   return (
     <div
-      className="min-h-screen bg-background text-foreground"
+      className="min-h-screen overflow-x-hidden bg-background text-foreground"
       style={{ fontFamily: "Arial, sans-serif" }}
     >
       {/* ═══════════════════════════════════════════════════════
@@ -530,7 +529,7 @@ export default function RecruitingClient() {
       {/* ═══════════════════════════════════════════════════════
           SECTION 2 — WHY THIS MATTERS
       ═══════════════════════════════════════════════════════ */}
-      <section id="why" className="px-4 sm:px-6 lg:px-8">
+      <section id="why" className="px-4 sm:px-6 lg:px-8" style={{ scrollMarginTop: "72px" }}>
         <div className="mx-auto max-w-3xl py-24 sm:py-32">
           <motion.div
             {...fadeUp}
@@ -624,7 +623,7 @@ export default function RecruitingClient() {
       {/* ═══════════════════════════════════════════════════════
           SECTION 3 — SCOUT IN ACTION (Interactive Demo)
       ═══════════════════════════════════════════════════════ */}
-      <div id="scout">
+      <div id="scout" style={{ scrollMarginTop: "72px" }}>
         <ParallaxLayer depth={0.15}>
           <ScoutDemo className="bg-card" />
         </ParallaxLayer>
@@ -725,7 +724,7 @@ export default function RecruitingClient() {
       <section
         id="try"
         className="relative overflow-hidden px-4 sm:px-6 lg:px-8"
-        style={{ background: "rgba(11,22,42,1)" }}
+        style={{ background: "rgba(11,22,42,1)", scrollMarginTop: "72px" }}
       >
         {/* Blueprint grid lines overlay */}
         <div
@@ -934,3 +933,4 @@ export default function RecruitingClient() {
     </div>
   );
 }
+
