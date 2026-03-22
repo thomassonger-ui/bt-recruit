@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { verifyWrite } from "@/lib/db/verifyWrite";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -32,6 +33,11 @@ const REPLY_TO = "thomas.songer@gmail.com"; // Fix: replies from agents now rout
 // Fix 3-A: Supabase is updated BEFORE sending emails so that if the email
 // send fails, the lead is already marked as processed. This prevents the drip
 // cron from treating a no-show as a completed call the next morning.
+//
+// TICKET-04: verifyWrite added between the existing write (Fix 3-A) and the
+// email send. Confirms noshow_followup_sent=true is persisted before any Resend
+// call is made. If verification fails, the send is skipped and an error is logged.
+// The lead is already marked (Fix 3-A write happened) — no duplicate risk.
 //
 // Cron runs every 30 minutes via vercel.json cron config.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -89,6 +95,28 @@ export async function GET(req: NextRequest) {
       if (updateError) {
         console.error(`Failed to mark no-show for ${lead.email}:`, updateError);
         continue; // skip this lead if we can't update — safer than proceeding
+      }
+
+      // ── TICKET-04: Verify write before sending ────────────────────────────
+      // Confirms noshow_followup_sent=true is persisted in the database before
+      // the recruit email is dispatched. Guards against silent write failures.
+      // The Fix 3-A write already ran above — this read-after-write confirms it.
+      const isVerified = await verifyWrite({
+        supabase: getSupabase(),
+        table: "leads",
+        match: { id: lead.id },
+        expected: {
+          noshow_followup_sent: true,
+          stage: "Follow-Up Queue",
+        },
+      });
+
+      if (!isVerified) {
+        console.error("WRITE VERIFICATION FAILED", {
+          route: "noshow",
+          leadId: lead.id,
+        });
+        continue; // skip send — state not confirmed (lead already marked, Tom still notified below)
       }
 
       // ── Email to recruit ──────────────────────────────────────────────────
