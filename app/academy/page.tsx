@@ -516,60 +516,59 @@ export default function AcademyPage() {
       </div>
 
       {/* ── WHAT SCOUT CAN DO FOR YOU ── */}
-      <style>{`
-        .acad-flip-card { perspective: 1000px; cursor: default; }
-        .acad-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
-        .acad-flip-card:hover .acad-flip-inner { transform: rotateY(180deg); }
-        .acad-flip-front, .acad-flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; padding: 24px 20px; }
-        .acad-flip-front { background: #1b365d; }
-        .acad-flip-back { background: #1b365d; transform: rotateY(180deg); align-items: flex-start; }
-        @media (max-width: 640px) {
-          .acad-flip-card:hover .acad-flip-inner { transform: none; }
-          .acad-flip-front { display: none; }
-          .acad-flip-back { position: relative; inset: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; }
-          .acad-flip-inner { transform: none !important; }
-        }
-      `}</style>
-      <div style={{ background: "#1b365d", padding: "clamp(48px,8vw,72px) clamp(16px,5vw,24px)" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 44 }}>
-            <p style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7eb8f7", marginBottom: 10 }}>Built For Producing Agents</p>
-            <h2 style={{ fontSize: "clamp(1.4rem, 4vw, 1.8rem)", fontWeight: 800, color: "#ffffff", marginBottom: 12 }}>What Scout Can Do For You</h2>
-            <p style={{ color: "rgba(255,255,255,0.6)", maxWidth: 500, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
-              Scout isn&apos;t a chatbot. It&apos;s a production tool. Every output is built around Bear Team systems and the Orlando market.
+      <section style={{ background: "#1b365d", padding: "clamp(60px,8vw,96px) clamp(20px,5vw,40px)" }}>
+        <style>{`
+          .acad-flip-card { perspective: 1000px; cursor: default; }
+          .acad-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
+          .acad-flip-card:hover .acad-flip-inner { transform: rotateY(180deg); }
+          .acad-flip-front, .acad-flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; padding: 32px 28px; background: #243f6b; }
+          .acad-flip-back { transform: rotateY(180deg); align-items: flex-start; }
+          @media (max-width: 640px) {
+            .acad-flip-card:hover .acad-flip-inner { transform: none; }
+            .acad-flip-front { display: none; }
+            .acad-flip-back { position: relative; inset: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; }
+            .acad-flip-inner { transform: none !important; }
+          }
+        `}</style>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7eb8f7", marginBottom: 10 }}>Real Outputs. Not Generic AI.</p>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#ffffff", marginBottom: 16, lineHeight: 1.15 }}>What Scout Can Do For You</h2>
+            <p style={{ color: "rgba(255,255,255,0.6)", maxWidth: 520, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
+              Scout isn't a chatbot. It's a production tool. Every output is built around Bear Team systems and the Orlando market.
             </p>
           </div>
-          <div className="courses-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
             {[
-              { title: "Follow-Up Sequences", body: "Give Scout a lead situation. Get a personalized 5-touch email and text sequence — ready to send in 60 seconds." },
-              { title: "Commission Calculator", body: "Input your split and volume. Scout shows your exact net at Bear Team vs. your current brokerage — no guessing." },
-              { title: "Listing Presentation", body: "Input the address and objections. Scout builds your custom talking track with pricing rationale and closes." },
-              { title: "Geo Farm Scripts", body: "Input a neighborhood. Scout writes the door-knock script, mailer copy, and follow-up text in under 60 seconds." },
-              { title: "Weekly Business Audit", body: "Tell Scout your week. It diagnoses your bottleneck — calls, appointments, contracts — and tells you exactly what to fix." },
-              { title: "Sphere Reactivation", body: "Pick a contact type. Scout writes the re-engagement message positioned for the Orlando market right now." },
+              { title: "Follow-Up Sequences", body: "Give Scout a lead's situation. Get a personalized 5-touch email and text sequence — ready to send in 60 seconds." },
+              { title: "Commission Calculator", body: "Input your current split and volume. Scout shows what you'd net at Bear Team vs. where you are now — exact math." },
+              { title: "Listing Presentation", body: "Input the address and seller objections. Scout builds a custom talking track — pricing rationale, proof points, closes." },
+              { title: "Geo Farm Scripts", body: "Input a neighborhood and price range. Scout writes the door-knock script, mailer copy, and follow-up text." },
+              { title: "Weekly Business Audit", body: "Tell Scout your calls, appointments, and closings. It diagnoses your bottleneck and tells you exactly what to fix." },
+              { title: "Sphere Reactivation", body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message for the Orlando market." },
             ].map((item, i) => (
-              <div key={i} className="acad-flip-card" style={{ height: 150 }}>
+              <div key={i} className="acad-flip-card" style={{ height: 200 }}>
                 <div className="acad-flip-inner" style={{ height: "100%" }}>
                   <div className="acad-flip-front">
-                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1rem", textAlign: "center", fontFamily: "Inter, -apple-system, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
+                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.1rem", textAlign: "center", fontFamily: "Inter, -apple-system, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
                   </div>
                   <div className="acad-flip-back">
                     <div>
-                      <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>{item.title}</div>
-                      <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.82rem", lineHeight: 1.65, fontFamily: "Inter, -apple-system, sans-serif" }}>{item.body}</div>
+                      <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>{item.title}</div>
+                      <div style={{ color: "rgba(255,255,255,0.88)", fontSize: "0.88rem", lineHeight: 1.7, fontFamily: "Inter, -apple-system, sans-serif" }}>{item.body}</div>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ textAlign: "center", marginTop: 44 }}>
+                    <div style={{ textAlign: "center", marginTop: 44 }}>
             <a href="/chat" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#ffffff", color: "#1b365d", textDecoration: "none", fontWeight: 700, padding: "14px 36px", borderRadius: 10, fontSize: "0.95rem", minHeight: 44 }}>
               Try Scout Now
             </a>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* CTA */}
       <div style={{ background: "#fff", padding: "clamp(48px,8vw,64px) clamp(16px,5vw,24px)", textAlign: "center" }}>
