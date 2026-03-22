@@ -195,6 +195,39 @@ export async function POST(req: NextRequest) {
         const leadData: Partial<LeadRecord> = { email: resolvedEmail, stage: "scout_captured" };
         if (bodyName) leadData.name = bodyName;
         if (bodyPhone) leadData.phone = bodyPhone;
+
+        // ── Priority 2: Auto-compute tier from deal_count ──────────────────
+        // Stored so email variants can branch without re-calculating each time.
+        // tier_1 = <10 deals, tier_2 = 10–19, tier_3 = 20+
+        if (body.deal_count !== undefined) {
+          const dc = Number(body.deal_count);
+          leadData.deal_count = dc;
+          if (dc >= 20)      leadData.tier = "tier_3";
+          else if (dc >= 10) leadData.tier = "tier_2";
+          else               leadData.tier = "tier_1";
+        }
+        if (body.avg_price !== undefined)    leadData.avg_price = Number(body.avg_price);
+        if (body.brokerage !== undefined)    leadData.brokerage = body.brokerage;
+        if (body.years_licensed !== undefined) (leadData as Record<string, unknown>).years_licensed = Number(body.years_licensed);
+
+        // ── Priority 3: Classify pain_type from Scout-captured frustration ──
+        // Scout stores raw objection/frustration text in `objections`. This
+        // classifies it into one of 5 structured buckets so downstream emails
+        // can vary hooks without parsing freeform text at send time.
+        // Classification is keyword-based — fast, no LLM call needed.
+        if (body.objections || body.notes) {
+          const painText = ((body.objections || "") + " " + (body.notes || "")).toLowerCase();
+          let painType: string | null = null;
+          if (/\b(fee|fees|monthly|desk|cost|paying|expensive|overhead)\b/.test(painText))      painType = "fees";
+          else if (/\b(invisible|ignored|lost|support|no one|alone|boutique|personal)\b/.test(painText)) painType = "visibility";
+          else if (/\b(brand|flag|name|keller|coldwell|compass|exp|redfin)\b/.test(painText))   painType = "brand";
+          else if (/\b(grow|growth|stuck|plateau|ceiling|more deals|volume)\b/.test(painText))  painType = "growth";
+          else if (/\b(system|tech|crm|tools|training|academy|process)\b/.test(painText))       painType = "systems";
+          if (painType) (leadData as Record<string, unknown>).pain_type = painType;
+          if (body.objections) leadData.objections = body.objections;
+          if (body.notes)      leadData.notes = body.notes;
+        }
+
         await upsertLead(leadData);
         // Fire-and-forget Tom alert on full lead capture
         if (bodyName && bodyPhone) {
