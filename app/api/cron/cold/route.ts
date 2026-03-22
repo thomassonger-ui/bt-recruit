@@ -50,11 +50,15 @@ export async function GET(req: NextRequest) {
   const cutoff14d = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
   // ── Segment A: Scout-captured, never booked ──────────────────────────────
+  // SW-4/CR-2 fix: added drip_unsubscribed = false filter. Previously missing —
+  // a Scout lead who opted out but stayed in scout_captured stage would receive
+  // this cold email. drip_unsubscribed is the system-wide opt-out flag.
   const { data: coldLeads, error: errorA } = await getSupabase()
     .from("leads")
     .select("id, name, email, phone, brokerage, created_at, stage")
     .eq("stage", "scout_captured")
     .lt("created_at", cutoff72h)  // TA-2: was 48h, now 72h
+    .eq("drip_unsubscribed", false)  // SW-4/CR-2 fix: honor system-wide opt-out
     .not("email", "is", null)
     .neq("email", "");
 
@@ -129,6 +133,24 @@ export async function GET(req: NextRequest) {
       : buildColdEmail(firstName, leadId);
 
     try {
+      // SW-3/CB-4 fix: stage update BEFORE email send.
+      // Previously: email sent first, then stage updated. If Resend threw a transient
+      // error, the catch block ran, the update was skipped, and the lead remained in
+      // scout_captured (Seg A) or cold_recovery indefinitely — receiving another cold
+      // email the next day the cron ran.
+      // Now: stage is updated first. Worst case (email fails): lead is marked but
+      // doesn't receive the email — recoverable. Tom alert still fires if isRecovery.
+      // Best case: both succeed normally. This mirrors the noshow cron's Fix 3-A pattern.
+      const newStage = isRecovery ? "Closed Lost" : "cold_recovery";
+      await getSupabase()
+        .from("leads")
+        .update({
+          stage: newStage,
+          last_contact: now.toISOString(),
+          updated_at: now.toISOString(),
+        })
+        .eq("id", lead.id);
+
       await getResend().emails.send({
         from: FROM_EMAIL,
         replyTo: REPLY_TO,
@@ -140,17 +162,6 @@ export async function GET(req: NextRequest) {
           { name: "segment",  value: lead.segment },
         ],
       });
-
-      // Segment C: final touch — move to dead stage, alert Tom to call manually
-      const newStage = isRecovery ? "Closed Lost" : "cold_recovery";
-      await getSupabase()
-        .from("leads")
-        .update({
-          stage: newStage,
-          last_contact: now.toISOString(),
-          updated_at: now.toISOString(),
-        })
-        .eq("id", lead.id);
 
       if (isRecovery) {
         await getResend().emails.send({
@@ -240,7 +251,8 @@ function buildFinalRecoveryEmail(firstName: string, brokerage?: string, leadId?:
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes →</a></p>
       <p>Either way, good luck with your production. Orlando is a strong market right now.</p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
-      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;">${unsubLink}</p>
+      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;color:#aaa;font-size:11px;">Bear Team Real Estate · Licensed under Bethanne Baer, Broker/Owner</p>
+      <p style="margin-top:4px;padding-top:0;">${unsubLink}</p>
     </div>`;
 }
 
@@ -265,7 +277,8 @@ function buildColdEmail(firstName: string, leadId?: string): string {
       <p>If you want to run your numbers side by side — takes 10 minutes:</p>
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes</a></p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
-      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;">${unsubLink}</p>
+      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;color:#aaa;font-size:11px;">Bear Team Real Estate · Licensed under Bethanne Baer, Broker/Owner</p>
+      <p style="margin-top:4px;padding-top:0;">${unsubLink}</p>
     </div>`;
 }
 
@@ -289,6 +302,7 @@ function buildStalledEmail(firstName: string, brokerage?: string, leadId?: strin
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes</a></p>
       <p>If the timing still isn't right, just let me know — I'll follow up when it makes more sense.</p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
-      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;">${unsubLink}</p>
+      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;color:#aaa;font-size:11px;">Bear Team Real Estate · Licensed under Bethanne Baer, Broker/Owner</p>
+      <p style="margin-top:4px;padding-top:0;">${unsubLink}</p>
     </div>`;
 }
