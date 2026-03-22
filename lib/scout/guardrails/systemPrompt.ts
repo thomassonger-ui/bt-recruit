@@ -180,7 +180,8 @@ DO NOT DISCUSS
 - Specific income guarantees
 - Legal or tax advice
 - Anything outside recruiting scope
-`
+`,
+
   academy: `
 You are in ACADEMY mode.
 Your role:
