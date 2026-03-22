@@ -25,25 +25,34 @@ const REPLY_TO = "thomas.songer@gmail.com";
 // Triggered after a recruit has a call with Tom (event_end has passed,
 // stage is NOT Closed Won/Lost, and they haven't unsubscribed).
 //
-// Schedule (days after call):
-//   Email 1 — fires immediately from booking-webhook/route.ts on invitee.created
-//             (TA-1: moved out of the cron to capture post-call momentum)
+// Schedule (days after call end):
+//   Email 1 — Day 1:  "Great talking with you" — post-call recap + math
+//             SW-2 fix: restored to cron. booking-webhook now sends a pre-call
+//             CONFIRMATION email (not a recap). The recap fires here, after event_end.
 //   Email 2 — Day 3:  "The number most agents miss" — fee comparison
 //   Email 3 — Day 7:  "What agents say after 90 days" — social proof
 //   Email 4 — Day 10: "Still thinking it over?" — objection handling
 //   Email 5 — Day 14: "Last one from me" — final soft close
 //
-// Cron runs daily at 8 AM ET via vercel.json.
-// IMPORTANT: booking-webhook sets drip_step = 1 after sending Email 1.
-// This cron picks up from step 1 onward — the .or() filter below prevents re-send.
+// CB-5 fix: Windows now anchor to drip_last_sent_at for steps 2-5, not event_end.
+// This prevents out-of-order delivery when there's a gap between booking and call.
+// Email 1 (Day 1) still anchors to event_end — it's the first post-call touchpoint.
+//
+// CB-1 fix: Day 3 guard now requires drip_step = 1 specifically, not null/0.
+// A lead whose Email 1 failed silently (drip_step never set) should not receive
+// Email 2 as their first contact. The drip_step.is.null branch is removed for
+// all steps except Day 1 — null means Email 1 hasn't fired and the lead is not
+// ready for step 2+.
+//
+// Cron runs daily at 8 AM ET (noon UTC) via vercel.json.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DRIP_SCHEDULE = [
-  // emailIndex 0 (Day 1) intentionally removed — fires from booking-webhook on confirmation.
-  { day: 3,  emailIndex: 1, subject: "The number most agents never calculate" },
-  { day: 7,  emailIndex: 2, subject: "What agents tell us after 90 days at Bear Team" },
-  { day: 10, emailIndex: 3, subject: "Still thinking it over?" },
-  { day: 14, emailIndex: 4, subject: "Last one from me, [firstName]" },
+  { day: 1,  emailIndex: 0, subject: "Great talking with you today",              anchorField: "event_end"          },
+  { day: 3,  emailIndex: 1, subject: "The number most agents never calculate",    anchorField: "drip_last_sent_at"  },
+  { day: 7,  emailIndex: 2, subject: "What agents tell us after 90 days at Bear Team", anchorField: "drip_last_sent_at" },
+  { day: 10, emailIndex: 3, subject: "Still thinking it over?",                   anchorField: "drip_last_sent_at"  },
+  { day: 14, emailIndex: 4, subject: "Last one from me, [firstName]",             anchorField: "drip_last_sent_at"  },
 ];
 
 export async function GET(req: NextRequest) {
@@ -57,19 +66,32 @@ export async function GET(req: NextRequest) {
     const results = [];
 
     for (const step of DRIP_SCHEDULE) {
-      // Find leads whose call ended exactly `step.day` days ago (within a 24hr window)
+      // CB-5 fix: anchor window to anchorField (event_end for Email 1, drip_last_sent_at
+      // for Emails 2-5). This prevents out-of-order delivery when a lead books far
+      // in advance — Email 2 fires 3 days after Email 1 actually sent, not 3 days
+      // after the call, so the sequence spacing is always relative to the prior email.
+      const anchor      = step.anchorField;
       const windowStart = new Date(now.getTime() - (step.day * 24 * 60 * 60 * 1000));
       const windowEnd   = new Date(now.getTime() - ((step.day - 1) * 24 * 60 * 60 * 1000));
+
+      // CB-1 fix: step guard tightened.
+      // Email 1 (emailIndex 0): allow drip_step null/0 — hasn't started yet.
+      // Emails 2-5 (emailIndex 1+): require drip_step = exactly the prior index.
+      // A null drip_step means Email 1 never fired — the lead is not ready for step 2+.
+      // This prevents a lead with a failed Email 1 from receiving Email 2 out of context.
+      const stepFilter = step.emailIndex === 0
+        ? `drip_step.is.null,drip_step.eq.0`
+        : `drip_step.eq.${step.emailIndex}`;
 
       const { data: leads, error } = await getSupabase()
         .from("leads")
         .select("*")
-        .lt("event_end", windowEnd.toISOString())
-        .gt("event_end", windowStart.toISOString())
+        .lt(anchor, windowEnd.toISOString())
+        .gt(anchor, windowStart.toISOString())
         .not("stage", "in", '("Closed Won","Closed Lost")')
         .not("email", "is", null)
         .neq("email", "")
-        .or(`drip_step.is.null,drip_step.lt.${step.emailIndex + 1}`)
+        .or(stepFilter)
         .eq("drip_unsubscribed", false)
         .or("noshow_followup_sent.is.null,noshow_followup_sent.eq.false"); // exclude no-shows
 
@@ -346,6 +368,7 @@ function wrapEmail(body: string, leadId?: string): string {
     </div>
     <div class="footer">
       <p>Bear Team Real Estate · Orlando, FL</p>
+      <p style="font-size:12px;color:#aaa;">Licensed under Bethanne Baer, Broker/Owner</p>
       <p style="font-size:12px;color:#aaa;">${unsubLink}</p>
     </div>
   </div>
