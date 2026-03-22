@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
 import { createHmac, timingSafeEqual } from "crypto"
+import { verifyWrite } from "@/lib/db/verifyWrite"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -32,12 +33,13 @@ export const runtime = "nodejs"
 //   re-entering the drip from Day 1 when the lead has already received some emails.
 //   If drip_step is null/0, they haven't started drip yet — safe to write full record.
 //
-// TA-1: Email 1 fires here, not in the drip cron.
-//   The drip cron fires at 8 AM ET — that means Email 1 can be 8–20+ hours after
-//   the call ends depending on time of day. Post-call momentum peaks in the first
-//   few hours. Email 1 now fires directly from this webhook when invitee.created
-//   fires (booking confirmed). The drip cron Day 1 step has been removed.
-//   For re-bookings (drip_step > 0), Email 1 is NOT resent.
+// SW-2/CR-1: booking-webhook sends pre-call confirmation only.
+//   invitee.created fires at BOOKING time, not after the call completes.
+//   Email 1 (post-call recap) is owned by the drip cron after event_end passes.
+//
+// TICKET-04: write-verify-send pattern enforced.
+//   After any Supabase write, verifyWrite confirms the row is persisted before
+//   sending the confirmation email. If verification fails, email is skipped.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet"
@@ -244,41 +246,55 @@ export async function POST(req: NextRequest) {
           console.error("Supabase insert error:", error)
         }
       }
-    }
 
-    // ── SW-2/CR-1 fix: Email 1 split into pre-call confirmation + post-call recap.
-    // invitee.created fires at BOOKING, not after the call completes. The previous
-    // subject "Great talking with you today" was factually false for any agent who
-    // booked more than a few minutes in advance — a CAN-SPAM § 7704(a)(2) risk.
-    //
-    // New model:
-    //   invitee.created  → "Looking forward to our call" (booking confirmation)
-    //   event_end passes → drip cron fires Email 1 recap ("Great talking with you")
-    //
-    // Email 1 subject in DRIP_SCHEDULE is restored to Day 1 for the post-call recap.
-    // drip_step is NOT set here — the drip cron owns step 1 now that we've split them.
-    // This confirmation email is step 0 — it doesn't count as a drip step.
-    if (process.env.RESEND_API_KEY && !isRebooking) {
-      const firstName = name?.split(" ")[0] || "there"
-      // Fetch lead for personalization (deal_count, brokerage, notes)
-      let leadRecord: Record<string, string | number | boolean | null> = { name, email }
-      if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        const { data: freshLead } = await createClient(
-          process.env.SUPABASE_URL,
-          process.env.SUPABASE_SERVICE_ROLE_KEY
-        ).from("leads").select("*").eq("email", email.toLowerCase().trim()).maybeSingle()
+      // ── TICKET-04: Write verification before sending confirmation email ──────
+      // Confirm the lead row is persisted in Supabase before sending any email.
+      // If the write failed silently (RLS block, network hiccup, constraint error),
+      // verification catches it here and aborts the send rather than emailing a
+      // lead whose state we can't confirm.
+      if (process.env.RESEND_API_KEY && !isRebooking) {
+        const isVerified = await verifyWrite({
+          supabase,
+          table: "leads",
+          match: { email: email.toLowerCase().trim() },
+          expected: { email: email.toLowerCase().trim() },
+        })
+
+        if (!isVerified) {
+          // Write could not be confirmed — skip email, log for monitoring
+          console.error("WRITE VERIFICATION FAILED", {
+            route: "booking-webhook",
+            email,
+          })
+          // Still return 200 to Calendly (don't cause retries on our DB issue)
+          return NextResponse.json({ ok: false, reason: "verification_failed" })
+        }
+
+        // Verification passed — safe to send booking confirmation
+        const firstName = name?.split(" ")[0] || "there"
+        // Fetch lead for personalization (deal_count, brokerage, notes)
+        let leadRecord: Record<string, string | number | boolean | null> = { name, email }
+        const { data: freshLead } = await supabase
+          .from("leads")
+          .select("*")
+          .eq("email", email.toLowerCase().trim())
+          .maybeSingle()
         if (freshLead) leadRecord = freshLead
+
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        await resend.emails.send({
+          from: FROM_EMAIL,
+          replyTo: REPLY_TO,
+          to: email,
+          subject: `Looking forward to our call, ${firstName}`,
+          html: buildBookingConfirmationEmail(firstName, leadRecord, formattedTime),
+          tags: [{ name: "sequence", value: "booking_confirmation" }],
+        }).catch((err: unknown) => console.error("Booking confirmation email error:", err))
+        // Note: drip_step intentionally NOT set here. The drip cron owns Email 1 (post-call recap).
       }
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      await resend.emails.send({
-        from: FROM_EMAIL,
-        replyTo: REPLY_TO,
-        to: email,
-        subject: `Looking forward to our call, ${firstName}`,
-        html: buildBookingConfirmationEmail(firstName, leadRecord, formattedTime),
-        tags: [{ name: "sequence", value: "booking_confirmation" }],
-      }).catch((err: unknown) => console.error("Booking confirmation email error:", err))
-      // Note: drip_step intentionally NOT set here. The drip cron owns Email 1 (post-call recap).
+    } else if (process.env.RESEND_API_KEY && !isRebooking) {
+      // No Supabase env vars — skip confirmation email (can't verify write)
+      console.warn("booking-webhook: SUPABASE env vars missing — confirmation email skipped")
     }
 
     // ── Send email to Tom ──────────────────────────────────────────────────────
@@ -402,4 +418,3 @@ function wrapEmailBooking(body: string, leadId?: string): string {
 </body>
 </html>`.trim()
 }
-
