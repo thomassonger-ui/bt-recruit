@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
   // ── Fetch all leads (extended fields) ──────────────────────────────────────
   const { data: leads } = await supabase
     .from("leads")
-    .select("id, created_at, updated_at, name, email, phone, status, notes, event_start, event_end, stage, brokerage, deal_count, avg_price, drip_step, noshow_followup_sent, onboarded_at")
+    .select("id, created_at, updated_at, name, email, phone, status, notes, event_start, event_end, stage, brokerage, deal_count, avg_price, drip_step, drip_last_sent_at, drip_unsubscribed, noshow_followup_sent, onboarded_at")
     .order("created_at", { ascending: false })
 
   // ── Fetch conversation count + sessions ────────────────────────────────────
@@ -247,6 +247,109 @@ export async function GET(req: NextRequest) {
 
   const stalledValue = stalledLeads.reduce((sum, l) => sum + l.estimated_value, 0)
 
+  // ── 6. DRIP CAMPAIGN TRACKER ──────────────────────────────────────────────
+  // Shows live drip status for every lead that has had a call (event_end set)
+  // and hasn't unsubscribed or closed won/lost.
+
+  const DRIP_SCHEDULE = [
+    { day: 1,  step: 1, subject: "Great talking with you today" },
+    { day: 3,  step: 2, subject: "The number most agents never calculate" },
+    { day: 7,  step: 3, subject: "What agents tell us after 90 days at Bear Team" },
+    { day: 10, step: 4, subject: "Still thinking it over?" },
+    { day: 14, step: 5, subject: "Last one from me" },
+  ]
+
+  // All leads who've had a call (event_end set), not closed won/lost
+  const dripEligible = allLeads.filter(l =>
+    l.event_end &&
+    !["Closed Won", "Closed Lost", "Onboarding"].includes(l.stage || "") &&
+    !["joined"].includes(l.status || "") &&
+    !l.drip_unsubscribed
+  )
+
+  const dripActive    = dripEligible.filter(l => (l.drip_step || 0) > 0 && (l.drip_step || 0) < 5)
+  const dripCompleted = dripEligible.filter(l => (l.drip_step || 0) >= 5)
+  const dripNotStarted = dripEligible.filter(l => !l.drip_step || l.drip_step === 0)
+
+  // Who is due TODAY — next drip email fires today (within the 24hr window for their day)
+  const dripDueToday = dripEligible.filter(l => {
+    if (!l.event_end) return false
+    const callEnd = new Date(l.event_end).getTime()
+    const currentStep = l.drip_step || 0
+    if (currentStep >= 5) return false
+
+    // Find the next step they need
+    const nextSchedule = DRIP_SCHEDULE.find(s => s.step === currentStep + 1)
+    if (!nextSchedule) return false
+
+    // Is today within the send window for this step?
+    const sendAfter = callEnd + (nextSchedule.day - 1) * 24 * 60 * 60 * 1000
+    const sendBefore = callEnd + nextSchedule.day * 24 * 60 * 60 * 1000
+    const nowMs = now.getTime()
+    return nowMs >= sendAfter && nowMs < sendBefore
+  }).map(l => {
+    const currentStep = l.drip_step || 0
+    const nextSchedule = DRIP_SCHEDULE.find(s => s.step === currentStep + 1)!
+    return {
+      id: l.id,
+      name: l.name,
+      email: l.email,
+      brokerage: l.brokerage,
+      drip_step: currentStep,
+      next_step: currentStep + 1,
+      next_subject: nextSchedule.subject,
+      event_end: l.event_end,
+      drip_last_sent_at: l.drip_last_sent_at,
+    }
+  })
+
+  // Build per-lead drip status table (all active drip leads with full status)
+  const dripLeads = dripEligible.map(l => {
+    const currentStep = l.drip_step || 0
+    const callEnd = new Date(l.event_end!).getTime()
+    const daysSinceCall = Math.floor((now.getTime() - callEnd) / (1000 * 60 * 60 * 24))
+
+    let nextStepDue: string | null = null
+    let nextSubject: string | null = null
+    if (currentStep < 5) {
+      const nextSchedule = DRIP_SCHEDULE.find(s => s.step === currentStep + 1)
+      if (nextSchedule) {
+        const dueDate = new Date(callEnd + nextSchedule.day * 24 * 60 * 60 * 1000)
+        nextStepDue = dueDate.toISOString()
+        nextSubject = nextSchedule.subject
+      }
+    }
+
+    return {
+      id: l.id,
+      name: l.name,
+      email: l.email,
+      brokerage: l.brokerage,
+      stage: l.stage || l.status,
+      drip_step: currentStep,
+      drip_last_sent_at: l.drip_last_sent_at,
+      event_end: l.event_end,
+      days_since_call: daysSinceCall,
+      next_step_due: nextStepDue,
+      next_subject: nextSubject,
+      sequence_complete: currentStep >= 5,
+    }
+  }).sort((a, b) => {
+    // Sort: due today first, then by days since call
+    const aOverdue = a.next_step_due && new Date(a.next_step_due).getTime() <= now.getTime()
+    const bOverdue = b.next_step_due && new Date(b.next_step_due).getTime() <= now.getTime()
+    if (aOverdue && !bOverdue) return -1
+    if (!aOverdue && bOverdue) return 1
+    return a.days_since_call - b.days_since_call
+  })
+
+  // Step distribution — how many leads are at each drip step
+  const dripStepCounts = [0, 1, 2, 3, 4, 5].map(step => ({
+    step,
+    label: step === 0 ? "Not started" : step >= 5 ? "Completed" : `Email ${step} sent`,
+    count: dripEligible.filter(l => (l.drip_step || 0) === step).length,
+  }))
+
   // ── 90-DAY FORECAST ENGINE ────────────────────────────────────────────────
   // Projects: agents joining, GCI generated, and revenue if recruiting stops today
   // Based on current pipeline × stage conversion rates × avg time-to-close
@@ -352,6 +455,15 @@ export async function GET(req: NextRequest) {
       leads: stalledLeads.slice(0, 10),
       totalCount: stalledLeads.length,
       totalValue: Math.round(stalledValue),
+    },
+    drip: {
+      activeCount: dripActive.length,
+      completedCount: dripCompleted.length,
+      notStartedCount: dripNotStarted.length,
+      totalEligible: dripEligible.length,
+      dueToday: dripDueToday,
+      stepCounts: dripStepCounts,
+      leads: dripLeads,
     },
     weeklyTrend,
   })
