@@ -161,18 +161,17 @@ export function enforceConversionPresence(
  * If at least one matches, the response has a next step.
  */
 const FORWARD_MOTION_PATTERNS = [
-  // Calendly link present — strongest signal
+  // Calendly link present — strongest signal (only real forward motion in recruit mode)
   /calendly\.com/i,
   // Direct questions
   /\?$/m,
-  // Call-to-action phrases
-  /(?:schedule|book|set up|arrange) (?:a |the )?(?:call|meeting|showing|appointment)/i,
+  // Scheduling intent that pushes to Calendly — NOT fake confirmations
   /(?:what|when|which) (?:time|day|works|would)/i,
   /(?:would you like|want me to|should i|can i)/i,
-  /(?:reach out|follow up|connect you|have .+ contact)/i,
-  // Confirmations that imply next step
-  /(?:i'll|we'll) (?:send|share|forward|prepare)/i,
-  /(?:your agent|the team|someone) will/i,
+  // NOTE: "reach out", "have someone contact", "someone will" are REMOVED —
+  // these are false scheduling promises that bypass enforceScheduling.
+  // Only Calendly link or a real question counts as forward motion in recruit mode.
+  /(?:i'll|we'll) (?:send|share|forward|prepare) (?!your contact|their contact|the contact)/i,
 ];
 
 /**
