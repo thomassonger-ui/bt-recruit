@@ -1,28 +1,24 @@
 /**
  * Scout Response Generator — The full pipeline.
  *
- * This is the single entry point for generating any Scout response.
  * Every message flows through the same pipeline:
  *
  * 1. Classify inbound message (decision tree)
  * 2. Check inbound compliance (deflect risky topics before LLM)
  * 3. Check escalation rules (hand off if needed)
- * 4. Build context-aware prompt
+ * 4. Build context-aware prompt (includes known agent signals)
  * 5. Generate response via LLM
  * 6. Run response through guardrails:
  *    6a. enforceScheduling — intercept false booking confirmations → Calendly push
  *    6b. validateResponse  — compliance + tone + length
- *    6c. enforceConversion — append CTA if forward motion is missing
  * 7. Return safe, compliant, conversion-focused response
  *
- * Nothing bypasses this pipeline. Every channel uses it.
- *
- * SCHEDULING FIX:
- * - enforceScheduling() added as Step 6a.
- * - Catches any LLM response that falsely confirms a meeting.
- * - Also detects user scheduling intent (time/day signals) and ensures
- *   the Calendly link is present in the response.
- * - A call is only booked when the user completes a Calendly event.
+ * PACING FIX:
+ * - buildUserPrompt now passes dealCount and yearsExperience when known.
+ * - messageCount >= 2 no longer triggers "Push toward a call" — it signals
+ *   "deepen pain, call only if pain is expanded." This prevents Scout from
+ *   jumping to scheduling after a single one-word pain signal.
+ * - painExpanded flag added: when true, allows the call ask.
  */
 
 import OpenAI from "openai";
@@ -56,6 +52,11 @@ export interface ScoutRequest {
     intent?: string;
     dealContext?: string;
     messageCount?: number;
+    // Known agent signals — passed from Scout chat UI when available
+    dealCount?: number;         // e.g. 20 (transactions per year)
+    yearsExperience?: number;   // e.g. 4
+    brokerage?: string;         // e.g. "KW", "EXP"
+    painExpanded?: boolean;     // true once user has elaborated beyond a 1-word signal
   };
 }
 
@@ -80,7 +81,15 @@ const LLM_PARAMS: Record<
 };
 
 /**
- * Build the user prompt with classification context and strategy guidance.
+ * Build the user prompt with classification context and known agent signals.
+ *
+ * Known signals (dealCount, yearsExperience, brokerage) are injected when
+ * available so the LLM can personalize the pain-depth response.
+ *
+ * Call timing: the "push toward a call" note is gated behind painExpanded.
+ * A conversation that has reached messageCount >= 2 but where the user has
+ * only given a one-word pain signal (e.g. "fees") does NOT trigger the call
+ * push — it triggers deeper pain exploration instead.
  */
 function buildUserPrompt(
   message: string,
@@ -101,10 +110,30 @@ function buildUserPrompt(
   if (context?.dealContext) {
     prompt += `\nDeal context: "${context.dealContext}"`;
   }
+
+  // ── Known agent signals — inject for personalization ──
+  // These allow the LLM to reference production level and experience
+  // naturally when responding to pain signals.
+  if (context?.dealCount !== undefined) {
+    prompt += `\nKnown: Agent closes approximately ${context.dealCount} deals/year.`;
+  }
+  if (context?.yearsExperience !== undefined) {
+    prompt += `\nKnown: Agent has approximately ${context.yearsExperience} years of experience.`;
+  }
+  if (context?.brokerage) {
+    prompt += `\nKnown: Agent currently at ${context.brokerage}.`;
+  }
+
+  // ── Conversation depth and call timing ──
   if (context?.messageCount !== undefined) {
     prompt += `\nMessage count: ${context.messageCount}`;
-    if (context.messageCount >= 2) {
-      prompt += "\nNote: This conversation has been going. Push toward a call.";
+
+    if (context.painExpanded === true) {
+      // Pain has been elaborated — call ask is appropriate
+      prompt += "\nPain status: EXPANDED. The agent has elaborated on their frustration. You may now advance toward a call if it fits naturally.";
+    } else if (context.messageCount >= 2) {
+      // Conversation is going but pain is still shallow — deepen, don't pitch
+      prompt += "\nPain status: SURFACE ONLY. Do not ask for a call yet. Deepen pain with one smart follow-up question that uses any known agent signals.";
     }
   }
 
@@ -113,7 +142,6 @@ function buildUserPrompt(
 
 /**
  * Call the LLM with guardrail-enforced prompts.
- * Temperature and max_tokens are adjusted by guardrail level.
  */
 async function callLLM(
   systemPrompt: string,
@@ -137,9 +165,6 @@ async function callLLM(
 
 /**
  * Main pipeline — generate a Scout response.
- *
- * This function is the single entry point. All channels
- * (SMS, web chat, messenger) use this same pipeline.
  */
 export async function generateScoutResponse(
   request: ScoutRequest
@@ -147,17 +172,14 @@ export async function generateScoutResponse(
   const guardrailsApplied: string[] = [];
 
   try {
-    // ── Step 1: Classify the inbound message ──
+    // ── Step 1: Classify ──
     const classification = classifyMessage(request.message);
     guardrailsApplied.push(`classified:${classification.category}:${classification.guardrailLevel}`);
 
     // ── Step 2: Inbound compliance check ──
-    // Catch risky topics BEFORE they reach the LLM.
     const inboundCheck = checkInboundCompliance(request.message);
     if (inboundCheck.requiresDeflection) {
-      guardrailsApplied.push(
-        `inbound_deflection:${inboundCheck.deflectionReason}`
-      );
+      guardrailsApplied.push(`inbound_deflection:${inboundCheck.deflectionReason}`);
 
       const baseFallback = inboundCheck.fallbackOverride ?? FALLBACKS.compliance;
       const conversion = enforceConversion(baseFallback);
@@ -218,12 +240,9 @@ export async function generateScoutResponse(
       llmResponse = FALLBACKS.uncertain;
     }
 
-    // ── Step 6a: Scheduling guardrail — MUST RUN BEFORE ALL OTHER GUARDRAILS ──
-    // Detects false booking confirmations (e.g. "We'll schedule a call",
-    // "Expect to hear from us") and replaces them with a Calendly push.
-    // Also detects user scheduling intent (time/day signals) and ensures
-    // the Calendly link is present in the response.
-    // A call is only booked when the user completes a Calendly event.
+    // ── Step 6a: Scheduling guardrail — runs before all other guardrails ──
+    // Intercepts false booking confirmations and replaces with Calendly push.
+    // Also ensures Calendly link is present when user signals time/day intent.
     const schedulingCheck = enforceScheduling(llmResponse, request.message);
     if (schedulingCheck.hadFalseConfirmation) {
       guardrailsApplied.push("scheduling:false_confirmation_replaced");
@@ -236,7 +255,7 @@ export async function generateScoutResponse(
     const validation = validateResponse(llmResponse, request.channel);
     guardrailsApplied.push(...validation.modifications);
 
-    // ── Step 7: Return final response ──
+    // ── Step 7: Return ──
     return {
       text: validation.finalResponse,
       classification,
