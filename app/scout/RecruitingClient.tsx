@@ -811,6 +811,72 @@ export default function RecruitingClient() {
         </div>
       </section>
 
+
+      {/* ═══════════════════════════════════════════════════════
+          SECTION — WHAT SCOUT BUILDS FOR YOU
+      ═══════════════════════════════════════════════════════ */}
+      <section className="px-4 sm:px-6 lg:px-8" style={{ background: "var(--color-surface, #f8f9fa)" }}>
+        <div className="mx-auto max-w-7xl py-16 sm:py-20">
+          <div className="mb-12 text-center">
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-primary)" }}>Real Outputs. Not Generic AI.</p>
+            <h2 className="text-heading text-foreground" style={{ fontFamily: "Inter, sans-serif" }}>What Scout Builds For You</h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
+              Every tool below is built around Bear Team systems and the Orlando market — not a generic template you have to rewrite.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: "✉️",
+                title: "Follow-Up Sequences",
+                body: "Give Scout a lead's situation. Get a personalized 5-touch email and text sequence — ready to send, not ready to edit.",
+              },
+              {
+                icon: "📊",
+                title: "Commission Calculator",
+                body: "Input your current split and volume. Scout runs the exact math and shows what you'd net at Bear Team vs. where you are now.",
+              },
+              {
+                icon: "🏡",
+                title: "Listing Presentation Script",
+                body: "Input the address and seller objections. Scout builds a custom talking track — pricing rationale, proof points, closes.",
+              },
+              {
+                icon: "📍",
+                title: "Geo Farm Scripts",
+                body: "Input a neighborhood and price range. Scout writes the door-knock script, mailer copy, and follow-up text — in 60 seconds.",
+              },
+              {
+                icon: "📅",
+                title: "Weekly Business Audit",
+                body: "Tell Scout your calls, appointments, and closings this week. It diagnoses your bottleneck and tells you exactly what to fix.",
+              },
+              {
+                icon: "🔄",
+                title: "Sphere Reactivation",
+                body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message positioned for the Orlando market right now.",
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="rounded-xl p-5"
+                style={{
+                  background: "var(--color-card)",
+                  border: "1px solid var(--color-border-light)",
+                  transition: "transform 180ms ease, box-shadow 180ms ease",
+                }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-3px)"; el.style.boxShadow = "0 8px 24px rgba(0,0,0,0.08)"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
+              >
+                <div className="mb-3 text-2xl">{item.icon}</div>
+                <div className="mb-2 text-sm font-bold text-foreground" style={{ fontFamily: "Inter, sans-serif" }}>{item.title}</div>
+                <div className="text-sm leading-relaxed text-muted">{item.body}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ═══════════════════════════════════════════════════════
           SECTION 6 — TRUST + PROOF
       ═══════════════════════════════════════════════════════ */}
