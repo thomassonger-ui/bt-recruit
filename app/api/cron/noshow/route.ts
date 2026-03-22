@@ -99,6 +99,7 @@ export async function GET(req: NextRequest) {
         to: lead.email,
         subject: `We missed you today, ${firstName}`,
         html: recruitEmail,
+        tags: [{ name: "sequence", value: "noshow" }],
       });
 
       if (recruitEmailError) {
