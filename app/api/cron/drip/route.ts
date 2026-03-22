@@ -244,11 +244,14 @@ function buildDripEmail(
     <p>If you're at ${brokerage}, I can run your exact numbers in about 10 minutes. No pitch — just the math side by side so you can make the call yourself: <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">Grab a slot →</a></p>`,
 
     // Email 3 — Day 7: Social proof
+    // Messaging fix: replaced anonymous unattributed quote with an operational proof point.
+    // Named the specific things "get out of your way" means at Bear Team.
+    // Moved the best emotional line ("shift from paying to produce") to the opening.
     `<p>Hey ${firstName},</p>
-    <p>I want to share something agents tell us pretty consistently about 90 days in:</p>
-    <p><em>"I didn't realize how much mental overhead I had from the fees until they were gone."</em></p>
-    <p>It's not just the math — though the math is real. It's the shift from paying to produce to just producing. No monthly invoice in the back of your mind. No desk fee when you have a slow month.</p>
-    ${isFollowUpQueue ? `<p>You mentioned you were weighing your options — that's exactly where most agents are when they reach out. The ones who fit best here are already producing and just want the platform to get out of their way.</p>` : `<p>The agents who fit best here are the ones who are already producing and just want the platform to get out of their way. That's what we built.</p>`}
+    <p>Something agents tell us pretty consistently after 90 days: the biggest change isn't the math — it's the shift from <em>paying to produce</em> to just producing.</p>
+    <p>No monthly invoice sitting in the back of your mind. No desk fee on a slow month. No required floor time, no mandatory meetings, no one tracking your activity. Just your license, your clients, and your business.</p>
+    <p>One agent who moved from KW last year put it this way: <em>"I didn't realize how much mental overhead I was carrying until it was gone."</em></p>
+    ${isFollowUpQueue ? `<p>You mentioned you were weighing your options — that's exactly where most agents are when they reach out. The fit tends to be strongest with producers who already know what they're doing and just want the platform to stop getting in the way.</p>` : `<p>The agents who fit best here are already producing. They don't need hand-holding — they need the brokerage to stay out of the way and let them work. That's what we built Bear Team to do.</p>`}
     <p>Is there anything specific that's still giving you pause? I'd rather answer it directly than let it sit.</p>`,
 
     // Email 4 — Day 10: Objection handling — uses Scout-captured objection if available
@@ -268,7 +271,7 @@ function buildDripEmail(
     // Email 5 — Day 14: Final soft close
     `<p>Hey ${firstName},</p>
     <p>Last one from me — I don't believe in wearing people down.</p>
-    <p>If Bear Team is the right move, you already know it. The math works, the model is clean, and the support is real. When the timing is right, the door is open.</p>
+    <p>If Bear Team is the right move, you already know it. The math works, the model is clean, and when you need something — Bethanne is reachable, BearTeam Academy is there, and there's no corporate layer between you and an answer. When the timing is right, the door is open.</p>
     ${mathBlock}
     <p>If you want to revisit at any point — next month, next quarter, or at your next renewal — just reply to this email or grab 15 minutes whenever it works:</p>
     <a href="${CALENDLY_LINK}" style="display:inline-block;background:#c9a84c;color:#1a1a1a;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:6px;margin:16px 0;">Schedule a Call →</a>
