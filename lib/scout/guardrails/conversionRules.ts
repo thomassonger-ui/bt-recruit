@@ -1,15 +1,22 @@
 /**
  * Conversion Rules — Every Scout response must move forward.
  *
- * Two enforcement layers:
+ * Three enforcement layers, in pipeline order:
  *
- * 1. enforceScheduling() — runs FIRST.
+ * 1. enforceScheduling() — FIRST.
  *    Detects false booking confirmations in LLM output and replaces
- *    them with a Calendly push. This is the conversion-critical fix:
- *    Scout must NEVER tell a user "we'll schedule" or "expect to hear
- *    from us" — it must push to Calendly or collect contact info.
+ *    them with a Calendly push. Also appends Calendly link when user
+ *    signals scheduling intent and LLM omits it.
  *
- * 2. enforceConversion() — runs SECOND.
+ * 2. enforceConversionPresence() — SECOND.
+ *    Final guarantee layer — independent of LLM correctness.
+ *    If the user message contains a time/day signal AND the response
+ *    still lacks the Calendly link after step 1, replaces the response
+ *    with the Calendly push unconditionally. Handles LLM neutral/incomplete
+ *    responses that slip past enforceScheduling (no forbidden phrase,
+ *    but no Calendly link either).
+ *
+ * 3. enforceConversion() — THIRD.
  *    If a response lacks any forward motion (no question, no CTA,
  *    no next step), appends a Calendly-first closing line.
  *
@@ -119,6 +126,37 @@ export function enforceScheduling(
 }
 
 /**
+ * enforceConversionPresence — SECOND guardrail layer.
+ *
+ * Final guarantee that any time/day signal results in a Calendly link,
+ * independent of LLM correctness.
+ *
+ * Handles the gap where the LLM produces a neutral or incomplete response
+ * (no forbidden phrase, so enforceScheduling Check 1 passes; but no Calendly
+ * link either, meaning the conversion is silently lost).
+ *
+ * Pattern is intentionally narrow — matches only the clearest time/day
+ * signals to avoid false positives on non-scheduling conversations.
+ *
+ * Does nothing if the Calendly link is already present.
+ */
+export function enforceConversionPresence(
+  response: string,
+  userMessage: string
+): string {
+  const hasCalendly = response.includes(CALENDLY_LINK);
+
+  const hasTimeSignal =
+    /tomorrow|today|\b\d{1,2}\s?(?:am|pm)\b/i.test(userMessage);
+
+  if (hasTimeSignal && !hasCalendly) {
+    return `Perfect — grab that time here so it's locked in:\n${CALENDLY_LINK}\nTakes 10 seconds.`;
+  }
+
+  return response;
+}
+
+/**
  * Patterns that indicate forward motion in a response.
  * If at least one matches, the response has a next step.
  */
@@ -151,18 +189,17 @@ function hasForwardMotion(response: string): boolean {
  * Falls back to contact collection (index 3) on rotation.
  */
 function selectCloser(response: string): string {
-  // Simple hash from response length — avoids repeating the same closer
   const hash = response.length % CONVERSION_CLOSERS.length;
   return CONVERSION_CLOSERS[hash];
 }
 
 /**
- * enforceConversion — SECOND guardrail layer.
+ * enforceConversion — THIRD guardrail layer.
  *
  * If the response already has forward motion, it passes through unchanged.
  * If it lacks a next step, a Calendly-first closing line is appended.
  *
- * Always runs AFTER enforceScheduling.
+ * Always runs AFTER enforceScheduling and enforceConversionPresence.
  */
 export function enforceConversion(response: string): ConversionResult {
   const forward = hasForwardMotion(response);
@@ -171,7 +208,6 @@ export function enforceConversion(response: string): ConversionResult {
     return { hasForwardMotion: true, enhancedResponse: response };
   }
 
-  // Append a closing line to create forward motion
   const closer = selectCloser(response);
   const enhanced = `${response.trimEnd()} ${closer}`;
 
