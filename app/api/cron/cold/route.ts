@@ -233,19 +233,22 @@ function buildFinalRecoveryEmail(firstName: string, brokerage?: string): string 
 }
 
 function buildColdEmail(firstName: string): string {
+  // Messaging fix: cut "I know you're busy" (generic recruiter opener).
+  // Opens with a specific fee number to surface the pain point immediately.
+  // Second paragraph names the big-box invisibility problem explicitly —
+  // that's the emotional trigger most agents don't articulate until someone holds up the mirror.
   return `
     <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
       <p>Hi ${firstName},</p>
-      <p>I know you're busy — just wanted to make sure my earlier message didn't get buried.</p>
-      <p>I'm Tom Songer, Team Lead at <strong>Bear Team Real Estate</strong> in Orlando.
-      We're a boutique brokerage built specifically for producing agents who are tired of
-      high fees and low support.</p>
+      <p>One number most agents never calculate: what they're paying their brokerage before a single deal closes this year. Monthly fees, desk fees, tech fees, E&O — at most brokerages that's $3,000–$6,000 out of pocket before your first commission check hits.</p>
+      <p>I'm Tom Songer, Team Lead at <strong>Bear Team Real Estate</strong> in Orlando. We're a boutique brokerage built for producing agents who are tired of being a revenue unit at a big box — agents who know what they're doing and want a platform that gets out of the way.</p>
       <ul>
         <li>Progressive tiers: 60/40 &rarr; 70/30 &rarr; 80/20 &rarr; 90/10</li>
         <li>$16,000 cap, then you advance automatically</li>
         <li>Zero monthly fees. Zero desk fees. Zero tech fees.</li>
         <li>E&amp;O fully covered. Only cost: $150 flat per closing.</li>
       </ul>
+      <p>If you want to run your numbers side by side — takes 10 minutes:</p>
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes</a></p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
     </div>`;
