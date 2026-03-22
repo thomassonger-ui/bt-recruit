@@ -13,6 +13,9 @@ export const TONE = {
   smsMaxLength: 160,
 } as const;
 
+/* ── Calendly booking link ── */
+export const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
+
 /* ── Blocked phrases — never appear in any Scout response ── */
 export const BLOCKED_PHRASES = [
   // Fair housing violations
@@ -67,6 +70,49 @@ export const BLOCKED_PHRASES = [
   "ngl",
   "lmao",
   "bruh",
+  // Scheduling violations — Scout must never claim a meeting is confirmed
+  // unless a Calendly link has been clicked and booking completed.
+  "we'll schedule",
+  "we will schedule",
+  "i'll schedule",
+  "i will schedule",
+  "you're booked",
+  "you are booked",
+  "you're all set",
+  "you are all set",
+  "expect to hear from us",
+  "someone will call you",
+  "we'll arrange",
+  "we will arrange",
+  "i'll arrange",
+  "i will arrange",
+  "i'll have someone reach out",
+  "i will have someone reach out",
+  "we'll have someone",
+  "we will have someone",
+  "i'll set that up",
+  "i will set that up",
+  "let me set that up",
+] as const;
+
+/* ── Scheduling forbidden phrases — exact patterns that falsely confirm a meeting.
+ * These are checked BEFORE the LLM response is returned.
+ * Any match → response is replaced with a Calendly push.
+ */
+export const SCHEDULING_FORBIDDEN_PATTERNS: ReadonlyArray<{
+  pattern: RegExp;
+  label: string;
+}> = [
+  { pattern: /we'?ll schedule/i, label: "false_schedule_confirm" },
+  { pattern: /i'?ll schedule/i, label: "false_schedule_confirm" },
+  { pattern: /you'?re (?:all set|booked)/i, label: "false_booking_confirm" },
+  { pattern: /expect to hear from us/i, label: "false_followup_promise" },
+  { pattern: /someone will (?:call|reach out|contact)/i, label: "false_followup_promise" },
+  { pattern: /we'?ll (?:arrange|have someone)/i, label: "false_arrange_confirm" },
+  { pattern: /i'?ll (?:arrange|have someone|set that up)/i, label: "false_arrange_confirm" },
+  { pattern: /let me (?:arrange|set that up)/i, label: "false_arrange_confirm" },
+  { pattern: /call (?:is |has been )?(?:scheduled|confirmed|set)/i, label: "false_booking_confirm" },
+  { pattern: /meeting (?:is |has been )?(?:scheduled|confirmed|set)/i, label: "false_booking_confirm" },
 ] as const;
 
 /* ── Protected class references — Fair Housing Act ──
@@ -141,13 +187,18 @@ export const ESCALATION_TRIGGER_PATTERNS: ReadonlyArray<{
   { pattern: /lower the price/i, label: "price_reduction" },
 ] as const;
 
-/* ── Conversion closing lines — appended when forward motion is missing ── */
+/* ── Conversion closing lines — Calendly-first.
+ * These are appended when a response lacks forward motion.
+ * Path A (preferred): push to Calendly directly.
+ * Path B (fallback): collect contact info if user resists link.
+ * NEVER confirm a booking without a completed Calendly event.
+ */
 export const CONVERSION_CLOSERS = [
-  "What time works best for a quick call?",
-  "Would you like me to have your agent reach out?",
-  "Want me to set that up for you?",
-  "When works best to connect?",
-  "Should I have someone follow up with you on that?",
+  `Perfect — grab that time here so it's locked in: ${CALENDLY_LINK} Takes 10 seconds.`,
+  `Go ahead and lock it in here: ${CALENDLY_LINK} — takes 10 seconds.`,
+  `Here's the link to confirm it: ${CALENDLY_LINK}`,
+  "What's the best number or email to send the invite to?",
+  `Grab a slot that works here: ${CALENDLY_LINK}`,
 ] as const;
 
 /* ── Steering phrases — phrase-level detection ──
