@@ -68,9 +68,9 @@ function MobileNav() {
           style={{ background: "rgba(11,22,42,0.97)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
           onClick={() => setOpen(false)}
         >
-          <a href="/#why-scout" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Why Scout</a>
-          <a href="/#see-scout" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>See Scout</a>
-          <a href="/#try-it" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Try It</a>
+          <a href="/scout" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Why Scout</a>
+          <a href="/#see-scout" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Try Scout</a>
+          <a href="/chat" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Try Scout</a>
           <a
             href="sms:+14077588102"
             className="mt-1 block rounded-lg px-4 py-3 text-center text-sm font-semibold text-white"
@@ -293,9 +293,9 @@ function ChatPageInner() {
 
           {/* Desktop links */}
           <div className="hidden items-center gap-6 md:flex">
-            <a href="/#why-scout" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Why Scout</a>
-            <a href="/#see-scout" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>See Scout</a>
-            <a href="/#try-it" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Try It</a>
+            <a href="/scout" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Why Scout</a>
+            <a href="/#see-scout" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Try Scout</a>
+            <a href="/chat" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Try Scout</a>
             <a
               href="sms:+14077588102"
               className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
