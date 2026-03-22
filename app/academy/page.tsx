@@ -515,7 +515,7 @@ export default function AcademyPage() {
       </div>
 
       {/* ── WHAT SCOUT CAN DO FOR YOU ── */}
-      <section style={{ background: "#0b1d3a", padding: "clamp(60px,8vw,96px) clamp(20px,5vw,40px)" }}>
+      <section style={{ background: "#ffffff", padding: "clamp(60px,8vw,96px) clamp(20px,5vw,40px)" }}>
         <style>{`
           .acad-flip-card { perspective: 1000px; cursor: default; }
           .acad-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
@@ -531,9 +531,9 @@ export default function AcademyPage() {
         `}</style>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", marginBottom: 10 }}>Real Outputs. Not Generic AI.</p>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#ffffff", marginBottom: 16, lineHeight: 1.15 }}>What Scout Can Do For You</h2>
-            <p style={{ color: "rgba(255,255,255,0.65)", maxWidth: 520, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#3b6ea8", marginBottom: 10 }}>Real Outputs. Not Generic AI.</p>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: 16, lineHeight: 1.15 }}>What Scout Can Do For You</h2>
+            <p style={{ color: "#6b7280", maxWidth: 520, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
               Scout isn't a chatbot. It's a production tool. Every output is built around Bear Team systems and the Orlando market.
             </p>
           </div>
@@ -562,7 +562,7 @@ export default function AcademyPage() {
             ))}
           </div>
                     <div style={{ textAlign: "center", marginTop: 44 }}>
-            <a href="/chat" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#ffffff", color: "#1b365d", textDecoration: "none", fontWeight: 700, padding: "14px 36px", borderRadius: 10, fontSize: "0.95rem", minHeight: 44 }}>
+            <a href="/chat" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#0b1d3a", color: "#ffffff", textDecoration: "none", fontWeight: 700, padding: "14px 36px", borderRadius: 10, fontSize: "0.95rem", minHeight: 44 }}>
               Try Scout Now
             </a>
           </div>
