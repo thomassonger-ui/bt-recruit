@@ -311,52 +311,65 @@ function BlueprintGrid() {
 
 // ─── Screenshot Mockup Cards (6 unique) ───────────────────────────────────────
 
-// Card 1: "1 – Agent Onboarding" Moodle course with accordion modules
-// Card 1: Bear Academy Welcome lesson — video + Operating Philosophy
+// Card 1: "How This Onboarding Works" — slide-style overview
 function Card1_AcademyWelcome() {
+  const items = [
+    { label: "Program Structure", sub: "Sequential & locked sections" },
+    { label: "Learning Activities", sub: "Simulations, scenarios, assessments" },
+    { label: "Completion Standards", sub: "Passing scores, tracking & certification" },
+    { label: "What to Expect", sub: "Active, deliberate, intentional" },
+  ];
   return (
-    <div style={{ width:"100%", height:"100%", background:"#fff", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"column" }}>
-      <div style={{ background:"#1e3a5f", padding:"14px 20px", flexShrink:0 }}>
-        <div style={{ fontSize:"1rem", fontWeight:800, color:"#fff", marginBottom:2 }}>Bear Academy</div>
-        <div style={{ fontSize:"0.6rem", color:"rgba(255,255,255,0.65)" }}>Agent Onboarding</div>
-      </div>
-      <div style={{ padding:"10px 20px", background:"#f9fafb", borderBottom:"1px solid #e5e7eb", fontSize:"0.6rem", color:"#374151", flexShrink:0 }}>
-        <span style={{ fontWeight:700 }}>Lesson:</span> Welcome to Bear Academy
-      </div>
-      <div style={{ position:"relative", flexShrink:0, height:"45%", background:"#b0bec5", overflow:"hidden" }}>
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, #b0bec5 0%, #78909c 100%)" }} />
-        <div style={{ position:"absolute", top:10, left:12, right:12, display:"flex", alignItems:"center", gap:8 }}>
-          <div style={{ width:18, height:18, borderRadius:"50%", background:"#e63946", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ color:"#fff", fontSize:"0.45rem" }}>▶</span></div>
-          <span style={{ fontSize:"0.52rem", color:"#fff", fontWeight:600 }}>Brokerage Vision &amp; Structure</span>
-          <div style={{ marginLeft:"auto", display:"flex", gap:12 }}>
-            <span style={{ fontSize:"0.46rem", color:"rgba(255,255,255,0.8)" }}>⏱ Watch later</span>
-            <span style={{ fontSize:"0.46rem", color:"rgba(255,255,255,0.8)" }}>↑ Share</span>
+    <div style={{ width:"100%", height:"100%", fontFamily:"-apple-system,sans-serif", display:"flex", flexDirection:"row" }}>
+      {/* Left dark panel */}
+      <div style={{ width:"42%", background:"#111c2e", display:"flex", flexDirection:"column", justifyContent:"space-between", padding:"18px 16px 14px", flexShrink:0 }}>
+        <div>
+          {/* BT Logo */}
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:18 }}>
+            <div style={{ border:"2px solid #fff", padding:"3px 6px" }}>
+              <span style={{ color:"#fff", fontWeight:900, fontSize:"0.75rem" }}>BT</span>
+            </div>
+            <div>
+              <div style={{ color:"#fff", fontWeight:800, fontSize:"0.58rem", letterSpacing:"0.08em" }}>BEAR TEAM</div>
+              <div style={{ color:"rgba(255,255,255,0.55)", fontSize:"0.44rem", letterSpacing:"0.15em" }}>— ACADEMY —</div>
+            </div>
+          </div>
+          {/* Title */}
+          <div style={{ color:"#fff", fontWeight:900, fontSize:"1.05rem", lineHeight:1.15, marginBottom:12, letterSpacing:"-0.01em" }}>
+            HOW THIS<br />ONBOARDING<br />WORKS
+          </div>
+          {/* Blue accent line */}
+          <div style={{ width:36, height:3, background:"#3b82f6", marginBottom:12, borderRadius:2 }} />
+          {/* Italic tagline */}
+          <div style={{ color:"rgba(255,255,255,0.65)", fontSize:"0.52rem", fontStyle:"italic", marginBottom:14, lineHeight:1.5 }}>
+            Sequential. Structured. Intentional.
+          </div>
+          {/* Purpose */}
+          <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"0.44rem", letterSpacing:"0.18em", textTransform:"uppercase", marginBottom:6 }}>Purpose</div>
+          <div style={{ color:"rgba(255,255,255,0.8)", fontSize:"0.52rem", lineHeight:1.6 }}>
+            Prepare every agent to operate inside Bear Team systems with clarity, consistency, and without guesswork.
           </div>
         </div>
-        <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <div style={{ width:52, height:52, borderRadius:"50%", background:"rgba(220,38,38,0.92)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 20px rgba(0,0,0,0.4)" }}>
-            <span style={{ color:"#fff", fontSize:"1.1rem", marginLeft:4 }}>▶</span>
-          </div>
-        </div>
-        <div style={{ position:"absolute", bottom:8, right:10, border:"1.5px solid rgba(255,255,255,0.7)", padding:"3px 8px" }}>
-          <span style={{ fontSize:"0.48rem", color:"#fff", fontWeight:800 }}>BT</span>
-        </div>
-        <div style={{ position:"absolute", bottom:8, left:10, background:"rgba(0,0,0,0.55)", padding:"3px 8px", borderRadius:4 }}>
-          <span style={{ fontSize:"0.46rem", color:"#fff" }}>Watch on <strong>▶ YouTube</strong></span>
+        {/* Footer bar */}
+        <div style={{ borderTop:"1px solid rgba(255,255,255,0.15)", paddingTop:8, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"0.38rem", letterSpacing:"0.12em", textTransform:"uppercase" }}>Bear Team Academy</div>
+          <div style={{ color:"rgba(255,255,255,0.45)", fontSize:"0.38rem", letterSpacing:"0.12em", textTransform:"uppercase" }}>Agent Onboarding Program</div>
         </div>
       </div>
-      <div style={{ flex:1, padding:"14px 20px", overflow:"hidden" }}>
-        <div style={{ borderLeft:"3px solid #1e3a5f", paddingLeft:12, marginBottom:10 }}>
-          <div style={{ fontSize:"0.82rem", fontWeight:800, color:"#111", marginBottom:5 }}>Operating Philosophy</div>
-          <div style={{ fontSize:"0.58rem", color:"#374151", lineHeight:1.65, marginBottom:5 }}>Bear Team does not operate on improvisation. The brokerage operates through defined structure and disciplined execution.</div>
+      {/* Right light panel */}
+      <div style={{ flex:1, background:"#f8f9fb", display:"flex", flexDirection:"column", justifyContent:"center", padding:"18px 16px" }}>
+        <div style={{ fontSize:"0.5rem", fontWeight:700, color:"#6b7280", letterSpacing:"0.18em", textTransform:"uppercase", marginBottom:14 }}>In This Overview</div>
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ background:"#eef0f4", borderRadius:6, padding:"10px 12px", borderLeft:"3px solid #3b82f6", display:"flex", alignItems:"flex-start", gap:8 }}>
+              <span style={{ color:"#3b82f6", fontSize:"0.6rem", marginTop:1, flexShrink:0 }}>→</span>
+              <div>
+                <div style={{ fontSize:"0.62rem", fontWeight:800, color:"#111", marginBottom:2 }}>{item.label}</div>
+                <div style={{ fontSize:"0.52rem", color:"#6b7280" }}>{item.sub}</div>
+              </div>
+            </div>
+          ))}
         </div>
-        <div style={{ fontSize:"0.6rem", fontWeight:700, color:"#111", marginBottom:6 }}>Our operating philosophy is simple:</div>
-        {["Structure reduces friction","Systems create speed","Execution builds trust"].map((item,i) => (
-          <div key={i} style={{ display:"flex", alignItems:"center", gap:7, marginBottom:5 }}>
-            <div style={{ width:6, height:6, borderRadius:"50%", background:"#1e3a5f", flexShrink:0 }} />
-            <span style={{ fontSize:"0.58rem", color:"#374151" }}>{item}</span>
-          </div>
-        ))}
       </div>
     </div>
   );
