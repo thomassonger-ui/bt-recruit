@@ -51,7 +51,17 @@ create table if not exists leads (
   noshow_followup_at      timestamptz,
 
   -- ── Onboarding tracking ──────────────────────────────────────────────────
-  onboarded_at            timestamptz             -- set when stage → Onboarding
+  onboarded_at            timestamptz,            -- set when stage → Onboarding
+
+  -- ── Personalization fields (Priority 2 + 3 additions) ───────────────────
+  -- pain_type: structured classification of agent's stated frustration.
+  -- Set by Scout during qualification. Used to vary email hooks downstream.
+  -- Values: fees | visibility | brand | growth | systems
+  pain_type               text,
+
+  -- years_licensed: captured by Scout. Short tenure → training story.
+  -- Long tenure → economics story. New agents need different pitch.
+  years_licensed          int
 );
 
 -- ─── INDEXES ─────────────────────────────────────────────────────────────────
@@ -83,6 +93,8 @@ alter table leads add column if not exists drip_unsubscribed       boolean defau
 alter table leads add column if not exists noshow_followup_sent    boolean default false;
 alter table leads add column if not exists noshow_followup_at      timestamptz;
 alter table leads add column if not exists onboarded_at            timestamptz;
+alter table leads add column if not exists pain_type               text;
+alter table leads add column if not exists years_licensed          int;
 
 -- ─── AGENTS TABLE ────────────────────────────────────────────────────────────
 -- Created when a lead is marked Closed Won via /api/onboard.
