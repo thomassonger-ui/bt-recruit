@@ -385,22 +385,16 @@ function HeroParallaxContent() {
       <div className="relative z-10">
         <Navbar>
           <a
-            href="#why"
+            href="/scout"
             className="text-sm text-white/70 transition-colors hover:text-white"
           >
             Why Scout
           </a>
           <a
-            href="#scout"
+            href="/chat"
             className="text-sm text-white/70 transition-colors hover:text-white"
           >
-            See Scout
-          </a>
-          <a
-            href="#try"
-            className="text-sm text-white/70 transition-colors hover:text-white"
-          >
-            Try It
+            Try Scout
           </a>
           <a
             href={`sms:+18444072587?body=${SMS_BODY}`}
