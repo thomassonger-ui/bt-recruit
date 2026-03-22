@@ -67,7 +67,8 @@ export async function GET(req: NextRequest) {
         .not("email", "is", null)
         .neq("email", "")
         .or(`drip_step.is.null,drip_step.lt.${step.emailIndex + 1}`)
-        .eq("drip_unsubscribed", false);
+        .eq("drip_unsubscribed", false)
+        .or("noshow_followup_sent.is.null,noshow_followup_sent.eq.false"); // exclude no-shows
 
       if (error) {
         console.error(`Drip step ${step.day} query error:`, error);
@@ -95,20 +96,48 @@ export async function GET(req: NextRequest) {
           continue;
         }
 
+        const newDripStep = step.emailIndex + 1;
+
         // Update drip_step and last drip sent timestamp
+        // If this is the final email (step 5), also update stage to Long-Term Nurture
         await getSupabase()
           .from("leads")
           .update({
-            drip_step: step.emailIndex + 1,
+            drip_step: newDripStep,
             drip_last_sent_at: now.toISOString(),
             updated_at: now.toISOString(),
+            ...(newDripStep >= 5 ? { stage: "Long-Term Nurture" } : {}),
           })
           .eq("id", lead.id);
+
+        // If sequence just completed, alert Tom to take manual action
+        if (newDripStep >= 5) {
+          const brokerage = lead.brokerage ? ` · ${lead.brokerage}` : "";
+          const dealInfo = lead.deal_count ? ` · ${lead.deal_count} deals/yr` : "";
+          await getResend().emails.send({
+            from: FROM_EMAIL,
+            to: TOM_EMAIL,
+            subject: `[Drip Complete] ${lead.name || lead.email} — sequence finished, no response`,
+            html: `
+              <div style="font-family:sans-serif;max-width:520px;">
+                <div style="background:#1a1a1a;padding:16px 24px;border-radius:6px 6px 0 0;">
+                  <p style="color:#c9a84c;font-weight:700;margin:0;font-size:15px;">🏁 Drip Sequence Complete</p>
+                </div>
+                <div style="background:#fff;border:1px solid #e5e7eb;padding:20px 24px;border-radius:0 0 6px 6px;">
+                  <p style="margin:0 0 12px;color:#374151;font-size:14px;"><strong>${lead.name || "Unknown"}</strong>${brokerage}${dealInfo}</p>
+                  <p style="margin:0 0 12px;color:#374151;font-size:14px;">Email: <a href="mailto:${lead.email}">${lead.email}</a></p>
+                  <p style="margin:0 0 16px;color:#374151;font-size:14px;">Phone: ${lead.phone || "Not captured"}</p>
+                  <p style="margin:0 0 16px;color:#6b7280;font-size:13px;">All 5 drip emails sent. No response detected. Stage updated to <strong>Long-Term Nurture</strong>.</p>
+                  <p style="margin:0;color:#374151;font-size:14px;font-weight:600;">Recommended action: Personal call or move to Closed Lost.</p>
+                </div>
+              </div>`,
+          }).catch(() => {});
+        }
 
         results.push({
           email: lead.email,
           name: lead.name,
-          drip_step: step.emailIndex + 1,
+          drip_step: newDripStep,
           subject,
         });
       }
@@ -240,10 +269,14 @@ function buildDripEmail(
     <p>Either way, good luck with your production. Orlando is a good market right now — go close something.</p>`,
   ];
 
-  return wrapEmail(emails[index] || emails[0]);
+  return wrapEmail(emails[index] || emails[0], (lead.id as string) || undefined);
 }
 
-function wrapEmail(body: string): string {
+function wrapEmail(body: string, leadId?: string): string {
+  const unsubLink = leadId
+    ? `<a href="https://joinbearteam.com/api/unsubscribe?id=${leadId}" style="color:#aaa;text-decoration:underline;">Unsubscribe</a>`
+    : `<span style="color:#aaa;">Reply "stop" to unsubscribe</span>`;
+
   return `
 <!DOCTYPE html>
 <html>
@@ -280,7 +313,7 @@ function wrapEmail(body: string): string {
     </div>
     <div class="footer">
       <p>Bear Team Real Estate · Orlando, FL</p>
-      <p style="font-size:12px;color:#aaa;">You're receiving this because you had a conversation with Bear Team. Reply "stop" to unsubscribe.</p>
+      <p style="font-size:12px;color:#aaa;">${unsubLink}</p>
     </div>
   </div>
 </body>
