@@ -1581,6 +1581,51 @@ export default function HomePage() {
         </section>
 
 
+
+      {/* ── WHAT SCOUT DOES FOR YOU ── */}
+      <section style={{ background: "#ffffff", padding: "clamp(60px,8vw,96px) clamp(20px,5vw,40px)" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#3b6ea8", marginBottom: 10 }}>Real Outputs. Not Generic AI.</p>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: 16, lineHeight: 1.15 }}>What Scout Does For You</h2>
+            <p style={{ color: "#6b7280", maxWidth: 520, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
+              Every tool is built around Bear Team systems and the Orlando market. Not a generic template — a real output you can use today.
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
+            {[
+              { icon: "✉️", title: "Follow-Up Sequences", body: "Give Scout a lead's situation. Get a personalized 5-touch email and text sequence — ready to send in 60 seconds." },
+              { icon: "📊", title: "Commission Calculator", body: "Input your current split and volume. Scout shows what you'd net at Bear Team vs. where you are — exact math, no guessing." },
+              { icon: "🏡", title: "Listing Presentation Script", body: "Input the address and seller objections. Scout builds a custom talking track with pricing rationale and closes." },
+              { icon: "📍", title: "Geo Farm Scripts", body: "Input a neighborhood and price range. Scout writes the door-knock script, mailer copy, and follow-up text." },
+              { icon: "📅", title: "Weekly Business Audit", body: "Tell Scout your calls, appointments, and closings this week. It diagnoses your bottleneck and tells you what to fix." },
+              { icon: "🔄", title: "Sphere Reactivation", body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message for the Orlando market." },
+            ].map((item, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "#f9fafb",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 14,
+                  padding: "24px 22px",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                  cursor: "default",
+                }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-3px)"; el.style.boxShadow = "0 8px 28px rgba(0,0,0,0.08)"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
+              >
+                <div style={{ fontSize: "1.5rem", marginBottom: 12 }}>{item.icon}</div>
+                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0b1d3a", marginBottom: 8 }}>{item.title}</div>
+                <div style={{ fontSize: "0.85rem", color: "#6b7280", lineHeight: 1.65 }}>{item.body}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign: "center", marginTop: 48 }}>
+            <ScoutCTA label="Try Scout Now" />
+          </div>
+        </div>
+      </section>
+
       {/* ── SCOUT ENTRY ── */}
 
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#3f5f8a", position: "relative" }}>
