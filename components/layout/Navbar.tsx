@@ -17,16 +17,20 @@ export default function Navbar({ children, variant = "dark" }: NavbarProps) {
 
   return (
     <nav
-      className="relative px-6 py-4"
+      className="sticky top-0 z-50 w-full px-4 py-3 sm:px-6 sm:py-4"
       style={{
-        background: isLight ? "transparent" : "var(--color-card)",
-        borderBottom: isLight ? "none" : "1px solid var(--color-border-light)",
-        boxShadow: isLight ? "none" : "0 1px 3px rgba(0,0,0,0.03)",
+        background: isLight
+          ? "rgba(11,22,42,0.92)"
+          : "var(--color-card)",
+        borderBottom: "1px solid var(--color-border-light)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
       }}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <a href="/" aria-label="Bear Real Estate Team Home">
-          <BearTeamLogo size="md" variant={variant} />
+      <div className="mx-auto flex h-10 max-w-7xl items-center justify-between">
+        <a href="/" aria-label="Bear Real Estate Team Home" className="shrink-0">
+          <BearTeamLogo size="md" variant={isLight ? "light" : variant} />
         </a>
 
         {/* Desktop nav */}
@@ -34,10 +38,10 @@ export default function Navbar({ children, variant = "dark" }: NavbarProps) {
           <div className="hidden items-center gap-6 md:flex">{children}</div>
         )}
 
-        {/* Mobile hamburger */}
+        {/* Mobile hamburger — 44×44 tap target */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-background md:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-lg transition-colors hover:bg-white/10 md:hidden"
           aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={mobileOpen}
         >
@@ -57,7 +61,7 @@ export default function Navbar({ children, variant = "dark" }: NavbarProps) {
               >
                 <path
                   d="M5 5L15 15M15 5L5 15"
-                  stroke={isLight ? "white" : "currentColor"}
+                  stroke="white"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                 />
@@ -98,7 +102,7 @@ export default function Navbar({ children, variant = "dark" }: NavbarProps) {
             className="overflow-hidden md:hidden"
           >
             <div
-              className="mx-auto flex max-w-7xl flex-col gap-1 pb-2 pt-4"
+              className="mx-auto flex max-w-7xl flex-col gap-1 pb-3 pt-3"
               onClick={() => setMobileOpen(false)}
               role="presentation"
             >
@@ -110,3 +114,4 @@ export default function Navbar({ children, variant = "dark" }: NavbarProps) {
     </nav>
   );
 }
+
