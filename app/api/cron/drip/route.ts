@@ -362,12 +362,19 @@ function buildTomDripSummary(results: Array<{ email: string; name: string; drip_
   .container { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 8px; overflow: hidden; }
   .header { background: #1a1a1a; padding: 20px 28px; }
   .header h1 { color: #c9a84c; margin: 0; font-size: 16px; }
+  .alert { background: #fffbeb; border-left: 4px solid #c9a84c; padding: 14px 20px; margin: 0; }
+  .alert p { margin: 0 0 6px; font-size: 14px; color: #1a1a1a; }
+  .alert p:last-child { margin: 0; }
   table { width: 100%; border-collapse: collapse; }
   th { background: #f8f8f8; padding: 10px 12px; text-align: left; font-size: 12px; color: #888; text-transform: uppercase; }
 </style></head>
 <body>
   <div class="container">
     <div class="header"><h1>Scout Drip — ${results.length} email(s) sent today</h1></div>
+    <div class="alert">
+      <p><strong>⚡ If any of these agents reply today, respond within 2 hours.</strong> That's your highest-converting window — they're warm right now.</p>
+      <p style="color:#555;">Go to your <a href="https://joinbearteam.com/dashboard" style="color:#c9a84c;font-weight:600;">dashboard → Drip tab</a> and hit ⏸ Pause to stop the sequence while you're in conversation. Don't let the next email fire mid-reply.</p>
+    </div>
     <table>
       <tr><th>Name</th><th>Step</th><th>Subject</th></tr>
       ${rows}
