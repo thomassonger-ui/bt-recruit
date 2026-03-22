@@ -1,48 +1,47 @@
 /**
  * Scout Unified API Route — /api/scout
  *
- * Single endpoint for all Scout interactions.
- * Mode determines behavior. Identity never changes.
- *
- * Request body:
- *   messages  — conversation history [{role, content}]
- *   mode      — "recruit" | "academy" | "os"  (default: "recruit")
- *   channel   — "web" | "sms" | "messenger"   (default: "web")
- *
- * v3 — Context Extractor:
- *   - Parses message history before every LLM call
- *   - Extracts brokerage, deal count, years experience, pain signal + expansion
- *   - Injects CONVERSATION STATE block into system prompt so LLM never re-asks
- *   - Normalizes brokerage abbreviations (KW → Keller Williams, etc.)
- *   - enforceScheduling + enforceConversionPresence added to recruit pipeline
+ * Conversation pipeline (recruit mode):
+ *   QUALIFY  → 4 questions: brokerage → deals/year → biggest frustration → what would make you move
+ *   PITCH    → soft math comparison, Bear Team advantage, warm appointment ask
+ *   COLLECT  → name → phone → email (one at a time)
+ *   SAVE     → upsert lead to Supabase leads table
+ *   BOOK     → send Calendly link to confirm 15-minute call
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
 import { buildSystemPrompt, type ScoutMode, type Channel } from "@/lib/scout/guardrails/systemPrompt";
 import { checkInboundCompliance } from "@/lib/scout/guardrails/complianceRules";
 import { checkEscalation } from "@/lib/scout/guardrails/escalationRules";
 import { validateResponse } from "@/lib/scout/guardrails/responseValidator";
-import {
-  enforceConversion,
-  enforceScheduling,
-  enforceConversionPresence,
-} from "@/lib/scout/guardrails/conversionRules";
+import { enforceScheduling, enforceConversionPresence } from "@/lib/scout/guardrails/conversionRules";
 import { FALLBACKS, CALENDLY_LINK } from "@/lib/scout/config/scoutConfig";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// ─── OpenAI client ────────────────────────────────────────────────────────────
-
+// ── OpenAI ─────────────────────────────────────────────────────────────────────
 let _openai: OpenAI | null = null;
 function getOpenAI(): OpenAI {
   if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
   return _openai;
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ── Supabase ───────────────────────────────────────────────────────────────────
+let _supabase: ReturnType<typeof createClient> | null = null;
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return _supabase;
+}
 
+// ── Types ──────────────────────────────────────────────────────────────────────
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -54,64 +53,33 @@ interface ScoutRequest {
   channel?: Channel;
 }
 
-// ─── Brokerage Abbreviation Map ───────────────────────────────────────────────
-// Used to normalize user input before it reaches the LLM.
-// "KW" is a valid answer to "where are you hanging your license?"
-// Never make the user explain their own brokerage.
+// Pipeline stages — in order
+type RecruitStage =
+  | "Q1_BROKERAGE"      // Ask where they hang their license
+  | "Q2_DEALS"          // Ask how many deals/year
+  | "Q3_FRUSTRATION"    // Ask their biggest frustration
+  | "Q4_MOVE"           // Ask what would make them consider a move
+  | "PITCH"             // Soft math pitch + warm appointment ask
+  | "COLLECT_NAME"      // Ask for their name
+  | "COLLECT_PHONE"     // Ask for their phone number
+  | "COLLECT_EMAIL"     // Ask for their email
+  | "BOOK";             // Save to Supabase + send Calendly link
 
+// ── Brokerage normalization ────────────────────────────────────────────────────
 const BROKERAGE_MAP: Record<string, string> = {
-  kw: "Keller Williams",
-  "keller williams": "Keller Williams",
-  exp: "eXp Realty",
-  "exp realty": "eXp Realty",
-  remax: "RE/MAX",
-  "re/max": "RE/MAX",
-  "re max": "RE/MAX",
-  c21: "Century 21",
-  "century 21": "Century 21",
-  cb: "Coldwell Banker",
-  "coldwell banker": "Coldwell Banker",
-  bhhs: "Berkshire Hathaway HomeServices",
-  "berkshire hathaway": "Berkshire Hathaway HomeServices",
-  era: "ERA Real Estate",
-  compass: "Compass",
-  rog: "Realty One Group",
-  "realty one": "Realty One Group",
-  watson: "Watson Realty",
-  crr: "Charles Rutenberg Realty",
+  kw: "Keller Williams", "keller williams": "Keller Williams",
+  exp: "eXp Realty", "exp realty": "eXp Realty",
+  remax: "RE/MAX", "re/max": "RE/MAX", "re max": "RE/MAX",
+  c21: "Century 21", "century 21": "Century 21",
+  cb: "Coldwell Banker", "coldwell banker": "Coldwell Banker",
+  bhhs: "Berkshire Hathaway HomeServices", "berkshire hathaway": "Berkshire Hathaway HomeServices",
+  era: "ERA Real Estate", compass: "Compass",
+  rog: "Realty One Group", "realty one": "Realty One Group",
+  watson: "Watson Realty", crr: "Charles Rutenberg Realty",
   "charles rutenberg": "Charles Rutenberg Realty",
-  sothebys: "Sotheby's International Realty",
-  "sotheby's": "Sotheby's International Realty",
+  sothebys: "Sotheby's International Realty", "sotheby's": "Sotheby's International Realty",
 };
 
-function normalizeBrokerage(text: string): string | null {
-  const key = text.trim().toLowerCase();
-  return BROKERAGE_MAP[key] ?? null;
-}
-
-// ─── Context Extractor ────────────────────────────────────────────────────────
-// Parses conversation history to extract what Scout already knows.
-// This state block is injected into the system prompt so the LLM
-// stops asking for information the user has already provided.
-
-interface RecruitContext {
-  brokerage: string | null;
-  newLicensee: boolean;
-  dealCount: number | null;
-  yearsExperience: number | null;
-  painSignal: string | null;
-  painExpanded: boolean;
-  userMessageCount: number;
-}
-
-// Short pain keywords — if user's entire message is one of these, pain is signaled but not expanded
-const PAIN_KEYWORDS = [
-  "fees", "fee", "splits", "split", "support", "leads", "technology", "tech",
-  "training", "culture", "management", "desk", "monthly", "costs", "expenses",
-  "overhead", "commission", "cap", "visibility", "exposure", "tools", "marketing",
-];
-
-// Known brokerage name patterns — partial matches within longer messages
 const BROKERAGE_PATTERNS: Array<{ pattern: RegExp; name: string }> = [
   { pattern: /\bkw\b|keller\s*williams/i, name: "Keller Williams" },
   { pattern: /\bexp\b|eXp\s*realty/i, name: "eXp Realty" },
@@ -120,164 +88,283 @@ const BROKERAGE_PATTERNS: Array<{ pattern: RegExp; name: string }> = [
   { pattern: /coldwell\s*banker|\bcb\b/i, name: "Coldwell Banker" },
   { pattern: /berkshire\s*hathaway|\bbhhs\b/i, name: "Berkshire Hathaway HomeServices" },
   { pattern: /\bcompass\b/i, name: "Compass" },
-  { pattern: /realty\s*one|realty\s*one\s*group|\brog\b/i, name: "Realty One Group" },
+  { pattern: /realty\s*one|realty\s*one\s*group|\broj\b/i, name: "Realty One Group" },
   { pattern: /\bwatson\b/i, name: "Watson Realty" },
   { pattern: /charles\s*rutenberg|\bcrr\b/i, name: "Charles Rutenberg Realty" },
-  { pattern: /sotheby'?s?/i, name: "Sotheby's International Realty" },
+  { pattern: /sotheby's?/i, name: "Sotheby's International Realty" },
   { pattern: /\bera\b/i, name: "ERA Real Estate" },
 ];
 
+function normalizeBrokerage(text: string): string | null {
+  const key = text.trim().toLowerCase();
+  return BROKERAGE_MAP[key] ?? null;
+}
+
+// New licensee patterns
+const NEW_LICENSEE_PATTERNS = [
+  /just (?:got|received|passed|earned) (?:my |the )?(?:license|exam|test)/i,
+  /brand[- ]?new (?:agent|licensee)/i,
+  /new (?:agent|to (?:real estate|the business|realty))/i,
+  /exploring (?:where to hang|my options|brokerages)/i,
+  /looking for (?:a |my first )?brokerage/i,
+  /first brokerage/i,
+  /where (?:should i hang|to hang my)/i,
+  /haven't (?:decided|chosen|picked)(?: a brokerage)?/i,
+  /not (?:with|at) (?:a |any )?brokerage(?: yet)?/i,
+  /no (?:current )?brokerage/i,
+];
+
+// ── Context extractor ──────────────────────────────────────────────────────────
+interface RecruitContext {
+  stage: RecruitStage;
+  brokerage: string | null;
+  newLicensee: boolean;
+  dealCount: number | null;
+  frustration: string | null;
+  moveReason: string | null;
+  contactName: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  userMessageCount: number;
+}
+
 function extractRecruitContext(messages: Message[]): RecruitContext {
   const ctx: RecruitContext = {
+    stage: "Q1_BROKERAGE",
     brokerage: null,
     newLicensee: false,
     dealCount: null,
-    yearsExperience: null,
-    painSignal: null,
-    painExpanded: false,
-    userMessageCount: messages.filter((m) => m.role === "user").length,
+    frustration: null,
+    moveReason: null,
+    contactName: null,
+    contactPhone: null,
+    contactEmail: null,
+    userMessageCount: 0,
   };
 
   const userMessages = messages.filter((m) => m.role === "user");
+  ctx.userMessageCount = userMessages.length;
 
-  for (const msg of userMessages) {
+  // Walk all assistant messages to understand what was asked,
+  // and user messages to extract answers
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
     const text = msg.content.trim();
     const lower = text.toLowerCase();
 
-    // ── Brokerage extraction ──
-    if (!ctx.brokerage) {
-      // 1. Direct abbreviation/name as the entire message
-      const direct = normalizeBrokerage(lower);
-      if (direct) {
-        ctx.brokerage = direct;
-      } else {
-        // 2. Pattern match within a longer message
-        for (const { pattern, name } of BROKERAGE_PATTERNS) {
-          if (pattern.test(text)) {
-            ctx.brokerage = name;
-            break;
+    if (msg.role === "user") {
+      // ── Brokerage / new licensee ──
+      if (!ctx.brokerage && !ctx.newLicensee) {
+        if (NEW_LICENSEE_PATTERNS.some((p) => p.test(text))) {
+          ctx.newLicensee = true;
+          ctx.brokerage = "New licensee — no current brokerage";
+        } else {
+          const direct = normalizeBrokerage(lower);
+          if (direct) {
+            ctx.brokerage = direct;
+          } else {
+            for (const { pattern, name } of BROKERAGE_PATTERNS) {
+              if (pattern.test(text)) { ctx.brokerage = name; break; }
+            }
+          }
+        }
+      }
+
+      // ── Deal count ──
+      if (ctx.dealCount === null) {
+        const m = text.match(/(\d+)\s*(?:deals?|closings?|transactions?|sales?)\s*(?:a\s*year|annually|per\s*year|\/\s*year)?/i)
+          ?? text.match(/closes?\s*(?:about\s*)?(\d+)/i)
+          ?? text.match(/(\d+)\s*(?:a\s*year|annually|per\s*year)/i)
+          ?? text.match(/^(\d{1,3})$/); // bare number like "8" or "12"
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (!isNaN(n) && n > 0 && n < 200) ctx.dealCount = n;
+        }
+      }
+
+      // ── Frustration (Q3) ──
+      // Only capture after brokerage AND deals are collected
+      if (!ctx.frustration && ctx.brokerage && ctx.dealCount !== null) {
+        // Any meaningful user response after deals is the frustration answer
+        if (text.split(/\s+/).length >= 1 && !isContactInfo(text)) {
+          ctx.frustration = text.slice(0, 120);
+        }
+      }
+
+      // ── Move reason (Q4) ──
+      // Only capture after frustration is set
+      if (!ctx.moveReason && ctx.frustration && text !== ctx.frustration) {
+        if (!isContactInfo(text)) {
+          ctx.moveReason = text.slice(0, 120);
+        }
+      }
+
+      // ── Contact info ──
+      if (!ctx.contactEmail) {
+        const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+        if (emailMatch) ctx.contactEmail = emailMatch[0];
+      }
+      if (!ctx.contactPhone) {
+        const phoneMatch = text.match(/(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+        if (phoneMatch) ctx.contactPhone = phoneMatch[0].replace(/\s+/g, "");
+      }
+      // Name: capture if assistant asked for it (previous assistant msg contains "your name")
+      if (!ctx.contactName && i > 0) {
+        const prevAssistant = messages.slice(0, i).reverse().find((m) => m.role === "assistant");
+        if (prevAssistant && /your name|what(?:'s| is) your name/i.test(prevAssistant.content)) {
+          // Verify it doesn't look like contact info
+          if (!isContactInfo(text) && text.split(/\s+/).length <= 5) {
+            ctx.contactName = text;
           }
         }
       }
     }
-
-    // ── New licensee detection ──
-    if (!ctx.newLicensee) {
-      const newLicenseePatterns = [
-        /just (?:got|received|passed|earned) (?:my |the )?(?:license|exam|test)/i,
-        /brand[- ]?new (?:agent|licensee)/i,
-        /new (?:agent|to (?:real estate|the business|realty))/i,
-        /exploring (?:where to hang|my options|brokerages)/i,
-        /looking for (?:a |my first )?brokerage/i,
-        /first brokerage/i,
-        /where (?:should i hang|to hang my)/i,
-        /haven't (?:decided|chosen|picked)(?: a brokerage)?/i,
-        /not (?:with|at) (?:a |any )?brokerage(?: yet)?/i,
-        /no (?:current )?brokerage/i,
-      ];
-      if (newLicenseePatterns.some((p) => p.test(text))) {
-        ctx.newLicensee = true;
-        ctx.brokerage = "none — new licensee";
-      }
-    }
-
-    // ── Deal count extraction ──
-    if (ctx.dealCount === null) {
-      const dealMatch = text.match(
-        /(\d+)\s*(?:deals?|closings?|transactions?|sales?)\s*(?:a\s*year|annually|\/\s*year|per\s*year)?/i
-      ) ?? text.match(/close[sd]?\s*(?:about\s*)?(\d+)/i) ?? text.match(/(\d+)\s*(?:a\s*year|annually|per\s*year)/i);
-      if (dealMatch) {
-        const n = parseInt(dealMatch[1], 10);
-        if (!isNaN(n) && n > 0 && n < 200) ctx.dealCount = n;
-      }
-    }
-
-    // ── Years experience extraction ──
-    if (ctx.yearsExperience === null) {
-      const yrMatch = text.match(/(\d+)\s*(?:years?|yrs?)\s*(?:experience|in\s*(?:real\s*estate|the\s*business|industry|realty))?/i);
-      if (yrMatch) {
-        const n = parseInt(yrMatch[1], 10);
-        if (!isNaN(n) && n > 0 && n < 50) ctx.yearsExperience = n;
-      }
-    }
-
-    // ── Pain detection ──
-    // Short pain keyword = signal only (not expanded)
-    const isShortPainKeyword = PAIN_KEYWORDS.includes(lower) || PAIN_KEYWORDS.some((kw) => lower === `the ${kw}`);
-    if (isShortPainKeyword && !ctx.painSignal) {
-      ctx.painSignal = text;
-    }
-
-    // Expanded pain = longer message that mentions frustration/problem/pain
-    const isPainSentence =
-      text.split(/\s+/).length > 6 &&
-      (lower.includes("fee") || lower.includes("split") || lower.includes("frustrated") ||
-        lower.includes("hate") || lower.includes("tired") || lower.includes("problem") ||
-        lower.includes("issue") || lower.includes("support") || lower.includes("concern") ||
-        lower.includes("cost") || lower.includes("overhead") || lower.includes("monthly"));
-    if (isPainSentence) {
-      if (!ctx.painSignal) ctx.painSignal = text.slice(0, 80);
-      ctx.painExpanded = true;
-    }
   }
 
-  // Pain expanded if user mentioned the same pain keyword 2+ times (persistence = real pain)
-  const painMentionCount = userMessages.filter((m) =>
-    PAIN_KEYWORDS.some((kw) => m.content.toLowerCase().includes(kw))
-  ).length;
-  if (painMentionCount >= 2) ctx.painExpanded = true;
-
+  // ── Determine current pipeline stage ──
+  ctx.stage = resolveStage(ctx);
   return ctx;
 }
 
-/**
- * Build CONVERSATION STATE block — injected into the system prompt.
- * Tells the LLM exactly what has been collected and what to do next.
- * This eliminates re-asking for information already provided.
- */
+function isContactInfo(text: string): boolean {
+  return /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/.test(text)
+    || /(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/.test(text);
+}
+
+function resolveStage(ctx: RecruitContext): RecruitStage {
+  if (!ctx.brokerage && !ctx.newLicensee) return "Q1_BROKERAGE";
+  if (ctx.dealCount === null && !ctx.newLicensee) return "Q2_DEALS";
+  // New licensee skips Q2 (no deals yet) — goes straight to Q3 about goals
+  if (!ctx.frustration) return "Q3_FRUSTRATION";
+  if (!ctx.moveReason) return "Q4_MOVE";
+  if (!ctx.contactName) return "COLLECT_NAME";
+  if (!ctx.contactPhone) return "COLLECT_PHONE";
+  if (!ctx.contactEmail) return "COLLECT_EMAIL";
+  return "BOOK";
+}
+
+// ── State block injected into every LLM call ──────────────────────────────────
 function buildStateBlock(ctx: RecruitContext): string {
   const lines: string[] = [
-    "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-    "CONVERSATION STATE — DO NOT RE-ASK FOR ANYTHING MARKED COLLECTED",
-    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-    `Brokerage: ${ctx.newLicensee ? "NEW LICENSEE — no current brokerage. DO NOT ask where they hang their license." : ctx.brokerage ? `COLLECTED — ${ctx.brokerage}` : "NOT YET — ask this first before anything else"}``,
-    `Deal count: ${ctx.dealCount !== null ? `COLLECTED — ${ctx.dealCount} deals/year` : ctx.brokerage ? "NOT YET — ask after brokerage" : "NOT YET"}`,
-    `Years experience: ${ctx.yearsExperience !== null ? `COLLECTED — ${ctx.yearsExperience} years` : "unknown"}`,
-    `Pain signal: ${ctx.painSignal ? `COLLECTED — "${ctx.painSignal}"` : ctx.dealCount !== null ? "NOT YET — ask what their biggest frustration is" : "NOT YET"}`,
-    `Pain expanded: ${ctx.painExpanded ? "YES — agent has elaborated. You may advance toward a call." : "NO — do not ask for a call. Deepen the pain first."}`,
-    `User messages sent: ${ctx.userMessageCount}`,
+    "\n\n════════════════════════════════════════════════════",
+    "CONVERSATION STATE — CURRENT PIPELINE POSITION",
+    "════════════════════════════════════════════════════",
+    `Stage: ${ctx.stage}`,
+    `Brokerage: ${ctx.newLicensee ? "NEW LICENSEE (no current brokerage)" : ctx.brokerage ?? "NOT YET COLLECTED"}`,
+    `Deal count: ${ctx.dealCount !== null ? `${ctx.dealCount}/year` : "NOT YET COLLECTED"}`,
+    `Frustration: ${ctx.frustration ?? "NOT YET COLLECTED"}`,
+    `Move reason: ${ctx.moveReason ?? "NOT YET COLLECTED"}`,
+    `Name: ${ctx.contactName ?? "NOT YET COLLECTED"}`,
+    `Phone: ${ctx.contactPhone ?? "NOT YET COLLECTED"}`,
+    `Email: ${ctx.contactEmail ?? "NOT YET COLLECTED"}`,
     "",
-    "NEXT ACTION:",
+    "NEXT ACTION (follow this exactly — do not skip steps):",
   ];
 
-  if (!ctx.brokerage) {
-    lines.push("→ Ask where they currently hang their license. Nothing else.");
-  } else if (ctx.newLicensee) {
-    lines.push(`→ NEW LICENSEE — answer their actual question first. Then pitch Bear Team as the best first home: zero monthly fees, zero desk fees, $150 flat per close, BearTeam Academy training, and personal support. Invite them to book a call: ${CALENDLY_LINK}`);
-  } else if (ctx.dealCount === null) {
-    lines.push(`→ Brokerage is ${ctx.brokerage}. Ask how many deals they close per year.`);
-  } else if (!ctx.painSignal) {
-    lines.push(`→ You have brokerage (${ctx.brokerage}) and deals (${ctx.dealCount}/yr). Ask what their biggest frustration is at ${ctx.brokerage}.`);
-  } else if (!ctx.painExpanded) {
-    lines.push(`→ Pain signal received: "${ctx.painSignal}". Validate it specifically. Ask one deeper follow-up question. DO NOT ask for a call.`);
-  } else {
-    lines.push(`→ All qualifying info collected. Pain is real and expanded. Advance toward a call: ${CALENDLY_LINK}`);
+  switch (ctx.stage) {
+    case "Q1_BROKERAGE":
+      lines.push("→ Ask: \"Where are you currently hanging your license?\" — nothing else.");
+      break;
+    case "Q2_DEALS":
+      lines.push(`→ Brokerage collected: ${ctx.brokerage}. Ask: \"How many deals do you typically close per year?\" — nothing else.`);
+      break;
+    case "Q3_FRUSTRATION":
+      if (ctx.newLicensee) {
+        lines.push("→ NEW LICENSEE. Answer their question warmly. Then ask: \"What's most important to you as you choose your first brokerage — training, support, the commission structure, or something else?\"");
+      } else {
+        lines.push(`→ You have brokerage (${ctx.brokerage}) and deals (${ctx.dealCount}/yr). Ask: \"What's your biggest frustration with ${ctx.brokerage} right now?\" — one question, nothing else.`);
+      }
+      break;
+    case "Q4_MOVE":
+      lines.push(`→ Frustration collected: "${ctx.frustration}". Validate it with one sentence. Then ask: \"What would it take for you to seriously consider making a move?\" — one question.`);
+      break;
+    case "PITCH": {
+      const deals = ctx.dealCount ?? 8;
+      const avgPrice = 300000;
+      const kwMonthly = 85;
+      const kwSplit = 0.30; // 70/30
+      const btSplit = 0.40; // starts 60/40 but caps at $16K then advances
+      const btCap = 16000;
+      const btFlat = 150;
+      const annualGCI = deals * avgPrice * 0.03;
+      const kwBrokerCut = Math.min(annualGCI * kwSplit, 32000) + (kwMonthly * 12);
+      const btBrokerCut = Math.min(annualGCI * btSplit, btCap) + (deals * btFlat);
+      const savings = Math.round(kwBrokerCut - btBrokerCut);
+      lines.push(`→ ALL 4 QUESTIONS COMPLETE. Deliver the soft math pitch:`);
+      lines.push(`  - Acknowledge their move reason: "${ctx.moveReason}"`);
+      lines.push(`  - Run the math: at ${deals} deals/year, Bear Team's structure saves roughly $${savings.toLocaleString()}/year vs. a standard brokerage (zero monthly fees + $16K cap)`);
+      lines.push(`  - End with the warm appointment ask: "Worth 15 minutes with Tom to see your exact numbers? He can walk you through what you'd actually net." — do NOT send Calendly yet. Collect their info first.`);
+      break;
+    }
+    case "COLLECT_NAME":
+      lines.push("→ They responded positively to the appointment ask. Now ask: \"What's your name?\" — one question, nothing else.");
+      break;
+    case "COLLECT_PHONE":
+      lines.push(`→ Name collected: ${ctx.contactName}. Ask: \"What's the best number to reach you, ${ctx.contactName}?\" — nothing else.`);
+      break;
+    case "COLLECT_EMAIL":
+      lines.push(`→ Phone collected. Ask: \"And the best email for the calendar invite?\" — nothing else.`);
+      break;
+    case "BOOK":
+      lines.push(`→ ALL CONTACT INFO COLLECTED. Say: "Perfect — here's Tom's calendar to lock in your 15 minutes: ${CALENDLY_LINK} — takes 30 seconds." Then stop. Do NOT say anything else.`);
+      break;
   }
 
-  lines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  lines.push("════════════════════════════════════════════════════");
   return lines.join("\n");
 }
 
-// ─── Mode-specific LLM parameters ────────────────────────────────────────────
-
+// ── LLM params by mode ─────────────────────────────────────────────────────────
 const MODE_LLM_PARAMS: Record<ScoutMode, { temperature: number; max_tokens: number }> = {
   recruit: { temperature: 0.5, max_tokens: 180 },
   academy: { temperature: 0.4, max_tokens: 600 },
   os:      { temperature: 0.3, max_tokens: 400 },
 };
 
-// ─── Route ────────────────────────────────────────────────────────────────────
+// ── Supabase lead save ─────────────────────────────────────────────────────────
+async function saveLeadToSupabase(ctx: RecruitContext): Promise<void> {
+  try {
+    const supabase = getSupabase();
+    const payload = {
+      name: ctx.contactName,
+      phone: ctx.contactPhone,
+      email: ctx.contactEmail,
+      brokerage: ctx.newLicensee ? "New Licensee" : ctx.brokerage,
+      deal_count: ctx.dealCount,
+      notes: [
+        ctx.frustration ? `Frustration: ${ctx.frustration}` : null,
+        ctx.moveReason ? `Move reason: ${ctx.moveReason}` : null,
+      ].filter(Boolean).join(" | "),
+      source: "scout_chat",
+      stage: "scout_captured",
+      pain_type: derivePainType(ctx.frustration ?? ""),
+      updated_at: new Date().toISOString(),
+    };
 
+    // Upsert on email if available, otherwise insert
+    if (ctx.contactEmail) {
+      await supabase.from("leads").upsert(payload, { onConflict: "email" });
+    } else {
+      await supabase.from("leads").insert(payload);
+    }
+  } catch (err) {
+    console.error("[scout] Supabase save error:", err);
+    // Non-fatal — don't block the Calendly response
+  }
+}
+
+function derivePainType(frustration: string): string {
+  const lower = frustration.toLowerCase();
+  if (/fee|cost|month|overhead|desk|tech/i.test(lower)) return "fees";
+  if (/split|commission|cap|percent/i.test(lower)) return "splits";
+  if (/support|help|mentor|train|resource/i.test(lower)) return "support";
+  if (/lead|prospect|pipeline|business/i.test(lower)) return "leads";
+  if (/culture|management|office|toxic|micro/i.test(lower)) return "culture";
+  if (/visib|brand|market|recogni/i.test(lower)) return "visibility";
+  return "other";
+}
+
+// ── Route ──────────────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const body: ScoutRequest = await req.json();
@@ -290,21 +377,17 @@ export async function POST(req: NextRequest) {
     const lastUserMessage =
       [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
 
-    // ── Step 1: Inbound compliance check ─────────────────────────────────────
+    // ── Step 1: Compliance check ──
     const inboundCheck = checkInboundCompliance(lastUserMessage);
     if (inboundCheck.requiresDeflection) {
-      const baseFallback = inboundCheck.fallbackOverride ?? FALLBACKS.compliance;
-      if (mode === "recruit") {
-        const conversion = enforceConversion(baseFallback);
-        const finalText = conversion.hasForwardMotion
-          ? baseFallback
-          : conversion.enhancedResponse;
-        return NextResponse.json({ reply: finalText, mode, deflected: true });
-      }
-      return NextResponse.json({ reply: baseFallback, mode, deflected: true });
+      return NextResponse.json({
+        reply: inboundCheck.fallbackOverride ?? FALLBACKS.compliance,
+        mode,
+        deflected: true,
+      });
     }
 
-    // ── Step 2: Escalation check ──────────────────────────────────────────────
+    // ── Step 2: Escalation check ──
     if (mode === "recruit" || mode === "os") {
       const escalation = checkEscalation(lastUserMessage);
       if (escalation.shouldEscalate && escalation.level === "hard") {
@@ -316,15 +399,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── Step 3: Build system prompt with injected context (recruit only) ──────
+    // ── Step 3: Extract context + determine stage ──
     let systemPrompt = buildSystemPrompt(mode, channel);
+    let ctx: RecruitContext | null = null;
 
     if (mode === "recruit") {
-      const ctx = extractRecruitContext(messages);
+      ctx = extractRecruitContext(messages);
       systemPrompt += buildStateBlock(ctx);
+
+      // ── Step 3a: If BOOK stage — save to Supabase, return Calendly ──
+      if (ctx.stage === "BOOK") {
+        await saveLeadToSupabase(ctx);
+        const name = ctx.contactName ? `, ${ctx.contactName.split(" ")[0]}` : "";
+        return NextResponse.json({
+          reply: `Perfect${name} — here's Tom's calendar to lock in your 15 minutes: ${CALENDLY_LINK}\n\nTakes 30 seconds. Looking forward to connecting.`,
+          mode,
+          stage: "BOOK",
+          booked: true,
+        });
+      }
     }
 
-    // ── Step 4: Generate LLM response ─────────────────────────────────────────
+    // ── Step 4: Generate LLM response ──
     const openai = getOpenAI();
     const params = MODE_LLM_PARAMS[mode];
 
@@ -341,21 +437,16 @@ export async function POST(req: NextRequest) {
     let reply = completion.choices[0]?.message?.content?.trim() ?? "";
     if (!reply) reply = FALLBACKS.uncertain;
 
-    // ── Step 5: Guardrails (recruit mode) ────────────────────────────────────
+    // ── Step 5: Guardrails (recruit mode only) ──
     if (mode === "recruit") {
-      // 5a: Intercept false booking confirmations in LLM output
       const schedulingResult = enforceScheduling(reply, lastUserMessage);
       reply = schedulingResult.finalResponse;
-
-      // 5b: Guarantee Calendly link if user sent a time/day signal
       reply = enforceConversionPresence(reply, lastUserMessage);
-
-      // 5c: Full response validation (tone, blocked phrases, compliance)
       const validation = validateResponse(reply, channel);
       reply = validation.finalResponse;
     }
 
-    return NextResponse.json({ reply, mode });
+    return NextResponse.json({ reply, mode, stage: ctx?.stage });
   } catch (err: unknown) {
     console.error("[scout] error:", err);
     return NextResponse.json({ reply: FALLBACKS.error }, { status: 500 });
