@@ -293,7 +293,6 @@ function ChatPageInner() {
           {/* Desktop links */}
           <div className="hidden items-center gap-6 md:flex">
             <a href="/scout" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Why Scout</a>
-            <a href="/#see-scout" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Try Scout</a>
             <a href="/chat" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Try Scout</a>
             <a
               href="sms:+14077588102"
