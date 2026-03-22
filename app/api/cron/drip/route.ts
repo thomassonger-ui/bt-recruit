@@ -244,15 +244,31 @@ function buildDripEmail(
     <p>If you're at ${brokerage}, I can run your exact numbers in about 10 minutes. No pitch — just the math side by side so you can make the call yourself: <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">Grab a slot →</a></p>`,
 
     // Email 3 — Day 7: Social proof
-    // Messaging fix: replaced anonymous unattributed quote with an operational proof point.
-    // Named the specific things "get out of your way" means at Bear Team.
-    // Moved the best emotional line ("shift from paying to produce") to the opening.
-    `<p>Hey ${firstName},</p>
+    // Priority 2 personalization: branches on deal_count.
+    // High-volume producers (10+ deals) get the split math story — they care about
+    // the 80/20 and 90/10 tiers they'll actually reach.
+    // Lower-volume agents get the overhead relief + no-pressure platform story.
+    (() => {
+      const isHighVolume = dealCount !== null && dealCount >= 10;
+      if (isHighVolume) {
+        return `<p>Hey ${firstName},</p>
+    <p>At ${dealCount} deals a year, you're going to hit the Bear Team tier progression faster than most agents realize. Here's what the path looks like:</p>
+    <ul style="color:#333;line-height:2;">
+      <li><strong>Tier 1 (60/40)</strong> — starts immediately, zero monthly fees</li>
+      <li><strong>Tier 2 (70/30)</strong> — kicks in automatically at $16K company dollar</li>
+      <li><strong>Tier 3 (80/20)</strong> — next threshold, same automatic advance</li>
+      <li><strong>Tier 4 (90/10)</strong> — top of the stack, no cap on earnings</li>
+    </ul>
+    ${mathBlock}
+    <p>Producers at your volume don't stay at Tier 1 long. The cap is not a ceiling — it's a milestone. Is there anything on the math side that's still unclear? <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">15 minutes and we can run it exactly →</a></p>`;
+      }
+      return `<p>Hey ${firstName},</p>
     <p>Something agents tell us pretty consistently after 90 days: the biggest change isn't the math — it's the shift from <em>paying to produce</em> to just producing.</p>
     <p>No monthly invoice sitting in the back of your mind. No desk fee on a slow month. No required floor time, no mandatory meetings, no one tracking your activity. Just your license, your clients, and your business.</p>
     <p>One agent who moved from KW last year put it this way: <em>"I didn't realize how much mental overhead I was carrying until it was gone."</em></p>
     ${isFollowUpQueue ? `<p>You mentioned you were weighing your options — that's exactly where most agents are when they reach out. The fit tends to be strongest with producers who already know what they're doing and just want the platform to stop getting in the way.</p>` : `<p>The agents who fit best here are already producing. They don't need hand-holding — they need the brokerage to stay out of the way and let them work. That's what we built Bear Team to do.</p>`}
-    <p>Is there anything specific that's still giving you pause? I'd rather answer it directly than let it sit.</p>`,
+    <p>Is there anything specific that's still giving you pause? I'd rather answer it directly than let it sit.</p>`;
+    })(),
 
     // Email 4 — Day 10: Objection handling — uses Scout-captured objection if available
     // Conversion fix: objection handling now pivots to a direct re-booking ask.
