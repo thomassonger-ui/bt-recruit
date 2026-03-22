@@ -831,7 +831,7 @@ export default function RecruitingClient() {
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#1b365d", marginBottom: 10 }}>Real Outputs. Not Generic AI.</p>
             <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: 16, lineHeight: 1.15 }}>What Scout Builds For You</h2>
-            <p style={{ color: "#6b7280", maxWidth: 520, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}}>
+            <p style={{ color: "#6b7280", maxWidth: 520, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
               Every tool is built around Bear Team systems and the Orlando market — not a generic template you have to rewrite.
             </p>
           </div>
