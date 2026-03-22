@@ -171,6 +171,7 @@ function buildRecruitEmail(firstName: string, email: string, leadId?: string): s
     </div>
     <div class="footer">
       <p>Bear Team Real Estate · Orlando, FL · joinbearteam.com</p>
+      <p style="font-size:12px;color:#aaa;margin-top:4px;">Licensed under Bethanne Baer, Broker/Owner</p>
       <p style="font-size:12px;color:#aaa;margin-top:4px;">${unsubLink}</p>
     </div>
   </div>
