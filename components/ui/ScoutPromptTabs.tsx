@@ -59,10 +59,10 @@ export default function ScoutPromptTabs({ onSelectPrompt }: ScoutPromptTabsProps
 
   return (
     <div className="w-full">
-      {/* Tab bar */}
+      {/* Tab bar — horizontal scroll, hide scrollbar */}
       <div
-        className="flex gap-1 overflow-x-auto pb-1"
-        style={{ scrollbarWidth: "none" }}
+        className="flex gap-1.5 overflow-x-auto pb-0.5"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {categories.map((cat) => (
           <button
@@ -72,7 +72,6 @@ export default function ScoutPromptTabs({ onSelectPrompt }: ScoutPromptTabsProps
             style={{
               background: activeTab === cat ? "#3B5A82" : "#F1F5F9",
               color: activeTab === cat ? "#FFFFFF" : "#6B7280",
-              fontFamily: "Inter, sans-serif",
             }}
             onMouseEnter={(e) => {
               if (activeTab !== cat) {
@@ -92,18 +91,17 @@ export default function ScoutPromptTabs({ onSelectPrompt }: ScoutPromptTabsProps
         ))}
       </div>
 
-      {/* Prompt cards */}
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      {/* Prompt cards — single column on mobile, 2-col on sm+ */}
+      <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
         {prompts[activeTab].map((prompt, i) => (
           <button
             key={i}
             onClick={() => onSelectPrompt(prompt)}
-            className="rounded-xl px-4 py-3 text-left text-sm leading-relaxed transition-colors"
+            className="rounded-xl px-3 py-2.5 text-left text-xs leading-relaxed transition-colors sm:px-4 sm:py-3 sm:text-sm active:scale-[0.98]"
             style={{
               background: "#F8FAFC",
               border: "1px solid #F1F5F9",
               color: "#6B7280",
-              fontFamily: "Inter, sans-serif",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "#F1F5F9"
