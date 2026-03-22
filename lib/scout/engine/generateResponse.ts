@@ -9,16 +9,20 @@
  * 3. Check escalation rules (hand off if needed)
  * 4. Build context-aware prompt
  * 5. Generate response via LLM
- * 6. Run response through guardrails (compliance + conversion + tone)
- * 7. Final validation
- * 8. Return safe, compliant, conversion-focused response
+ * 6. Run response through guardrails:
+ *    6a. enforceScheduling — intercept false booking confirmations → Calendly push
+ *    6b. validateResponse  — compliance + tone + length
+ *    6c. enforceConversion — append CTA if forward motion is missing
+ * 7. Return safe, compliant, conversion-focused response
  *
  * Nothing bypasses this pipeline. Every channel uses it.
  *
- * AUDIT FIXES (v2):
- * - Removed dead mapChannel identity function.
- * - guardrailLevel from classification now adjusts LLM temperature
- *   and max_tokens (tighter at elevated/maximum levels).
+ * SCHEDULING FIX:
+ * - enforceScheduling() added as Step 6a.
+ * - Catches any LLM response that falsely confirms a meeting.
+ * - Also detects user scheduling intent (time/day signals) and ensures
+ *   the Calendly link is present in the response.
+ * - A call is only booked when the user completes a Calendly event.
  */
 
 import OpenAI from "openai";
@@ -29,7 +33,7 @@ import {
 import { checkInboundCompliance } from "../guardrails/complianceRules";
 import { checkEscalation } from "../guardrails/escalationRules";
 import { validateResponse } from "../guardrails/responseValidator";
-import { enforceConversion } from "../guardrails/conversionRules";
+import { enforceConversion, enforceScheduling } from "../guardrails/conversionRules";
 import { classifyMessage, type Classification, type GuardrailLevel } from "./decisionTree";
 import { FALLBACKS } from "../config/scoutConfig";
 
@@ -149,18 +153,13 @@ export async function generateScoutResponse(
 
     // ── Step 2: Inbound compliance check ──
     // Catch risky topics BEFORE they reach the LLM.
-    // v3: Uses fallbackOverride for neighborhood-specific safe rewrite.
-    //     Runs conversion enforcement so CTA is always present.
     const inboundCheck = checkInboundCompliance(request.message);
     if (inboundCheck.requiresDeflection) {
       guardrailsApplied.push(
         `inbound_deflection:${inboundCheck.deflectionReason}`
       );
 
-      // Use specific fallback if provided, otherwise generic
       const baseFallback = inboundCheck.fallbackOverride ?? FALLBACKS.compliance;
-
-      // Ensure CTA is present on the deflection response
       const conversion = enforceConversion(baseFallback);
       const finalText = conversion.hasForwardMotion
         ? baseFallback
@@ -179,7 +178,6 @@ export async function generateScoutResponse(
     }
 
     // ── Step 3: Escalation check ──
-    // Detect if this requires a licensed agent
     const escalation = checkEscalation(request.message);
     if (escalation.shouldEscalate && escalation.level === "hard") {
       guardrailsApplied.push(`escalation:hard:${escalation.reason}`);
@@ -203,27 +201,38 @@ export async function generateScoutResponse(
       request.context
     );
 
-    // If soft escalation, add instruction to include agent handoff
     if (escalation.level === "soft") {
       userPrompt +=
         '\nIMPORTANT: Include an offer to connect them with their agent. Example: "I\'ll have your agent reach out to help with that."';
     }
 
     // ── Step 5: Generate LLM response ──
-    // guardrailLevel now controls temperature and token limits
     let llmResponse = await callLLM(
       systemPrompt,
       userPrompt,
       classification.guardrailLevel
     );
 
-    // Empty response fallback
     if (!llmResponse) {
       guardrailsApplied.push("llm:empty_response");
       llmResponse = FALLBACKS.uncertain;
     }
 
-    // ── Step 6: Run through guardrails ──
+    // ── Step 6a: Scheduling guardrail — MUST RUN BEFORE ALL OTHER GUARDRAILS ──
+    // Detects false booking confirmations (e.g. "We'll schedule a call",
+    // "Expect to hear from us") and replaces them with a Calendly push.
+    // Also detects user scheduling intent (time/day signals) and ensures
+    // the Calendly link is present in the response.
+    // A call is only booked when the user completes a Calendly event.
+    const schedulingCheck = enforceScheduling(llmResponse, request.message);
+    if (schedulingCheck.hadFalseConfirmation) {
+      guardrailsApplied.push("scheduling:false_confirmation_replaced");
+    } else if (schedulingCheck.finalResponse !== llmResponse) {
+      guardrailsApplied.push("scheduling:calendly_link_appended");
+    }
+    llmResponse = schedulingCheck.finalResponse;
+
+    // ── Step 6b: Compliance + tone validation ──
     const validation = validateResponse(llmResponse, request.channel);
     guardrailsApplied.push(...validation.modifications);
 
@@ -235,7 +244,6 @@ export async function generateScoutResponse(
       guardrailsApplied,
     };
   } catch {
-    // Failsafe — never leave the user hanging
     guardrailsApplied.push("error:pipeline_failure");
     return {
       text: FALLBACKS.error,
