@@ -31,7 +31,18 @@ export const runtime = "nodejs"
 //   reset drip_step or drip_unsubscribed. This prevents duplicate emails from
 //   re-entering the drip from Day 1 when the lead has already received some emails.
 //   If drip_step is null/0, they haven't started drip yet — safe to write full record.
+//
+// TA-1: Email 1 fires here, not in the drip cron.
+//   The drip cron fires at 8 AM ET — that means Email 1 can be 8–20+ hours after
+//   the call ends depending on time of day. Post-call momentum peaks in the first
+//   few hours. Email 1 now fires directly from this webhook when invitee.created
+//   fires (booking confirmed). The drip cron Day 1 step has been removed.
+//   For re-bookings (drip_step > 0), Email 1 is NOT resent.
 // ─────────────────────────────────────────────────────────────────────────────
+
+const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet"
+const FROM_EMAIL    = "Tom Songer <tom@joinbearteam.com>"
+const REPLY_TO      = "thomas.songer@gmail.com"
 
 function verifyCalendlySignature(
   rawBody: string,
@@ -194,6 +205,42 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ── TA-1: Email 1 — send immediately on booking confirmation ──────────────
+    // Fires within seconds of invitee.created. For new leads only (drip_step = 0).
+    // Re-bookings (drip_step > 0) skip this — they're mid-sequence already.
+    if (process.env.RESEND_API_KEY && !isRebooking) {
+      const firstName = name?.split(" ")[0] || "there"
+      // Fetch lead record to get deal_count, avg_price, notes for personalization
+      let leadRecord: Record<string, string | number | boolean | null> = { name, email }
+      if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+        const { data: freshLead } = await createClient(
+          process.env.SUPABASE_URL,
+          process.env.SUPABASE_ANON_KEY
+        ).from("leads").select("*").eq("email", email.toLowerCase().trim()).maybeSingle()
+        if (freshLead) leadRecord = freshLead
+      }
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        replyTo: REPLY_TO,
+        to: email,
+        subject: "Great talking with you today",
+        html: buildEmail1(firstName, leadRecord),
+        tags: [{ name: "drip_step", value: "1" }, { name: "sequence", value: "drip" }],
+      }).catch((err: unknown) => console.error("Email 1 send error:", err))
+
+      // Mark drip_step = 1 so the drip cron (which now starts at Day 3) doesn't resend
+      if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+        await createClient(
+          process.env.SUPABASE_URL,
+          process.env.SUPABASE_ANON_KEY
+        ).from("leads").update({
+          drip_step: 1,
+          drip_last_sent_at: new Date().toISOString(),
+        }).eq("email", email.toLowerCase().trim())
+      }
+    }
+
     // ── Send email to Tom ──────────────────────────────────────────────────────
     if (process.env.RESEND_API_KEY && process.env.NOTIFY_EMAIL) {
       const resend = new Resend(process.env.RESEND_API_KEY)
@@ -238,5 +285,105 @@ export async function POST(req: NextRequest) {
     console.error("Booking webhook error:", error)
     return NextResponse.json({ ok: false }, { status: 500 })
   }
+}
+
+// ─── EMAIL 1 BUILDER ─────────────────────────────────────────────────────────
+// Mirror of drip/route.ts Email 1 — kept in sync manually.
+// If you update the Email 1 copy in the drip cron, update this too.
+
+function buildEmail1(
+  firstName: string,
+  lead: Record<string, string | number | boolean | null>
+): string {
+  const dealCount = lead.deal_count as number | null
+  const avgPrice  = (lead.avg_price as number) || 415000
+  const notes     = (lead.notes as string) || ""
+  const leadId    = (lead.id as string) || undefined
+
+  let mathBlock = ""
+  if (dealCount && dealCount > 0) {
+    const gci           = avgPrice * 0.025
+    const bearTeamNet60 = gci * 0.6 * dealCount
+    const bearTeamNet70 = gci * 0.7 * dealCount
+    const fees          = dealCount * 150
+    const priceLabel    = (lead.avg_price as number) ? `$${avgPrice.toLocaleString()} avg` : `$${avgPrice.toLocaleString()} Orlando avg`
+    mathBlock = `
+    <div style="background:#f8f4e8;border-left:4px solid #c9a84c;padding:16px 20px;margin:20px 0;border-radius:4px;">
+      <p style="margin:0 0 8px;font-weight:600;color:#1a1a1a;">Your numbers at Bear Team — ${dealCount} deals · ${priceLabel}:</p>
+      <p style="margin:0 0 4px;color:#333;">GCI per deal: $${Math.round(gci).toLocaleString()}</p>
+      <p style="margin:0 0 4px;color:#333;">Your net at Tier 1 (60/40): $${Math.round(bearTeamNet60 - fees).toLocaleString()} after $150/deal fee</p>
+      <p style="margin:0 0 4px;color:#333;">Your net at Tier 2 (70/30): $${Math.round(bearTeamNet70 - fees).toLocaleString()} — kicks in at $16K company dollar</p>
+      <p style="margin:0 0 4px;color:#888;font-size:13px;">Zero monthly fees. Zero desk fees. Zero E&O. Only pay when you close.</p>
+      <p style="margin:0;color:#aaa;font-size:11px;">Estimates based on information you provided. Actual earnings will vary based on transaction volume, sale price, and other factors.</p>
+    </div>`
+  }
+
+  let notesCallout = ""
+  if (notes && notes.length > 10) {
+    notesCallout = `
+    <div style="background:#f0f4ff;border-left:4px solid #3b82f6;padding:14px 18px;margin:16px 0;border-radius:4px;">
+      <p style="margin:0 0 6px;font-weight:600;color:#1e3a8a;font-size:13px;">FROM OUR CHAT BEFORE THE CALL</p>
+      <p style="margin:0;color:#374151;font-size:14px;line-height:1.6;">${notes}</p>
+    </div>`
+  }
+
+  const body = `<p>Hey ${firstName},</p>
+    <p>Really enjoyed our conversation today. I want to make sure you have everything you need to think it through clearly.</p>
+    ${notesCallout}
+    <p>Here's the short version of what we covered:</p>
+    <ul style="color:#333;line-height:1.8;">
+      <li>Progressive tiers: 60/40 → 70/30 → 80/20 → 90/10</li>
+      <li>$16K company dollar cap = automatic tier promotion, not a ceiling</li>
+      <li>Zero monthly fees, zero desk fees, zero E&O costs</li>
+      <li>$150 flat per closing — same whether it's $200K or $2M</li>
+    </ul>
+    ${mathBlock}
+    <p>If any questions came up after we hung up, just reply here — or if you'd rather talk it through, grab 15 minutes whenever it works: <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">Schedule a call →</a></p>`
+
+  return wrapEmailBooking(body, leadId)
+}
+
+function wrapEmailBooking(body: string, leadId?: string): string {
+  const unsubLink = leadId
+    ? `<a href="https://joinbearteam.com/api/unsubscribe?id=${leadId}" style="color:#aaa;text-decoration:underline;">Unsubscribe</a>`
+    : `<span style="color:#aaa;">Reply "stop" to unsubscribe</span>`
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 560px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .header { background: #1a1a1a; padding: 24px 36px; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 18px; font-weight: 600; }
+    .header span { color: #c9a84c; }
+    .body { padding: 32px 36px; color: #333; font-size: 15px; line-height: 1.7; }
+    .body p { margin: 0 0 16px; }
+    .body ul { margin: 0 0 16px; padding-left: 24px; }
+    .footer { padding: 20px 36px; border-top: 1px solid #f0f0f0; }
+    .footer p { color: #888; font-size: 13px; margin: 0 0 4px; }
+    .sig { margin-top: 24px; padding-top: 16px; border-top: 1px solid #f0f0f0; }
+    .sig p { color: #555; font-size: 14px; margin: 0 0 2px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header"><h1>Bear <span>Team</span> Real Estate</h1></div>
+    <div class="body">
+      ${body}
+      <div class="sig">
+        <p><strong>Tom Songer</strong></p>
+        <p>Team Lead | Bear Team Real Estate</p>
+        <p>407-758-8102 | joinbearteam.com</p>
+      </div>
+    </div>
+    <div class="footer">
+      <p>Bear Team Real Estate · Orlando, FL</p>
+      <p style="font-size:12px;color:#aaa;">${unsubLink}</p>
+    </div>
+  </div>
+</body>
+</html>`.trim()
 }
 
