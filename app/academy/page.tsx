@@ -515,6 +515,44 @@ export default function AcademyPage() {
         </div>
       </div>
 
+      {/* ── WHAT SCOUT CAN DO FOR YOU ── */}
+      <div style={{ background: "#fff", padding: "clamp(48px,8vw,72px) clamp(16px,5vw,24px)" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 44 }}>
+            <p style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#1b365d", marginBottom: 10 }}>Built For Producing Agents</p>
+            <h2 style={{ fontSize: "clamp(1.4rem, 4vw, 1.8rem)", fontWeight: 800, color: "#1a1a1a", marginBottom: 12 }}>What Scout Can Do For You</h2>
+            <p style={{ color: "#6b7280", maxWidth: 500, margin: "0 auto", fontSize: "0.95rem", lineHeight: 1.65 }}>
+              Scout isn&apos;t a chatbot. It&apos;s a production tool. Every output is built around Bear Team systems and the Orlando market.
+            </p>
+          </div>
+          <div className="courses-grid">
+            {[
+              { icon: "✉️", title: "Follow-Up Sequences", body: "Give Scout a lead situation. Get a personalized 5-touch email and text sequence — ready to send, not ready to rewrite." },
+              { icon: "📊", title: "Commission Calculator", body: "Input your split and volume. Scout shows your exact net at Bear Team vs. your current brokerage — no guessing." },
+              { icon: "🏡", title: "Listing Presentation Script", body: "Input the address and objections. Scout builds your custom talking track with pricing rationale and closes." },
+              { icon: "📍", title: "Geo Farm Scripts", body: "Input a neighborhood. Scout writes the door-knock script, mailer copy, and follow-up text in under 60 seconds." },
+              { icon: "📅", title: "Weekly Business Audit", body: "Tell Scout your week. It diagnoses your bottleneck — calls, appointments, contracts — and tells you exactly what to fix." },
+              { icon: "🔄", title: "Sphere Reactivation", body: "Pick a contact type. Scout writes the re-engagement message positioned for the Orlando market right now." },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="course-card"
+                style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 14, padding: "22px 20px" }}
+              >
+                <div style={{ fontSize: "1.4rem", marginBottom: 10 }}>{item.icon}</div>
+                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>{item.title}</div>
+                <div style={{ fontSize: "0.83rem", color: "#6b7280", lineHeight: 1.65 }}>{item.body}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign: "center", marginTop: 44 }}>
+            <a href="/chat" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#1b365d", color: "#fff", textDecoration: "none", fontWeight: 700, padding: "14px 36px", borderRadius: 10, fontSize: "0.95rem", minHeight: 44 }}>
+              Try Scout Now
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* CTA */}
       <div style={{ background: "#fff", padding: "clamp(48px,8vw,64px) clamp(16px,5vw,24px)", textAlign: "center" }}>
         <h2 style={{ fontSize: "1.8rem", fontWeight: 800, color: "#1a1a1a", marginBottom: 12 }}>Ready to See If Bear Team Is the Right Fit?</h2>
