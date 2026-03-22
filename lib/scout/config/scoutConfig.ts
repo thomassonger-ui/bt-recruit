@@ -113,6 +113,14 @@ export const SCHEDULING_FORBIDDEN_PATTERNS: ReadonlyArray<{
   { pattern: /let me (?:arrange|set that up)/i, label: "false_arrange_confirm" },
   { pattern: /call (?:is |has been )?(?:scheduled|confirmed|set)/i, label: "false_booking_confirm" },
   { pattern: /meeting (?:is |has been )?(?:scheduled|confirmed|set)/i, label: "false_booking_confirm" },
+  // Additional patterns — catches "I'll notify Tom Songer", "I'll pass your info", "I'll have Tom reach out"
+  { pattern: /i'?ll (?:notify|inform|contact|tell|let) .{0,30} (?:know|reach out|contact)/i, label: "false_notify_promise" },
+  { pattern: /i'?ll pass (?:your|the|their) (?:contact|info|number|details|information)/i, label: "false_info_pass" },
+  { pattern: /i'?ll (?:have|get) (?:tom|someone|a team member|the team|beth)/i, label: "false_team_promise" },
+  { pattern: /(?:tom|bethanne|the team|someone from bear team) will (?:reach out|call|contact|be in touch)/i, label: "false_followup_promise" },
+  { pattern: /(?:reach out|be in touch|contact you) (?:tomorrow|today|this week|shortly|soon)/i, label: "false_followup_promise" },
+  { pattern: /i'?ll (?:make sure|ensure) (?:tom|someone|the team)/i, label: "false_team_promise" },
+  { pattern: /(?:set up|arrange|coordinate) (?:a |the )?(?:call|meeting|appointment) for you/i, label: "false_arrange_confirm" },
 ] as const;
 
 /* ── Protected class references — Fair Housing Act ──
