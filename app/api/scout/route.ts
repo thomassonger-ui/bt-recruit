@@ -342,10 +342,12 @@ async function saveLeadToSupabase(ctx: RecruitContext): Promise<void> {
     };
 
     // Upsert on email if available, otherwise insert
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = supabase as any;
     if (ctx.contactEmail) {
-      await supabase.from("leads").upsert(payload, { onConflict: "email" });
+      await db.from("leads").upsert(payload, { onConflict: "email" });
     } else {
-      await supabase.from("leads").insert(payload);
+      await db.from("leads").insert(payload);
     }
   } catch (err) {
     console.error("[scout] Supabase save error:", err);
@@ -452,3 +454,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ reply: FALLBACKS.error }, { status: 500 });
   }
 }
+
