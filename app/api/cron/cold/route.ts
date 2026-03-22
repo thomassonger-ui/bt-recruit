@@ -118,11 +118,12 @@ export async function GET(req: NextRequest) {
       ? `Checking back in — still exploring options?`
       : `Still open to a quick conversation?`;
 
+    const leadId = (lead as { id?: string }).id;
     const html = isRecovery
-      ? buildFinalRecoveryEmail(firstName, (lead as { brokerage?: string }).brokerage)
+      ? buildFinalRecoveryEmail(firstName, (lead as { brokerage?: string }).brokerage, leadId)
       : isStalled
-      ? buildStalledEmail(firstName, (lead as { brokerage?: string }).brokerage)
-      : buildColdEmail(firstName);
+      ? buildStalledEmail(firstName, (lead as { brokerage?: string }).brokerage, leadId as string | undefined)
+      : buildColdEmail(firstName, leadId);
 
     try {
       await getResend().emails.send({
@@ -217,8 +218,11 @@ export async function GET(req: NextRequest) {
   });
 }
 
-function buildFinalRecoveryEmail(firstName: string, brokerage?: string): string {
+function buildFinalRecoveryEmail(firstName: string, brokerage?: string, leadId?: string): string {
   const brokerageRef = brokerage ? ` at ${brokerage}` : "";
+  const unsubLink = leadId
+    ? `<a href="https://joinbearteam.com/api/unsubscribe?id=${leadId}" style="color:#aaa;font-size:11px;text-decoration:underline;">Unsubscribe</a>`
+    : `<span style="color:#aaa;font-size:11px;">Reply "stop" to opt out</span>`;
   return `
     <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
       <p>Hi ${firstName},</p>
@@ -229,18 +233,21 @@ function buildFinalRecoveryEmail(firstName: string, brokerage?: string): string 
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes →</a></p>
       <p>Either way, good luck with your production. Orlando is a strong market right now.</p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
+      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;">${unsubLink}</p>
     </div>`;
 }
 
-function buildColdEmail(firstName: string): string {
+function buildColdEmail(firstName: string, leadId?: string): string {
   // Messaging fix: cut "I know you're busy" (generic recruiter opener).
   // Opens with a specific fee number to surface the pain point immediately.
-  // Second paragraph names the big-box invisibility problem explicitly —
-  // that's the emotional trigger most agents don't articulate until someone holds up the mirror.
+  // C-3 compliance fix: "typically" added to fee range claim.
+  const unsubLink = leadId
+    ? `<a href="https://joinbearteam.com/api/unsubscribe?id=${leadId}" style="color:#aaa;font-size:11px;text-decoration:underline;">Unsubscribe</a>`
+    : `<span style="color:#aaa;font-size:11px;">Reply "stop" to opt out</span>`;
   return `
     <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
       <p>Hi ${firstName},</p>
-      <p>One number most agents never calculate: what they're paying their brokerage before a single deal closes this year. Monthly fees, desk fees, tech fees, E&O — at most brokerages that's $3,000–$6,000 out of pocket before your first commission check hits.</p>
+      <p>One number most agents never calculate: what they're paying their brokerage before a single deal closes this year. Monthly fees, desk fees, tech fees, E&O — at most major brokerages that's typically $3,000–$6,000 out of pocket before your first commission check hits.</p>
       <p>I'm Tom Songer, Team Lead at <strong>Bear Team Real Estate</strong> in Orlando. We're a boutique brokerage built for producing agents who are tired of being a revenue unit at a big box — agents who know what they're doing and want a platform that gets out of the way.</p>
       <ul>
         <li>Progressive tiers: 60/40 &rarr; 70/30 &rarr; 80/20 &rarr; 90/10</li>
@@ -251,11 +258,15 @@ function buildColdEmail(firstName: string): string {
       <p>If you want to run your numbers side by side — takes 10 minutes:</p>
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes</a></p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
+      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;">${unsubLink}</p>
     </div>`;
 }
 
-function buildStalledEmail(firstName: string, brokerage?: string): string {
+function buildStalledEmail(firstName: string, brokerage?: string, leadId?: string): string {
   const brokerageRef = brokerage ? ` at ${brokerage}` : "";
+  const unsubLink = leadId
+    ? `<a href="https://joinbearteam.com/api/unsubscribe?id=${leadId}" style="color:#aaa;font-size:11px;text-decoration:underline;">Unsubscribe</a>`
+    : `<span style="color:#aaa;font-size:11px;">Reply "stop" to opt out</span>`;
   return `
     <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
       <p>Hi ${firstName},</p>
@@ -271,5 +282,6 @@ function buildStalledEmail(firstName: string, brokerage?: string): string {
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes</a></p>
       <p>If the timing still isn't right, just let me know — I'll follow up when it makes more sense.</p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
+      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;">${unsubLink}</p>
     </div>`;
 }
