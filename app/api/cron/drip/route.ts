@@ -217,6 +217,8 @@ function buildDripEmail(
 
   const emails = [
     // Email 1 — Day 1: Recap + math + Scout notes callback
+    // Conversion fix: added quiet Calendly link — highest open rate in sequence,
+    // agents who are ready often decide within 24h of the call.
     `<p>Hey ${firstName},</p>
     <p>Really enjoyed our conversation today. I want to make sure you have everything you need to think it through clearly.</p>
     ${notesCallout}
@@ -228,16 +230,18 @@ function buildDripEmail(
       <li>$150 flat per closing — same whether it's $200K or $2M</li>
     </ul>
     ${mathBlock}
-    <p>If any questions came up after we hung up, just reply here. I'm easy to reach.</p>`,
+    <p>If any questions came up after we hung up, just reply here — or if you'd rather talk it through, grab 15 minutes whenever it works: <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">Schedule a call →</a></p>`,
 
     // Email 2 — Day 3: The number most agents miss — personalized with their avg_price
+    // Conversion fix: math now lands on a specific call ask instead of a rhetorical
+    // question. The math earns the right to ask — the old copy let that moment expire.
     `<p>Hey ${firstName},</p>
     <p>One thing I didn't spend enough time on in our call — the number most agents never actually calculate:</p>
     <p><strong>What are you paying your brokerage every year in fees before a single deal closes?</strong></p>
     <p>At most brokerages, that number is $1,200–$3,600/year in monthly fees alone. Add desk fees, tech fees, E&O — you're often at $4,000–$6,000 out of pocket before your first commission check.</p>
     <p>At Bear Team: <strong>$0</strong>. The only time money leaves your pocket is when a deal closes — $150 flat.</p>
     ${mathBlock}
-    <p>If you're at ${brokerage}, what does that number actually look like for you? Worth running the math before you decide anything.</p>`,
+    <p>If you're at ${brokerage}, I can run your exact numbers in about 10 minutes. No pitch — just the math side by side so you can make the call yourself: <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">Grab a slot →</a></p>`,
 
     // Email 3 — Day 7: Social proof
     `<p>Hey ${firstName},</p>
@@ -248,6 +252,8 @@ function buildDripEmail(
     <p>Is there anything specific that's still giving you pause? I'd rather answer it directly than let it sit.</p>`,
 
     // Email 4 — Day 10: Objection handling — uses Scout-captured objection if available
+    // Conversion fix: objection handling now pivots to a direct re-booking ask.
+    // Old ending gave an off-ramp with no Calendly link — earned the close, didn't take it.
     `<p>Hey ${firstName},</p>
     ${objectionLine}
     <p>I'll be direct — when agents go quiet at this stage, it's usually one of three things:</p>
@@ -256,8 +262,8 @@ function buildDripEmail(
       <li><strong>"I'm worried about my clients"</strong> — Your license, database, and relationships are yours. The brokerage cannot hold them.</li>
       <li><strong>"The brand matters to my clients"</strong> — How many clients chose you because of the flag vs. because of you? Most producers are the brand.</li>
     </ol>
-    <p>If it's something else entirely, just tell me. I'd rather have a straight conversation than send another email.</p>
-    <p>If the timing isn't right, that's a real answer too — just let me know and I'll follow up when it makes sense.</p>`,
+    <p>If one of those landed, let's talk it through directly. 15 minutes, no pitch: <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">Schedule a call →</a></p>
+    <p>If the timing genuinely isn't right, just reply and tell me — I'd rather know than guess.</p>`,
 
     // Email 5 — Day 14: Final soft close
     `<p>Hey ${firstName},</p>
@@ -351,3 +357,4 @@ function buildTomDripSummary(results: Array<{ email: string; name: string; drip_
 </body>
 </html>`.trim();
 }
+
