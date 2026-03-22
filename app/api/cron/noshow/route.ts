@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
       }
 
       // ── Email to recruit ──────────────────────────────────────────────────
-      const recruitEmail = buildRecruitEmail(firstName, lead.email);
+      const recruitEmail = buildRecruitEmail(firstName, lead.email, lead.id as string);
       const { error: recruitEmailError } = await getResend().emails.send({
         from: FROM_EMAIL,
         replyTo: REPLY_TO, // Fix: agents who want to reschedule now have somewhere to reply
@@ -129,7 +129,10 @@ export async function GET(req: NextRequest) {
 
 // ─── EMAIL TEMPLATES ──────────────────────────────────────────────────────────
 
-function buildRecruitEmail(firstName: string, email: string): string {
+function buildRecruitEmail(firstName: string, email: string, leadId?: string): string {
+  const unsubLink = leadId
+    ? `<a href="https://joinbearteam.com/api/unsubscribe?id=${leadId}" style="color:#aaa;text-decoration:underline;">Unsubscribe</a>`
+    : `<span style="color:#aaa;">Reply "stop" to opt out</span>`;
   return `
 <!DOCTYPE html>
 <html>
@@ -167,6 +170,7 @@ function buildRecruitEmail(firstName: string, email: string): string {
     </div>
     <div class="footer">
       <p>Bear Team Real Estate · Orlando, FL · joinbearteam.com</p>
+      <p style="font-size:12px;color:#aaa;margin-top:4px;">${unsubLink}</p>
     </div>
   </div>
 </body>
