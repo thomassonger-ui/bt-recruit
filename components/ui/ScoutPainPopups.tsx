@@ -12,9 +12,6 @@ const PAIN_POINTS = [
   "Fees go up, support stays missing",
 ];
 
-// Slots confined to TOP-RIGHT corner of hero only
-// Hero is 100svh — the Scout card occupies roughly the right 50% from ~30% down
-// These slots stay in the top 28% of the hero on the right edge — safe zone
 const SLOTS = [
   { top: "8%",  right: "2%" },
   { top: "16%", right: "2%" },
@@ -36,9 +33,15 @@ export default function ScoutPainPopups() {
     let painIdx = 0;
     let slotIdx = 0;
     const occupiedSlots = new Set<number>();
+    let intervalRef: ReturnType<typeof setInterval> | null = null;
 
     function spawnBalloon() {
-      // Max 1 visible at a time to avoid any stacking overlap
+      // All pain points shown — stop completely
+      if (painIdx >= PAIN_POINTS.length) {
+        if (intervalRef) clearInterval(intervalRef);
+        return;
+      }
+
       if (occupiedSlots.size >= 1) return;
 
       let slotIndex = slotIdx % SLOTS.length;
@@ -52,7 +55,7 @@ export default function ScoutPainPopups() {
       occupiedSlots.add(slotIndex);
 
       const id = idCounter++;
-      const text = PAIN_POINTS[painIdx % PAIN_POINTS.length];
+      const text = PAIN_POINTS[painIdx];
       painIdx++;
 
       setBalloons(prev => [...prev, { id, text, slotIndex, visible: false }]);
@@ -79,11 +82,13 @@ export default function ScoutPainPopups() {
 
     const start = setTimeout(() => {
       spawnBalloon();
-      const interval = setInterval(spawnBalloon, 3400);
-      return () => clearInterval(interval);
+      intervalRef = setInterval(spawnBalloon, 3400);
     }, 1400);
 
-    return () => clearTimeout(start);
+    return () => {
+      clearTimeout(start);
+      if (intervalRef) clearInterval(intervalRef);
+    };
   }, []);
 
   if (balloons.length === 0) return null;
@@ -100,7 +105,6 @@ export default function ScoutPainPopups() {
         }
         .spb.show { opacity: 1; transform: translateY(0); }
         .spb.hide { opacity: 0; transform: translateY(8px); }
-
         .spb-inner {
           position: relative;
           background: rgba(8, 20, 46, 0.85);
@@ -113,7 +117,6 @@ export default function ScoutPainPopups() {
           word-wrap: break-word;
           overflow-wrap: break-word;
         }
-        /* Tail pointing left toward content */
         .spb-inner::after {
           content: "";
           position: absolute;
@@ -135,8 +138,6 @@ export default function ScoutPainPopups() {
           white-space: normal;
           word-break: break-word;
         }
-
-        /* Mobile — hide entirely to avoid any overlap on small screens */
         @media (max-width: 767px) {
           .spb { display: none; }
         }
