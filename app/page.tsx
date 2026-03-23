@@ -1342,9 +1342,8 @@ function SystemShowcase() {
           label="Agent Training Platform"
           title="Bear Academy"
           description="A full LMS built on Moodle. Structured 30-60-90 day certification tracks, deal walkthroughs, and ongoing CE — completely free for every Bear Team agent."
-          href="https://youtu.be/o8q68ONEMnk"
+          href="/academy"
           external={false}
-          videoModal="o8q68ONEMnk"
           visual={<AcademyVisual />}
           isLast={true}
         />
