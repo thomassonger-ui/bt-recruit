@@ -1,7 +1,42 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { Resend } from "resend"
 import { createHmac, timingSafeEqual } from "crypto"
+
+
+// ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
+async function sendEmail({
+  to, from: fromAddr, replyTo, subject, html, tags
+}: {
+  to: string
+  from: string
+  replyTo?: string
+  subject: string
+  html: string
+  tags?: { name: string; value: string }[]
+}): Promise<void> {
+  const apiKey = process.env.SENDGRID_API_KEY
+  if (!apiKey) { console.error("[sendEmail] SENDGRID_API_KEY not set"); return }
+  const body: Record<string, unknown> = {
+    personalizations: [{ to: [{ email: to }] }],
+    from: { email: fromAddr },
+    subject,
+    content: [{ type: "text/html", value: html }],
+  }
+  if (replyTo) body.reply_to = { email: replyTo }
+  if (tags?.length) body.categories = tags.map(t => t.value)
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    console.error(`[sendEmail] SendGrid error ${res.status}:`, errText)
+  } else {
+    console.log(`[sendEmail] Sent OK to ${to} (${subject.slice(0,40)})`)
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -302,7 +337,7 @@ export async function POST(req: NextRequest) {
 
       // Send booking confirmation email directly after upsert — no verifyWrite gate
       console.log(`[booking-webhook] isRebooking=${isRebooking} email=${email} hasResendKey=${!!process.env.RESEND_API_KEY}`)
-      if (process.env.RESEND_API_KEY && !isRebooking && email) {
+      if (!isRebooking && email) {
         const firstName = name?.split(" ")[0] || "there"
         // Fetch lead for personalization
         let leadRecord: Record<string, string | number | boolean | null> = { name, email }
@@ -314,7 +349,7 @@ export async function POST(req: NextRequest) {
         if (freshLead) leadRecord = freshLead
 
         const resend = new Resend(process.env.RESEND_API_KEY)
-        const confirmResult = await resend.emails.send({
+        await sendEmail({
           from: FROM_EMAIL,
           replyTo: REPLY_TO,
           to: email,
@@ -322,29 +357,22 @@ export async function POST(req: NextRequest) {
           html: buildBookingConfirmationEmail(firstName, leadRecord, formattedTime),
           tags: [{ name: "sequence", value: "booking_confirmation" }],
         })
-        if (confirmResult.error) {
-          console.error("[booking-webhook] Confirmation email FAILED:", JSON.stringify(confirmResult.error))
-        } else {
-          console.log(`[booking-webhook] Confirmation email sent OK to ${email} id=${confirmResult.data?.id}`)
-        }
       }
-    } else if (process.env.RESEND_API_KEY && !isRebooking && email) {
+    } else if (!isRebooking && email) {
       // No Supabase — send confirmation anyway
       const firstName = name?.split(" ")[0] || "there"
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      await resend.emails.send({
+      await sendEmail({
         from: FROM_EMAIL,
         replyTo: REPLY_TO,
         to: email,
         subject: `Looking forward to our call, ${firstName}`,
         html: buildBookingConfirmationEmail(firstName, { name, email }, formattedTime),
-      }).catch((err: unknown) => console.error("Booking confirmation fallback error:", err))
+      })
     }
 
     // ── Send email to Tom ──────────────────────────────────────────────────────
-    if (process.env.RESEND_API_KEY && process.env.NOTIFY_EMAIL) {
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      const tomAlertResult = await resend.emails.send({
+    if (process.env.NOTIFY_EMAIL) {
+      const tomAlertResult = await sendEmail({
         from: "Scout <tom@bearteam.com>",
         to: process.env.NOTIFY_EMAIL,
         subject: `📞 Call booked — ${name} · ${formattedTime}`,
@@ -378,11 +406,7 @@ export async function POST(req: NextRequest) {
           </div>
         `,
       })
-      if (tomAlertResult.error) {
-        console.error("[booking-webhook] Tom alert email FAILED:", JSON.stringify(tomAlertResult.error))
-      } else {
-        console.log(`[booking-webhook] Tom alert sent OK to ${process.env.NOTIFY_EMAIL}`)
-      }
+
     }
 
     return NextResponse.json({ ok: true })
