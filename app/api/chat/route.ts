@@ -275,8 +275,12 @@ export async function POST(req: NextRequest) {
       .reverse()
       .find((m) => m.role === "user")?.content?.toLowerCase() || "";
 
-    // Determine email — explicit body param takes priority over extracted
-    const emailFromMessage = extractEmail(firstUserMessage) || extractEmail(lastUserMessage);
+    // Scan ALL user messages for email — email is often provided mid-conversation
+    const allUserText = chatMessages
+      .filter(m => m.role === "user")
+      .map(m => m.content)
+      .join(" ");
+    const emailFromMessage = extractEmail(allUserText) || extractEmail(firstUserMessage) || extractEmail(lastUserMessage);
     const resolvedEmail = bodyEmail || emailFromMessage;
 
     if (resolvedEmail) {
