@@ -22,6 +22,7 @@ import HeroPromptInput from "@/components/ui/HeroPromptInput";
 import TryScout from "@/components/ui/TryScout";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
+import ScoutPainPopups from "@/components/ui/ScoutPainPopups";
 
 /* ── Animation helpers ── */
 const fadeUp = {
@@ -502,6 +503,8 @@ function HeroParallaxContent() {
       <div className="hidden md:block">
         <BearAnimation />
       </div>
+      {/* Pain point popups — overlay only, no hero changes */}
+      <ScoutPainPopups />
     </section>
   );
 }
