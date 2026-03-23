@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { Resend } from "resend";
 import { verifyWrite } from "@/lib/db/verifyWrite";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +13,7 @@ function getSupabase() {
   );
 }
 
-function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
+function getResend() { return { emails: { send: sendEmail } } as any // replaced; }
 
 const TOM_EMAIL = "tom@bearteam.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
@@ -61,6 +60,40 @@ const DRIP_SCHEDULE = [
   { day: 10, emailIndex: 3, subject: "Still thinking it over?",                   anchorField: "drip_last_sent_at"  },
   { day: 14, emailIndex: 4, subject: "Last one from me, [firstName]",             anchorField: "drip_last_sent_at"  },
 ];
+
+
+// ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
+async function sendEmail({
+  to, from: fromAddr, replyTo, subject, html
+}: {
+  to: string
+  from: string
+  replyTo?: string
+  subject: string
+  html: string
+}): Promise<void> {
+  const apiKey = process.env.SENDGRID_API_KEY
+  if (!apiKey) { console.error("[sendEmail] SENDGRID_API_KEY not set"); return }
+  const body: Record<string, unknown> = {
+    personalizations: [{ to: [{ email: to }] }],
+    from: { email: fromAddr },
+    subject,
+    content: [{ type: "text/html", value: html }],
+  }
+  if (replyTo) body.reply_to = { email: replyTo }
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    console.error(`[sendEmail] SendGrid error ${res.status}:`, errText)
+  } else {
+    console.log(`[sendEmail] Sent OK to ${to}`)
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
