@@ -12,107 +12,182 @@ const PAIN_POINTS = [
   "Fees go up, support stays missing",
 ];
 
+// Each position is a safe zone in the hero — avoids center headline/CTA
+// tail direction: "left" = tail on left side, "right" = tail on right side
+const POSITIONS = [
+  { top: "12%",  left: "2%",   tail: "left",  align: "left"  }, // top-left
+  { top: "18%",  right: "2%",  tail: "right", align: "right" }, // top-right
+  { top: "42%",  left: "1%",   tail: "left",  align: "left"  }, // mid-left
+  { top: "55%",  right: "2%",  tail: "right", align: "right" }, // mid-right
+  { top: "72%",  left: "3%",   tail: "left",  align: "left"  }, // lower-left
+  { top: "68%",  right: "3%",  tail: "right", align: "right" }, // lower-right
+  { top: "30%",  left: "2%",   tail: "left",  align: "left"  }, // upper-mid-left
+];
+
+interface Balloon {
+  id: number;
+  text: string;
+  position: typeof POSITIONS[0];
+  visible: boolean;
+}
+
 export default function ScoutPainPopups() {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [visible, setVisible] = useState(false);
+  const [balloons, setBalloons] = useState<Balloon[]>([]);
 
   useEffect(() => {
-    let current = 0;
-    let showTimer: ReturnType<typeof setTimeout>;
-    let hideTimer: ReturnType<typeof setTimeout>;
-    let startTimer: ReturnType<typeof setTimeout>;
+    let idCounter = 0;
+    let painIndex = 0;
+    let posIndex = 0;
+    const active: number[] = [];
 
-    function showNext() {
-      setActiveIndex(current);
-      setVisible(true);
+    function spawnBalloon() {
+      const id = idCounter++;
+      const text = PAIN_POINTS[painIndex % PAIN_POINTS.length];
+      const position = POSITIONS[posIndex % POSITIONS.length];
+      painIndex++;
+      posIndex++;
 
-      // Hide after 2.6s
-      hideTimer = setTimeout(() => {
-        setVisible(false);
-        // Move to next after fade-out (0.4s)
-        showTimer = setTimeout(() => {
-          current = (current + 1) % PAIN_POINTS.length;
-          showNext();
-        }, 400);
-      }, 2600);
+      // Keep max 2 active at once
+      if (active.length >= 2) return;
+      active.push(id);
+
+      setBalloons(prev => [...prev, { id, text, position, visible: false }]);
+
+      // Trigger fade-in on next tick
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setBalloons(prev =>
+            prev.map(b => b.id === id ? { ...b, visible: true } : b)
+          );
+        });
+      });
+
+      // Fade out after 2.8s
+      setTimeout(() => {
+        setBalloons(prev =>
+          prev.map(b => b.id === id ? { ...b, visible: false } : b)
+        );
+        // Remove from DOM after transition
+        setTimeout(() => {
+          setBalloons(prev => prev.filter(b => b.id !== id));
+          const idx = active.indexOf(id);
+          if (idx > -1) active.splice(idx, 1);
+        }, 500);
+      }, 2800);
     }
 
-    // Start after 1.4s delay
-    startTimer = setTimeout(showNext, 1400);
+    // Start after 1.5s, then spawn every 2.2s (creates overlapping effect)
+    const startTimer = setTimeout(() => {
+      spawnBalloon();
+      const interval = setInterval(spawnBalloon, 2200);
+      return () => clearInterval(interval);
+    }, 1500);
 
-    return () => {
-      clearTimeout(startTimer);
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-    };
+    return () => clearTimeout(startTimer);
   }, []);
 
-  if (activeIndex === null) return null;
+  if (balloons.length === 0) return null;
 
   return (
     <>
       <style>{`
-        .pain-popup {
+        .scout-balloon {
           position: absolute;
-          bottom: clamp(80px, 14vh, 130px);
-          left: clamp(16px, 4vw, 48px);
-          z-index: 40;
+          z-index: 30;
           pointer-events: none;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 11px 18px;
-          background: rgba(255, 255, 255, 0.07);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
-          border: 1px solid rgba(255, 255, 255, 0.13);
-          border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
-          max-width: min(280px, calc(100vw - 32px));
-          transition: opacity 0.4s ease, transform 0.4s ease;
+          max-width: min(340px, 42vw);
+          transition: opacity 0.45s ease, transform 0.45s ease;
         }
-        .pain-popup.show {
+        .scout-balloon.show {
           opacity: 1;
           transform: translateY(0px);
         }
-        .pain-popup.hide {
+        .scout-balloon.hide {
           opacity: 0;
-          transform: translateY(6px);
+          transform: translateY(10px);
         }
-        .pain-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #7eb8f7;
-          flex-shrink: 0;
-          opacity: 0.9;
+        .scout-balloon-inner {
+          position: relative;
+          background: rgba(11, 28, 58, 0.72);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(126, 184, 247, 0.18);
+          border-radius: 16px;
+          padding: 14px 20px;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255,255,255,0.04);
         }
-        .pain-text {
-          font-size: 0.8rem;
-          font-weight: 500;
-          color: rgba(255, 255, 255, 0.82);
-          letter-spacing: 0.01em;
-          line-height: 1.3;
+        .scout-balloon-text {
+          font-size: 0.92rem;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.90);
+          line-height: 1.4;
+          letter-spacing: -0.01em;
           font-family: Inter, -apple-system, sans-serif;
-          white-space: nowrap;
         }
-        @media (max-width: 640px) {
-          .pain-popup {
-            bottom: clamp(60px, 10vh, 90px);
-            left: 16px;
-            right: 16px;
-            max-width: none;
+        /* Tail — left side (points left) */
+        .scout-balloon-tail-left {
+          position: absolute;
+          left: -10px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 0;
+          height: 0;
+          border-top: 8px solid transparent;
+          border-bottom: 8px solid transparent;
+          border-right: 10px solid rgba(11, 28, 58, 0.72);
+        }
+        /* Tail — right side (points right) */
+        .scout-balloon-tail-right {
+          position: absolute;
+          right: -10px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 0;
+          height: 0;
+          border-top: 8px solid transparent;
+          border-bottom: 8px solid transparent;
+          border-left: 10px solid rgba(11, 28, 58, 0.72);
+        }
+        @media (max-width: 768px) {
+          .scout-balloon {
+            max-width: min(260px, 70vw);
+          }
+          .scout-balloon-text {
+            font-size: 0.78rem;
+          }
+          .scout-balloon-inner {
             padding: 10px 14px;
           }
-          .pain-text {
-            font-size: 0.75rem;
+        }
+        @media (max-width: 480px) {
+          .scout-balloon {
+            max-width: min(220px, 78vw);
           }
         }
       `}</style>
-      <div className={`pain-popup ${visible ? "show" : "hide"}`} aria-hidden="true">
-        <div className="pain-dot" />
-        <span className="pain-text">{PAIN_POINTS[activeIndex]}</span>
-      </div>
+
+      {balloons.map(({ id, text, position, visible }) => {
+        const style: React.CSSProperties = {
+          top: position.top,
+          ...(("left" in position) ? { left: (position as { left: string }).left } : {}),
+          ...(("right" in position) ? { right: (position as { right: string }).right } : {}),
+        };
+
+        return (
+          <div
+            key={id}
+            className={`scout-balloon ${visible ? "show" : "hide"}`}
+            style={style}
+            aria-hidden="true"
+          >
+            <div className="scout-balloon-inner">
+              {position.tail === "left" && <div className="scout-balloon-tail-left" />}
+              {position.tail === "right" && <div className="scout-balloon-tail-right" />}
+              <span className="scout-balloon-text">{text}</span>
+            </div>
+          </div>
+        );
+      })}
     </>
   );
 }
