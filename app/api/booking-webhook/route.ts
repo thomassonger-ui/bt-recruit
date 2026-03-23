@@ -228,8 +228,14 @@ export async function POST(req: NextRequest) {
         // New lead or pre-drip re-booking: full upsert
         // Try update first, then insert if no row exists
         const emailKey = email.toLowerCase().trim()
-        const { data: existing } = await supabase
+        console.log(`[booking-webhook] Processing lead: name=${name} email=${emailKey} phone=${phone}`)
+        console.log(`[booking-webhook] Event: start=${eventStart} end=${eventEnd}`)
+
+        const { data: existing, error: selectErr } = await supabase
           .from("leads").select("id").eq("email", emailKey).maybeSingle()
+
+        if (selectErr) console.error("[booking-webhook] Supabase select error:", selectErr)
+        console.log(`[booking-webhook] Existing lead: ${existing ? "found id=" + existing.id : "not found — inserting"}`)
 
         const { error } = existing
           ? await supabase.from("leads").update({
@@ -249,11 +255,14 @@ export async function POST(req: NextRequest) {
             })
 
         if (error) {
-          console.error("Supabase insert error:", error)
+          console.error("[booking-webhook] Supabase write error:", JSON.stringify(error))
+        } else {
+          console.log(`[booking-webhook] Supabase write OK`)
         }
       }
 
       // Send booking confirmation email directly after upsert — no verifyWrite gate
+      console.log(`[booking-webhook] isRebooking=${isRebooking} email=${email} hasResendKey=${!!process.env.RESEND_API_KEY}`)
       if (process.env.RESEND_API_KEY && !isRebooking && email) {
         const firstName = name?.split(" ")[0] || "there"
         // Fetch lead for personalization
