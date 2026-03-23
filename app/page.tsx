@@ -601,24 +601,24 @@ function HeroParallax() {
           padding: "clamp(24px, 5vw, 48px) clamp(20px, 5vw, 48px)",
           textAlign: "center",
           pointerEvents: "all",
-          background: "rgba(240,241,243,0.72)",
+          background: "#0B1D3A",
           backdropFilter: "blur(24px) saturate(180%)",
           WebkitBackdropFilter: "blur(24px) saturate(180%)",
           borderRadius: "24px",
-          border: "1px solid rgba(255,255,255,0.6)",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.8) inset",
+          border: "1px solid rgba(201,168,76,0.4)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.06) inset",
         }}>
           <HeroFade delay={0}>
-            <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#1a1a1a", marginBottom: "20px", letterSpacing: "-0.02em" }}>
+            <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#ffffff", marginBottom: "20px", letterSpacing: "-0.02em" }}>
               Built Exclusively for
               <br />
-              <span style={{ color: "#3b5a82" }}>
+              <span style={{ color: "#c9a84c" }}>
                 Bear Team Agents
               </span>
             </h1>
           </HeroFade>
           <HeroFade delay={150}>
-            <p style={{ fontSize: "1.15rem", color: "#6b7280", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.65 }}>
+            <p style={{ fontSize: "1.15rem", color: "rgba(255,255,255,0.75)", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.65 }}>
               Scout is not a generic AI tool. It was designed and built from the ground up for Bear Team — to improve every agent's productivity, consistency, and results from day one.
             </p>
           </HeroFade>
