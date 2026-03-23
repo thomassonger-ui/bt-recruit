@@ -1494,7 +1494,7 @@ export default function HomePage() {
               </div>
             </Reveal>
             <Reveal delay={100}>
-              <h2 style={{ fontSize: "clamp(2rem, 3.5vw, 3rem)", fontWeight: 800, lineHeight: 1.15, marginBottom: "52px", color: "#0b1d3a", letterSpacing: "-0.02em" }}>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, lineHeight: 1.15, marginBottom: "52px", color: "#0b1d3a", letterSpacing: "-0.02em" }}>
                 Most agents don&rsquo;t fail<br />because they lack talent.
               </h2>
             </Reveal>
@@ -1534,10 +1534,10 @@ export default function HomePage() {
               </div>
             </Reveal>
             <Reveal delay={80}>
-              <h2 style={{ fontSize: "clamp(2.2rem, 4vw, 3.6rem)", fontWeight: 800, lineHeight: 1.1, marginBottom: "16px", color: "#ffffff", letterSpacing: "-0.025em" }}>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, lineHeight: 1.1, marginBottom: "16px", color: "#ffffff", letterSpacing: "-0.025em" }}>
                 BearTeamOS.
               </h2>
-              <h2 style={{ fontSize: "clamp(1.4rem, 2.5vw, 2.2rem)", fontWeight: 600, lineHeight: 1.2, marginBottom: "64px", color: "rgba(255,255,255,0.45)", letterSpacing: "-0.01em" }}>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 600, lineHeight: 1.2, marginBottom: "64px", color: "rgba(255,255,255,0.45)", letterSpacing: "-0.01em" }}>
                 A brokerage engineered like a system.
               </h2>
             </Reveal>
@@ -1678,7 +1678,7 @@ export default function HomePage() {
               </div>
             </Reveal>
             <Reveal delay={80}>
-              <h2 style={{ fontSize: "clamp(2rem, 3.5vw, 2.8rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
+              <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
                 Your day-to-day, simplified.
               </h2>
             </Reveal>
@@ -1805,7 +1805,7 @@ export default function HomePage() {
 
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "linear-gradient(135deg, #060e1c 0%, #0b1d3a 100%)", textAlign: "center" }}>
           <Reveal>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3.5vw, 3rem)", fontWeight: 800, color: "#ffffff", marginBottom: "20px", lineHeight: 1.2 }}>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#ffffff", marginBottom: "20px", lineHeight: 1.2 }}>
               Every month you wait costs you
               <br />
               <span style={{ color: "#64b5f6" }}>a tier graduation.</span>
@@ -1828,7 +1828,7 @@ export default function HomePage() {
 
         <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f3f8", textAlign: "center" }}>
           <Reveal>
-            <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "16px", lineHeight: 1.15 }}>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "16px", lineHeight: 1.15 }}>
               Stop Guessing. Start Producing.
             </h2>
           </Reveal>
@@ -1937,14 +1937,14 @@ export default function HomePage() {
       <footer style={{ background: "#060e1c", padding: "clamp(40px,8vw,60px) clamp(16px,5vw,40px)", textAlign: "center" }}>
         <div style={{ fontSize: "1rem", fontWeight: 700, color: "#ffffff", marginBottom: "8px", letterSpacing: "0.04em" }}>Bear Team Real Estate</div>
         <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.35)", marginBottom: "24px", lineHeight: 1.6 }}>Orlando, FL · Independent Licensed Brokerage · Bethanne Baer, Broker</div>
-        <div className="footer-links" style={{ display: "flex", gap: "32px", justifyContent: "center", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "24px", justifyContent: "center", flexWrap: "wrap", marginBottom: "28px" }}>
           <a href="/chat" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Talk to Scout</a>
           <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
-          <a href="#systems" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>The System</a>
+          <a href="/scout" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>The System</a>
           <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
-          <a href="#proof" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Track Record</a>
+          <a href="/academy" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Academy</a>
         </div>
-        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)", marginTop: "28px" }}>© 2026 WorldTeachPathways. All rights reserved.</div>
+        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)" }}>© 2026 Bear Team Real Estate · Bethanne Baer, Broker/Owner · Orlando, FL · All rights reserved.</div>
       </footer>
     </main>
   );
