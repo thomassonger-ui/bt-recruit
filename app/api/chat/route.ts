@@ -77,16 +77,25 @@ async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
   if (!lead.email) return;
 
   try {
-    await getSupabase()
+    const supabase = getSupabase();
+    const emailKey = lead.email.toLowerCase().trim();
+    const { data: existing } = await supabase
       .from("leads")
-      .upsert(
-        {
-          ...lead,
-          email: lead.email.toLowerCase().trim(),
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "email" }
-      );
+      .select("id")
+      .eq("email", emailKey)
+      .maybeSingle();
+
+    const payload = {
+      ...lead,
+      email: emailKey,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (existing) {
+      await supabase.from("leads").update(payload).eq("id", existing.id);
+    } else {
+      await supabase.from("leads").insert(payload);
+    }
   } catch (err) {
     console.error("Supabase upsert error:", err);
   }
