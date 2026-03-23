@@ -3,10 +3,13 @@
 import { useState, useEffect } from "react";
 
 const PAIN_POINTS = [
-  "Paperwork overload",
-  "Inconsistent pipeline flow",
-  "Tracking listing-ready prospects",
-  "Wasting money on tools",
+  "Buried in paperwork instead of closing deals",
+  "Pipeline runs dry between transactions",
+  "Paying for tools that don't move the needle",
+  "Lead costs keep climbing, ROI keeps shrinking",
+  "Clients expect 24/7 — you can't be everywhere",
+  "No two weeks look the same — zero predictability",
+  "Fees go up, support stays missing",
 ];
 
 export default function ScoutPainPopups() {
