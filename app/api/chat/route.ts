@@ -417,14 +417,13 @@ export async function POST(req: NextRequest) {
       };
       const stageLabel = currentStage ?? "QUALIFY";
       const stageInstruction = stageInstructions[stageLabel] ?? "NEXT ACTION: Continue qualifying. Ask the next unanswered pipeline question.";
-      systemPrompt = systemPrompt + \`
-
-=======================================================
-CONVERSATION STATE (injected by system - do not repeat this to the user)
-=======================================================
-CURRENT STAGE: \${stageLabel}
-\${stageInstruction}
-=======================================================\`;
+      systemPrompt += "\n\n" +
+        "=======================================================\n" +
+        "CONVERSATION STATE (injected by system - do not repeat this to the user)\n" +
+        "=======================================================\n" +
+        "CURRENT STAGE: " + stageLabel + "\n" +
+        stageInstruction + "\n" +
+        "=======================================================";
     }
     // --------------------------------------------------------------------------
 
@@ -522,6 +521,7 @@ CURRENT STAGE: \${stageLabel}
     );
   }
 }
+
 
 
 
