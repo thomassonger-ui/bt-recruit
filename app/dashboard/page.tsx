@@ -399,14 +399,22 @@ export default function DashboardPage() {
                       </td>
                       <td style={{ padding: "10px 14px", color: "#6B7280", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.notes || "—"}</td>
                       <td style={{ padding: "10px 14px" }}>
-                        {lead.status !== "joined" && lead.email ? (
-                          <button onClick={() => markJoined(lead.id)} disabled={joiningId === lead.id}
-                            style={{ background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A", color: joiningId === lead.id ? "#9CA3AF" : "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: joiningId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
-                            {joiningId === lead.id ? "Sending..." : "Mark Joined"}
-                          </button>
-                        ) : lead.status === "joined" ? (
-                          <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
-                        ) : null}
+                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                          {lead.status !== "joined" && lead.email ? (
+                            <button onClick={() => markJoined(lead.id)} disabled={joiningId === lead.id}
+                              style={{ background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A", color: joiningId === lead.id ? "#9CA3AF" : "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: joiningId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
+                              {joiningId === lead.id ? "Sending..." : "Mark Joined"}
+                            </button>
+                          ) : lead.status === "joined" ? (
+                            <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
+                          ) : null}
+                          {lead.status !== "joined" && lead.email ? (
+                            <button onClick={() => pauseDrip(lead.id, "pause")} disabled={pausingDripId === lead.id}
+                              style={{ background: pausingDripId === lead.id ? "#E5E7EB" : "#FEF2F2", color: pausingDripId === lead.id ? "#9CA3AF" : "#C62828", border: "1px solid #FECACA", borderRadius: 6, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: pausingDripId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
+                              {pausingDripId === lead.id ? "..." : "⏸ Pause"}
+                            </button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -646,3 +654,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+
