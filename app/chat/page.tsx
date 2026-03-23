@@ -309,7 +309,7 @@ function ChatPageInner() {
       </nav>
 
       {/* ── MAIN CONTENT — centers the card on desktop, full-width on mobile ── */}
-      <main className="relative z-10 flex flex-1 flex-col items-center px-0 py-0 sm:px-4 sm:py-6 md:py-10">
+      <main className="relative z-10 flex flex-1 flex-col items-center px-0 py-0 sm:px-4 sm:py-3 md:py-4">
         {/*
          * Chat card:
          * - Mobile: fills viewport edge-to-edge, no border-radius, no shadow
@@ -356,11 +356,11 @@ function ChatPageInner() {
               flex-1 so it stretches to fill, overflow-y-auto for independent scroll */}
           <div
             ref={chatContainerRef}
-            className={`${isEmpty ? "" : "flex-1"} overflow-x-hidden overflow-y-auto px-4 pt-3 pb-2 sm:px-6`}
+            className={`${isEmpty ? "" : "flex-1"} overflow-x-hidden overflow-y-auto px-4 pt-2 pb-2 sm:px-6`}
             style={{
               /* On mobile fill remaining space; on desktop cap at comfortable reading height */
               minHeight: isEmpty ? "auto" : "0",
-              maxHeight: isEmpty ? "none" : "clamp(300px, 55vh, 520px)",
+              maxHeight: isEmpty ? "none" : "clamp(300px, 60vh, 600px)",
             }}
           >
             {isEmpty ? (
