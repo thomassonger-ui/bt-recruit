@@ -1,6 +1,40 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Resend } from "resend"
 
+
+// ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
+async function sendEmail({
+  to, from: fromAddr, replyTo, subject, html
+}: {
+  to: string
+  from: string
+  replyTo?: string
+  subject: string
+  html: string
+}): Promise<void> {
+  const apiKey = process.env.SENDGRID_API_KEY
+  if (!apiKey) { console.error("[sendEmail] SENDGRID_API_KEY not set"); return }
+  const body: Record<string, unknown> = {
+    personalizations: [{ to: [{ email: to }] }],
+    from: { email: fromAddr },
+    subject,
+    content: [{ type: "text/html", value: html }],
+  }
+  if (replyTo) body.reply_to = { email: replyTo }
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    console.error(`[sendEmail] SendGrid error ${res.status}:`, errText)
+  } else {
+    console.log(`[sendEmail] Sent OK to ${to}`)
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
   // Only accept requests originating from our own domain (or Vercel preview URLs).
   // This isn't cryptographic auth, but it blocks random open-internet spam.
@@ -20,8 +54,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    await resend.emails.send({
+    // sendEmail helper used instead
+    await sendEmail({
       from: "Scout <tom@bearteam.com>",
       to: process.env.NOTIFY_EMAIL!,
       subject: "Someone is using Scout",
