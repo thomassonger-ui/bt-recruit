@@ -394,13 +394,26 @@ export async function POST(req: NextRequest) {
     const extractedFields = extractLeadFieldsFromConversation(allMessages);
     if (resolvedEmail && Object.keys(extractedFields).length > 0 && declaredContext === "public") {
       await upsertLead({ email: resolvedEmail, ...extractedFields });
-      // Fire Tom alert when name+phone are both captured for the first time
-      if (extractedFields.name && extractedFields.phone) {
+      // Fire Tom alert when name+phone+email are all captured
+      if (extractedFields.name && extractedFields.phone && resolvedEmail) {
         getResend().emails.send({
           from: "Scout <scout@joinbearteam.com>",
           to: "thomas.songer@gmail.com",
           subject: `🔔 Lead Ready to Book: ${extractedFields.name}`,
-          html: `<p><strong>Scout qualified a lead and they're ready to book:</strong></p><ul><li><strong>Name:</strong> ${extractedFields.name}</li><li><strong>Email:</strong> ${resolvedEmail}</li><li><strong>Phone:</strong> ${extractedFields.phone}</li>${extractedFields.brokerage ? `<li><strong>Brokerage:</strong> ${extractedFields.brokerage}</li>` : ""}${extractedFields.deal_count !== undefined ? `<li><strong>Deals/year:</strong> ${extractedFields.deal_count}</li>` : ""}</ul><p><a href="https://joinbearteam.com/dashboard">View in dashboard →</a></p>`,
+          html: `
+            <div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;background:#f8f9fa;padding:24px;border-radius:12px;">
+              <h2 style="margin:0 0 16px;color:#0b1d3a;font-size:1.1rem;">Scout qualified a lead — ready to book</h2>
+              <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;width:110px;">Name</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;font-weight:600;">${extractedFields.name}</td></tr>
+                <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Phone</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${extractedFields.phone}</td></tr>
+                <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Email</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${resolvedEmail}</td></tr>
+                ${extractedFields.brokerage ? `<tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Brokerage</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${extractedFields.brokerage}</td></tr>` : ""}
+                ${extractedFields.deal_count !== undefined ? `<tr><td style="padding:10px 16px;font-size:0.85rem;color:#6b7280;">Deals/year</td><td style="padding:10px 16px;font-size:0.9rem;color:#1a1a1a;">${extractedFields.deal_count}</td></tr>` : ""}
+              </table>
+              <div style="margin-top:20px;">
+                <a href="https://joinbearteam.com/dashboard" style="display:inline-block;padding:10px 22px;background:#1b365d;color:#fff;border-radius:8px;text-decoration:none;font-size:0.88rem;font-weight:600;">View in Dashboard →</a>
+              </div>
+            </div>`,
         }).catch(() => {});
       }
     }
