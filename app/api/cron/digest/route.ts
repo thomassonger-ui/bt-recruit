@@ -1,9 +1,42 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { Resend } from "resend"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+
+// ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
+async function sendEmail({
+  to, from: fromAddr, replyTo, subject, html
+}: {
+  to: string
+  from: string
+  replyTo?: string
+  subject: string
+  html: string
+}): Promise<void> {
+  const apiKey = process.env.SENDGRID_API_KEY
+  if (!apiKey) { console.error("[sendEmail] SENDGRID_API_KEY not set"); return }
+  const body: Record<string, unknown> = {
+    personalizations: [{ to: [{ email: to }] }],
+    from: { email: fromAddr },
+    subject,
+    content: [{ type: "text/html", value: html }],
+  }
+  if (replyTo) body.reply_to = { email: replyTo }
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    console.error(`[sendEmail] SendGrid error ${res.status}:`, errText)
+  } else {
+    console.log(`[sendEmail] Sent OK to ${to}`)
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 
 export async function GET(req: Request) {
   // Verify this is a legitimate Vercel cron call
@@ -13,8 +46,7 @@ export async function GET(req: Request) {
   }
 
   const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!)
-  const resend = new Resend(process.env.RESEND_API_KEY!)
-
+  
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const { data: leads } = await supabase
     .from("leads")
@@ -66,7 +98,7 @@ export async function GET(req: Request) {
   </div>
 </div>`
 
-  await resend.emails.send({
+  await sendEmail({
     from: "Scout <onboarding@resend.dev>",
     to: process.env.NOTIFY_EMAIL!,
     subject: `Bear Team Weekly Leads — ${count} new lead${count !== 1 ? "s" : ""} | ${dateRange}`,
