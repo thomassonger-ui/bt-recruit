@@ -12,14 +12,13 @@ const PAIN_POINTS = [
   "Fees go up, support stays missing",
 ];
 
-// All slots on the RIGHT side only — staggered vertically
-// tail always points left (toward center content)
+// Slots confined to TOP-RIGHT corner of hero only
+// Hero is 100svh — the Scout card occupies roughly the right 50% from ~30% down
+// These slots stay in the top 28% of the hero on the right edge — safe zone
 const SLOTS = [
-  { top: "10%", right: "2%" },
-  { top: "28%", right: "2%" },
-  { top: "46%", right: "2%" },
-  { top: "64%", right: "2%" },
-  { top: "78%", right: "2%" },
+  { top: "8%",  right: "2%" },
+  { top: "16%", right: "2%" },
+  { top: "24%", right: "2%" },
 ];
 
 interface Balloon {
@@ -39,9 +38,9 @@ export default function ScoutPainPopups() {
     const occupiedSlots = new Set<number>();
 
     function spawnBalloon() {
-      if (occupiedSlots.size >= 2) return;
+      // Max 1 visible at a time to avoid any stacking overlap
+      if (occupiedSlots.size >= 1) return;
 
-      // Find next unoccupied slot
       let slotIndex = slotIdx % SLOTS.length;
       let tries = 0;
       while (occupiedSlots.has(slotIndex) && tries < SLOTS.length) {
@@ -66,7 +65,7 @@ export default function ScoutPainPopups() {
         });
       });
 
-      // Fade out after 3s
+      // Fade out after 2.8s
       setTimeout(() => {
         setBalloons(prev =>
           prev.map(b => b.id === id ? { ...b, visible: false } : b)
@@ -75,12 +74,12 @@ export default function ScoutPainPopups() {
           setBalloons(prev => prev.filter(b => b.id !== id));
           occupiedSlots.delete(slotIndex);
         }, 500);
-      }, 3000);
+      }, 2800);
     }
 
     const start = setTimeout(() => {
       spawnBalloon();
-      const interval = setInterval(spawnBalloon, 2400);
+      const interval = setInterval(spawnBalloon, 3400);
       return () => clearInterval(interval);
     }, 1400);
 
@@ -96,58 +95,50 @@ export default function ScoutPainPopups() {
           position: absolute;
           z-index: 25;
           pointer-events: none;
-          width: clamp(260px, 28vw, 420px);
+          width: clamp(220px, 24vw, 380px);
           transition: opacity 0.45s ease, transform 0.45s ease;
         }
         .spb.show { opacity: 1; transform: translateY(0); }
-        .spb.hide { opacity: 0; transform: translateY(10px); }
+        .spb.hide { opacity: 0; transform: translateY(8px); }
 
         .spb-inner {
           position: relative;
-          background: rgba(8, 20, 46, 0.82);
+          background: rgba(8, 20, 46, 0.85);
           backdrop-filter: blur(18px);
           -webkit-backdrop-filter: blur(18px);
           border: 1px solid rgba(126, 184, 247, 0.20);
-          border-radius: 18px;
-          padding: 20px 26px;
-          box-shadow: 0 20px 56px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
-          white-space: normal;
+          border-radius: 16px;
+          padding: 18px 22px;
+          box-shadow: 0 16px 48px rgba(0,0,0,0.55);
           word-wrap: break-word;
           overflow-wrap: break-word;
         }
+        /* Tail pointing left toward content */
+        .spb-inner::after {
+          content: "";
+          position: absolute;
+          left: -10px;
+          top: 50%;
+          transform: translateY(-50%);
+          border: 9px solid transparent;
+          border-right-color: rgba(8, 20, 46, 0.85);
+          border-left: 0;
+        }
         .spb-text {
-          font-size: clamp(1rem, 1.6vw, 1.2rem);
+          font-size: clamp(0.95rem, 1.4vw, 1.15rem);
           font-weight: 700;
           color: rgba(255, 255, 255, 0.92);
           line-height: 1.45;
-          letter-spacing: -0.015em;
+          letter-spacing: -0.01em;
           font-family: Inter, -apple-system, sans-serif;
           display: block;
           white-space: normal;
           word-break: break-word;
         }
-        /* Tail pointing LEFT (toward center) */
-        .spb-inner::after {
-          content: "";
-          position: absolute;
-          left: -11px;
-          top: 50%;
-          transform: translateY(-50%);
-          border: 10px solid transparent;
-          border-right-color: rgba(8, 20, 46, 0.82);
-          border-left: 0;
-        }
 
+        /* Mobile — hide entirely to avoid any overlap on small screens */
         @media (max-width: 767px) {
-          .spb {
-            width: clamp(200px, 60vw, 300px);
-          }
-          .spb-text {
-            font-size: 0.9rem;
-          }
-          .spb-inner {
-            padding: 14px 18px;
-          }
+          .spb { display: none; }
         }
       `}</style>
 
