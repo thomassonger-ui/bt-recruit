@@ -114,23 +114,29 @@ function extractPhone(text: string): string | null {
  * Scout's responses. Returns the stage string or null.
  * Used by the frontend to trigger Calendly handoff at BOOK stage.
  */
+const CALENDLY_URL = "https://calendly.com/thomas-songer/bear-team-meet";
+
 function detectPipelineStage(messages: { role: string; content: string }[]): string | null {
   const assistantMessages = messages.filter(m => m.role === "assistant").map(m => m.content.toLowerCase());
+  const userMessages = messages.filter(m => m.role === "user").map(m => m.content.toLowerCase());
   const allAssistant = assistantMessages.join(" ");
   const lastAssistant = assistantMessages[assistantMessages.length - 1] || "";
+  const lastUser = userMessages[userMessages.length - 1] || "";
 
-  // BOOK stage — Scout has collected name+phone+email and is ready for Calendly
-  if (
-    (allAssistant.includes("best email") || allAssistant.includes("calendar invite")) &&
-    (allAssistant.includes("best number") || allAssistant.includes("reach you")) &&
-    (allAssistant.includes("what's your name") || allAssistant.includes("your name"))
-  ) return "BOOK";
+  // BOOK stage — Scout asked for email AND user just replied with an email
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+  const scoutAskedForEmail = allAssistant.includes("best email") || allAssistant.includes("calendar invite");
+  const userJustGaveEmail = emailRegex.test(lastUser);
+  if (scoutAskedForEmail && userJustGaveEmail) return "BOOK";
+
+  // BOOK stage fallback — Scout explicitly says it will send the calendly link
+  if (lastAssistant.includes("calendly") || lastAssistant.includes("calendar link") || lastAssistant.includes("send you a")) return "BOOK";
 
   // COLLECT_EMAIL stage
   if (lastAssistant.includes("best email") || lastAssistant.includes("calendar invite")) return "COLLECT_EMAIL";
 
   // COLLECT_PHONE stage
-  if (lastAssistant.includes("best number") || (lastAssistant.includes("reach you") && lastAssistant.includes("name"))) return "COLLECT_PHONE";
+  if (lastAssistant.includes("best number") || (lastAssistant.includes("reach you"))) return "COLLECT_PHONE";
 
   // COLLECT_NAME stage
   if (lastAssistant.includes("what's your name") || lastAssistant.includes("what is your name")) return "COLLECT_NAME";
@@ -364,6 +370,20 @@ export async function POST(req: NextRequest) {
     const allMessages = [...chatMessages, { role: "assistant", content: reply }];
     const pipelineStage = detectPipelineStage(allMessages);
 
+    // If BOOK stage: append the actual Calendly link into Scout's reply so it shows in chat
+    let finalReply = reply;
+    if (pipelineStage === "BOOK") {
+      // Strip any vague "system will send" language and replace with real link
+      finalReply = reply
+        .replace(/the system will send you a calendly link[^.]*\./gi, "")
+        .replace(/i'?ll send you a calendly link[^.]*\./gi, "")
+        .replace(/a calendly link will be sent[^.]*\./gi, "")
+        .trim();
+      if (!finalReply.includes("calendly.com")) {
+        finalReply = finalReply + `\n\nHere's your link to book 15 minutes with Tom: ${CALENDLY_URL}`;
+      }
+    }
+
     // Extract lead fields from conversation to save to Supabase
     const extractedFields = extractLeadFieldsFromConversation(allMessages);
     if (resolvedEmail && Object.keys(extractedFields).length > 0 && declaredContext === "public") {
@@ -380,14 +400,14 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      reply,
+      reply: finalReply,
       role: "assistant",
-      content: reply,
+      content: finalReply,
       context: rawContext,
       mode,
       returning: !!returningLeadBlock,
       pipeline_stage: pipelineStage,
-      calendly_url: pipelineStage === "BOOK" ? "https://calendly.com/thomas-songer/bear-team-meet" : null,
+      calendly_url: pipelineStage === "BOOK" ? CALENDLY_URL : null,
     });
   } catch (error) {
     console.error("Scout API error:", error);
