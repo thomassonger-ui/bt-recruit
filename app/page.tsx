@@ -125,7 +125,7 @@ function ScoutCTA({ size = "lg", label = "Start with Scout" }: ScoutCTAProps) {
   const pad = size === "lg" ? "14px 32px" : "10px 22px";
   const fontSize = size === "lg" ? "1rem" : "0.875rem";
   return (
-    <Link href="https://www.joinbearteam.com/scout" style={{ display: "inline-block", maxWidth: "100%" }}>
+    <Link href="https://www.joinbearteam.com/academy" style={{ display: "inline-block", maxWidth: "100%" }}>
       <button
         className="scout-cta-btn"
         style={{
