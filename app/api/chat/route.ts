@@ -371,6 +371,31 @@ export async function POST(req: NextRequest) {
       systemPrompt = systemPrompt + returningLeadBlock;
     }
 
+    // ── Inject CONVERSATION STATE block so Scout knows exactly where it is ────
+    // Detect current stage from messages BEFORE the new reply
+    if (mode === "recruit") {
+      const currentStage = detectPipelineStage(chatMessages);
+      const stageInstructions: Record<string, string> = {
+        "COLLECT_NAME":  "NEXT ACTION: Ask for their full name — first and last. Say exactly: \"What's your full name — first and last?\" Do not ask anything else.",
+        "COLLECT_PHONE": "NEXT ACTION: Ask for their best phone number. Say exactly: \"What's the best number to reach you?\" Do not ask anything else.",
+        "COLLECT_EMAIL": "NEXT ACTION: Ask for their best email for the calendar invite. Say exactly: \"And the best email for the calendar invite?\" Do not ask anything else.",
+        "COLLECT_TIMES": "NEXT ACTION: Ask for 2-3 preferred days and times. Say exactly: \"What are 2 or 3 days and times that work for you this week or next? Tom is usually available mornings and early afternoons.\" Do not ask anything else.",
+        "BOOK":          "NEXT ACTION: You have all the information. Send the Calendly link RIGHT NOW. Say: \"I locked it in. Here's your link: https://calendly.com/thomas-songer/bear-team-meet — takes 30 seconds.\" Do NOT ask for more information.",
+        "PITCH":         "NEXT ACTION: Deliver the soft math pitch comparing their current brokerage costs to Bear Team, then ask if 15 minutes with Tom is worth their time.",
+      };
+      const stageLabel = currentStage ?? "QUALIFY";
+      const stageInstruction = stageInstructions[stageLabel] ?? "NEXT ACTION: Continue qualifying. Ask the next unanswered pipeline question.";
+      systemPrompt = systemPrompt + \`
+
+═══════════════════════════════════════════════════════
+CONVERSATION STATE (injected by system — do not repeat this to the user)
+═══════════════════════════════════════════════════════
+CURRENT STAGE: \${stageLabel}
+\${stageInstruction}
+═══════════════════════════════════════════════════════\`;
+    }
+    // ──────────────────────────────────────────────────────────────────────────
+
     // ── Compliance check — runs before LLM on every request ──────────────────
     const lastMessage = chatMessages.filter(m => m.role === "user").slice(-1)[0]?.content ?? "";
     const compliance = checkInboundCompliance(lastMessage);
