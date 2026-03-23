@@ -420,7 +420,7 @@ export default function AcademyPage() {
 
       {/* Courses */}
       <div id="courses" style={{ maxWidth: 1000, margin: "0 auto", padding: "clamp(40px,8vw,64px) clamp(16px,5vw,24px)" }}>
-        <h2 style={{ textAlign: "center", fontSize: "1.8rem", fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>Bear Academy</h2>
+        <h2 style={{ textAlign: "center", fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>Bear Academy</h2>
         <p style={{ textAlign: "center", color: "#6b7280", marginBottom: 48, fontSize: "0.95rem" }}>Complete the courses in order — from orientation and onboarding through compliance, operations, agent development, and leadership. Each course builds on the last.</p>
 
         <div className="courses-grid">
@@ -456,7 +456,7 @@ export default function AcademyPage() {
       {/* 30/60/90 Timeline */}
       <div id="timeline" ref={timelineRef} style={{ background: "#1b365d", padding: "clamp(48px,8vw,72px) clamp(16px,5vw,24px)" }}>
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
-          <h2 style={{ textAlign: "center", fontSize: "1.8rem", fontWeight: 800, color: "#fff", marginBottom: 8 }}>30 / 60 / 90 Day Progression</h2>
+          <h2 style={{ textAlign: "center", fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#fff", marginBottom: 8 }}>30 / 60 / 90 Day Progression</h2>
           <p style={{ textAlign: "center", color: "rgba(255,255,255,0.6)", marginBottom: 56, fontSize: "0.95rem" }}>From day one to first closing to first tier increase — here is exactly what the path looks like.</p>
 
           {/* Timeline */}
@@ -501,7 +501,7 @@ export default function AcademyPage() {
       {/* Outcomes */}
       <div id="outcomes" style={{ background: "#2d4a6b", padding: "clamp(48px,8vw,64px) clamp(16px,5vw,24px)" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
-          <h2 style={{ color: "#fff", fontSize: "1.8rem", fontWeight: 800, marginBottom: 12 }}>What You Walk Away With</h2>
+          <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#fff", marginBottom: 12 }}>What You Walk Away With</h2>
           <p style={{ color: "rgba(255,255,255,0.6)", marginBottom: 40, fontSize: "0.95rem" }}>Every agent who completes BearTeam Academy is fully operational — no gaps, no guessing.</p>
           <div className="outcomes-grid">
             {outcomes.map((o, i) => (
@@ -571,7 +571,7 @@ export default function AcademyPage() {
 
       {/* CTA */}
       <div style={{ background: "#fff", padding: "clamp(48px,8vw,64px) clamp(16px,5vw,24px)", textAlign: "center" }}>
-        <h2 style={{ fontSize: "1.8rem", fontWeight: 800, color: "#1a1a1a", marginBottom: 12 }}>Ready to See If Bear Team Is the Right Fit?</h2>
+        <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#1a1a1a", marginBottom: 12 }}>Ready to See If Bear Team Is the Right Fit?</h2>
         <p style={{ color: "#6b7280", maxWidth: 500, margin: "0 auto 36px", fontSize: "0.95rem", lineHeight: 1.6 }}>Academy access is free for all Bear Team agents. The first step is a 15-minute call with Tom Songer, Team Lead.</p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <a href="https://calendly.com/thomas-songer/bear-team-meet" target="_blank" rel="noopener noreferrer" style={{ background: "#1b365d", color: "#fff", textDecoration: "none", fontWeight: 700, padding: "14px 32px", borderRadius: 10, fontSize: "0.95rem", minHeight: 44 }}>Book 15 Min with Tom</a>
@@ -586,7 +586,7 @@ export default function AcademyPage() {
 
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <h2 style={{ fontSize: "1.8rem", fontWeight: 800, color: "#1a1a1a", margin: "0 0 0" }}>Ask Coach</h2>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#1a1a1a", margin: "0 0 0" }}>Ask Coach</h2>
           </div>
 
           {/* Chat window */}
@@ -687,9 +687,18 @@ export default function AcademyPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer style={{ borderTop: "1px solid #e5e7eb", background: "#f8f9fa", padding: "24px", textAlign: "center", fontSize: "0.8rem", color: "#9ca3af" }}>
-        2026 Bear Team Real Estate · Bethanne Baer, Broker/Owner · Orlando, FL
+      {/* ── FOOTER ── */}
+      <footer style={{ background: "#060e1c", padding: "clamp(40px,8vw,60px) clamp(16px,5vw,40px)", textAlign: "center" }}>
+        <div style={{ fontSize: "1rem", fontWeight: 700, color: "#ffffff", marginBottom: "8px", letterSpacing: "0.04em" }}>Bear Team Real Estate</div>
+        <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.35)", marginBottom: "24px", lineHeight: 1.6 }}>Orlando, FL · Independent Licensed Brokerage · Bethanne Baer, Broker</div>
+        <div style={{ display: "flex", gap: "24px", justifyContent: "center", flexWrap: "wrap", marginBottom: "28px" }}>
+          <a href="/chat" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Talk to Scout</a>
+          <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
+          <a href="/scout" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>The System</a>
+          <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
+          <a href="/academy" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Academy</a>
+        </div>
+        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)" }}>© 2026 Bear Team Real Estate · Bethanne Baer, Broker/Owner · Orlando, FL · All rights reserved.</div>
       </footer>
     </div>
   );
