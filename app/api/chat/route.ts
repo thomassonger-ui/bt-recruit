@@ -154,7 +154,7 @@ function detectPipelineStage(messages: { role: string; content: string }[]): str
   if (lastAssistant.includes("best number") || lastAssistant.includes("reach you")) return "COLLECT_PHONE";
 
   // COLLECT_NAME stage
-  if (lastAssistant.includes("what's your name") || lastAssistant.includes("what is your name")) return "COLLECT_NAME";
+  if (lastAssistant.includes("what's your name") || lastAssistant.includes("what is your name") || lastAssistant.includes("full name") || lastAssistant.includes("first and last")) return "COLLECT_NAME";
 
   // PITCH stage
   if (lastAssistant.includes("worth 15 minutes") || lastAssistant.includes("15-minute") || lastAssistant.includes("15 minute")) return "PITCH";
