@@ -12,48 +12,81 @@ const PAIN_POINTS = [
   "Fees go up, support stays missing",
 ];
 
-// Each position is a safe zone in the hero — avoids center headline/CTA
-// tail direction: "left" = tail on left side, "right" = tail on right side
-const POSITIONS = [
-  { top: "12%",  left: "2%",   tail: "left",  align: "left"  }, // top-left
-  { top: "18%",  right: "2%",  tail: "right", align: "right" }, // top-right
-  { top: "42%",  left: "1%",   tail: "left",  align: "left"  }, // mid-left
-  { top: "55%",  right: "2%",  tail: "right", align: "right" }, // mid-right
-  { top: "72%",  left: "3%",   tail: "left",  align: "left"  }, // lower-left
-  { top: "68%",  right: "3%",  tail: "right", align: "right" }, // lower-right
-  { top: "30%",  left: "2%",   tail: "left",  align: "left"  }, // upper-mid-left
+// Safe zone = protected center of hero (20%–80% horizontal, 15%–85% vertical)
+// Balloons are ONLY placed OUTSIDE this zone.
+// 8 pre-validated slots — each anchored to a corner/edge outside the safe zone.
+// tail: which side the speech arrow points toward (toward center)
+const SLOTS = [
+  // TOP ROW — above safe zone (top < 15%)
+  { top: "4%",  left: "1%",   maxW: 280, tail: "bottom-left"  },
+  { top: "6%",  right: "1%",  maxW: 280, tail: "bottom-right" },
+  // LEFT COLUMN — left of safe zone (left < 20%), mid-height
+  { top: "30%", left: "0%",   maxW: 240, tail: "right"        },
+  { top: "52%", left: "0%",   maxW: 240, tail: "right"        },
+  // RIGHT COLUMN — right of safe zone (right < 20%), mid-height
+  { top: "28%", right: "0%",  maxW: 240, tail: "left"         },
+  { top: "54%", right: "0%",  maxW: 240, tail: "left"         },
+  // BOTTOM ROW — below safe zone (top > 85%)
+  { top: "87%", left: "1%",   maxW: 280, tail: "top-left"     },
+  { top: "87%", right: "1%",  maxW: 280, tail: "top-right"    },
 ];
+
+// Mobile: only use bottom-left and bottom-right slots (index 6, 7)
+// to avoid any overlap with headline/CTA on small screens
+const MOBILE_SLOTS = [6, 7];
 
 interface Balloon {
   id: number;
   text: string;
-  position: typeof POSITIONS[0];
+  slotIndex: number;
   visible: boolean;
 }
 
 export default function ScoutPainPopups() {
   const [balloons, setBalloons] = useState<Balloon[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     let idCounter = 0;
-    let painIndex = 0;
-    let posIndex = 0;
-    const active: number[] = [];
+    let painIdx = 0;
+    let slotIdx = 0;
+    // Track which slots are currently occupied
+    const occupiedSlots = new Set<number>();
+
+    function getNextSlot(mobile: boolean): number {
+      const pool = mobile ? MOBILE_SLOTS : SLOTS.map((_, i) => i);
+      // Find a slot not currently occupied
+      for (let attempt = 0; attempt < pool.length; attempt++) {
+        const candidate = pool[slotIdx % pool.length];
+        slotIdx++;
+        if (!occupiedSlots.has(candidate)) return candidate;
+      }
+      // All occupied — use any slot (rare with max 2 balloons)
+      return pool[slotIdx % pool.length];
+    }
 
     function spawnBalloon() {
+      // Never show more than 2 at once
+      if (occupiedSlots.size >= 2) return;
+
       const id = idCounter++;
-      const text = PAIN_POINTS[painIndex % PAIN_POINTS.length];
-      const position = POSITIONS[posIndex % POSITIONS.length];
-      painIndex++;
-      posIndex++;
+      const text = PAIN_POINTS[painIdx % PAIN_POINTS.length];
+      painIdx++;
 
-      // Keep max 2 active at once
-      if (active.length >= 2) return;
-      active.push(id);
+      const mobile = window.innerWidth < 768;
+      const slotIndex = getNextSlot(mobile);
+      occupiedSlots.add(slotIndex);
 
-      setBalloons(prev => [...prev, { id, text, position, visible: false }]);
+      setBalloons(prev => [...prev, { id, text, slotIndex, visible: false }]);
 
-      // Trigger fade-in on next tick
+      // Trigger CSS transition on next paint
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setBalloons(prev =>
@@ -67,23 +100,22 @@ export default function ScoutPainPopups() {
         setBalloons(prev =>
           prev.map(b => b.id === id ? { ...b, visible: false } : b)
         );
-        // Remove from DOM after transition
+        // Remove from DOM + free slot after transition (0.5s)
         setTimeout(() => {
           setBalloons(prev => prev.filter(b => b.id !== id));
-          const idx = active.indexOf(id);
-          if (idx > -1) active.splice(idx, 1);
+          occupiedSlots.delete(slotIndex);
         }, 500);
       }, 2800);
     }
 
-    // Start after 1.5s, then spawn every 2.2s (creates overlapping effect)
-    const startTimer = setTimeout(() => {
+    // Initial delay, then spawn every 2.2s
+    const start = setTimeout(() => {
       spawnBalloon();
       const interval = setInterval(spawnBalloon, 2200);
       return () => clearInterval(interval);
-    }, 1500);
+    }, 1400);
 
-    return () => clearTimeout(startTimer);
+    return () => clearTimeout(start);
   }, []);
 
   if (balloons.length === 0) return null;
@@ -91,99 +123,111 @@ export default function ScoutPainPopups() {
   return (
     <>
       <style>{`
-        .scout-balloon {
+        .spb {
           position: absolute;
-          z-index: 30;
+          z-index: 25;
           pointer-events: none;
-          max-width: min(340px, 42vw);
           transition: opacity 0.45s ease, transform 0.45s ease;
         }
-        .scout-balloon.show {
-          opacity: 1;
-          transform: translateY(0px);
-        }
-        .scout-balloon.hide {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        .scout-balloon-inner {
+        .spb.show { opacity: 1; transform: translateY(0); }
+        .spb.hide { opacity: 0; transform: translateY(8px); }
+
+        .spb-inner {
           position: relative;
-          background: rgba(11, 28, 58, 0.72);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(126, 184, 247, 0.18);
-          border-radius: 16px;
-          padding: 14px 20px;
-          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255,255,255,0.04);
+          background: rgba(8, 20, 46, 0.78);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border: 1px solid rgba(126, 184, 247, 0.16);
+          border-radius: 14px;
+          padding: 13px 18px;
+          box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
         }
-        .scout-balloon-text {
-          font-size: 0.92rem;
+        .spb-text {
+          font-size: 0.875rem;
           font-weight: 600;
-          color: rgba(255, 255, 255, 0.90);
+          color: rgba(255,255,255,0.88);
           line-height: 1.4;
           letter-spacing: -0.01em;
           font-family: Inter, -apple-system, sans-serif;
+          white-space: nowrap;
         }
-        /* Tail — left side (points left) */
-        .scout-balloon-tail-left {
+
+        /* Tails */
+        .spb-tail-right::after {
+          content: "";
           position: absolute;
-          left: -10px;
-          top: 50%;
+          right: -9px; top: 50%;
           transform: translateY(-50%);
-          width: 0;
-          height: 0;
-          border-top: 8px solid transparent;
-          border-bottom: 8px solid transparent;
-          border-right: 10px solid rgba(11, 28, 58, 0.72);
+          border: 8px solid transparent;
+          border-left-color: rgba(8,20,46,0.78);
+          border-right: 0;
         }
-        /* Tail — right side (points right) */
-        .scout-balloon-tail-right {
+        .spb-tail-left::after {
+          content: "";
           position: absolute;
-          right: -10px;
-          top: 50%;
+          left: -9px; top: 50%;
           transform: translateY(-50%);
-          width: 0;
-          height: 0;
-          border-top: 8px solid transparent;
-          border-bottom: 8px solid transparent;
-          border-left: 10px solid rgba(11, 28, 58, 0.72);
+          border: 8px solid transparent;
+          border-right-color: rgba(8,20,46,0.78);
+          border-left: 0;
         }
-        @media (max-width: 768px) {
-          .scout-balloon {
-            max-width: min(260px, 70vw);
-          }
-          .scout-balloon-text {
-            font-size: 0.78rem;
-          }
-          .scout-balloon-inner {
-            padding: 10px 14px;
-          }
+        .spb-tail-bottom-left::after {
+          content: "";
+          position: absolute;
+          bottom: -9px; left: 20px;
+          border: 8px solid transparent;
+          border-top-color: rgba(8,20,46,0.78);
+          border-bottom: 0;
         }
-        @media (max-width: 480px) {
-          .scout-balloon {
-            max-width: min(220px, 78vw);
-          }
+        .spb-tail-bottom-right::after {
+          content: "";
+          position: absolute;
+          bottom: -9px; right: 20px;
+          border: 8px solid transparent;
+          border-top-color: rgba(8,20,46,0.78);
+          border-bottom: 0;
+        }
+        .spb-tail-top-left::after {
+          content: "";
+          position: absolute;
+          top: -9px; left: 20px;
+          border: 8px solid transparent;
+          border-bottom-color: rgba(8,20,46,0.78);
+          border-top: 0;
+        }
+        .spb-tail-top-right::after {
+          content: "";
+          position: absolute;
+          top: -9px; right: 20px;
+          border: 8px solid transparent;
+          border-bottom-color: rgba(8,20,46,0.78);
+          border-top: 0;
+        }
+
+        @media (max-width: 767px) {
+          .spb-text { font-size: 0.75rem; white-space: normal; }
+          .spb-inner { padding: 10px 14px; border-radius: 12px; }
         }
       `}</style>
 
-      {balloons.map(({ id, text, position, visible }) => {
-        const style: React.CSSProperties = {
-          top: position.top,
-          ...(("left" in position) ? { left: (position as { left: string }).left } : {}),
-          ...(("right" in position) ? { right: (position as { right: string }).right } : {}),
+      {balloons.map(({ id, text, slotIndex, visible }) => {
+        const slot = SLOTS[slotIndex];
+        const posStyle: React.CSSProperties = {
+          top: slot.top,
+          maxWidth: `min(${slot.maxW}px, 44vw)`,
+          ...("left" in slot ? { left: (slot as { left: string } & typeof slot).left } : {}),
+          ...("right" in slot ? { right: (slot as { right: string } & typeof slot).right } : {}),
         };
 
         return (
           <div
             key={id}
-            className={`scout-balloon ${visible ? "show" : "hide"}`}
-            style={style}
+            className={`spb ${visible ? "show" : "hide"}`}
+            style={posStyle}
             aria-hidden="true"
           >
-            <div className="scout-balloon-inner">
-              {position.tail === "left" && <div className="scout-balloon-tail-left" />}
-              {position.tail === "right" && <div className="scout-balloon-tail-right" />}
-              <span className="scout-balloon-text">{text}</span>
+            <div className={`spb-inner spb-tail-${slot.tail}`}>
+              <span className="spb-text">{text}</span>
             </div>
           </div>
         );
