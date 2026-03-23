@@ -239,7 +239,7 @@ export async function POST(req: NextRequest) {
             notes,
             status: "booked",
           },
-          { onConflict: "calendly_event_uri" }
+          { onConflict: "email" }
         )
 
         if (error) {
