@@ -142,33 +142,59 @@ export async function POST(req: NextRequest) {
 
     const payload = body.payload
 
-    // Extract agent info from Calendly invitee
-    // Calendly v2 uses payload.scheduled_event for event data (not payload.event)
-    // Questions are under payload.invitee.questions_and_answers
-    const name = payload?.invitee?.name || "Unknown"
-    const email = payload?.invitee?.email || ""
-
-    // questions_and_answers can be on invitee OR top-level payload depending on webhook version
-    const qaList = payload?.invitee?.questions_and_answers || payload?.questions_and_answers || []
-    const phone =
-      qaList.find(
-        (qa: { question: string; answer: string }) =>
-          qa.question?.toLowerCase().includes("phone") ||
-          qa.question?.toLowerCase().includes("number")
-      )?.answer || ""
+    // Extract agent info from Calendly webhook payload
+    // Calendly webhooks send invitee as a URI string, not an inline object.
+    // We must fetch the invitee details from the Calendly API to get name/email.
 
     // scheduled_event is the v2 field; fall back to event for older webhooks
     const scheduledEvent = payload?.scheduled_event || payload?.event || {}
     const eventStart = scheduledEvent?.start_time || null
     const eventEnd = scheduledEvent?.end_time || null
     const calendlyEventUri = scheduledEvent?.uri || null
-    const calendlyInviteeUri = payload?.invitee?.uri || null
-    const notes = payload?.invitee?.text_reminder_number || ""
+    const calendlyInviteeUri = typeof payload?.invitee === "string"
+      ? payload.invitee
+      : payload?.invitee?.uri || null
 
-    console.log(`[booking-webhook] Parsed: name=${name} email=${email} start=${eventStart}`)
-    if (!email) {
-      console.error("[booking-webhook] WARNING: invitee email is empty — full payload:", JSON.stringify(body).slice(0, 500))
+    // Fetch invitee details from Calendly API
+    let name = "Unknown"
+    let email = ""
+    let phone = ""
+    if (calendlyInviteeUri && process.env.CALENDLY_TOKEN) {
+      try {
+        const inviteeRes = await fetch(calendlyInviteeUri, {
+          headers: { Authorization: `Bearer ${process.env.CALENDLY_TOKEN}` }
+        })
+        if (inviteeRes.ok) {
+          const inviteeData = await inviteeRes.json()
+          const inv = inviteeData?.resource || inviteeData
+          name  = inv?.name  || payload?.invitee?.name  || "Unknown"
+          email = inv?.email || payload?.invitee?.email || ""
+          const qaList = inv?.questions_and_answers || payload?.questions_and_answers || []
+          phone = qaList.find(
+            (qa: { question: string; answer: string }) =>
+              qa.question?.toLowerCase().includes("phone") ||
+              qa.question?.toLowerCase().includes("number")
+          )?.answer || ""
+          console.log(`[booking-webhook] Fetched invitee: name=${name} email=${email}`)
+        } else {
+          console.error("[booking-webhook] Calendly API fetch failed:", inviteeRes.status)
+        }
+      } catch (err) {
+        console.error("[booking-webhook] Calendly API fetch error:", err)
+      }
+    } else {
+      // Fallback: try inline payload fields
+      name  = payload?.invitee?.name  || "Unknown"
+      email = payload?.invitee?.email || ""
+      const qaList = payload?.invitee?.questions_and_answers || payload?.questions_and_answers || []
+      phone = qaList.find(
+        (qa: { question: string; answer: string }) =>
+          qa.question?.toLowerCase().includes("phone") ||
+          qa.question?.toLowerCase().includes("number")
+      )?.answer || ""
+      console.log(`[booking-webhook] Inline fallback: name=${name} email=${email}`)
     }
+    const notes = ""
 
     // Format time for email
     const formattedTime = eventStart
