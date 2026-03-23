@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = JSON.parse(rawBody)
+    console.log(`[booking-webhook] Parsed event=${body.event} payload_keys=${Object.keys(body.payload || {}).join(",")}`)
 
     // Calendly sends event type in payload.event
     const eventType = body.event
@@ -313,14 +314,19 @@ export async function POST(req: NextRequest) {
         if (freshLead) leadRecord = freshLead
 
         const resend = new Resend(process.env.RESEND_API_KEY)
-        await resend.emails.send({
+        const confirmResult = await resend.emails.send({
           from: FROM_EMAIL,
           replyTo: REPLY_TO,
           to: email,
           subject: `Looking forward to our call, ${firstName}`,
           html: buildBookingConfirmationEmail(firstName, leadRecord, formattedTime),
           tags: [{ name: "sequence", value: "booking_confirmation" }],
-        }).catch((err: unknown) => console.error("Booking confirmation email error:", err))
+        })
+        if (confirmResult.error) {
+          console.error("[booking-webhook] Confirmation email FAILED:", JSON.stringify(confirmResult.error))
+        } else {
+          console.log(`[booking-webhook] Confirmation email sent OK to ${email} id=${confirmResult.data?.id}`)
+        }
       }
     } else if (process.env.RESEND_API_KEY && !isRebooking && email) {
       // No Supabase — send confirmation anyway
@@ -338,7 +344,7 @@ export async function POST(req: NextRequest) {
     // ── Send email to Tom ──────────────────────────────────────────────────────
     if (process.env.RESEND_API_KEY && process.env.NOTIFY_EMAIL) {
       const resend = new Resend(process.env.RESEND_API_KEY)
-      await resend.emails.send({
+      const tomAlertResult = await resend.emails.send({
         from: "Scout <tom@bearteam.com>",
         to: process.env.NOTIFY_EMAIL,
         subject: `📞 Call booked — ${name} · ${formattedTime}`,
@@ -372,6 +378,11 @@ export async function POST(req: NextRequest) {
           </div>
         `,
       })
+      if (tomAlertResult.error) {
+        console.error("[booking-webhook] Tom alert email FAILED:", JSON.stringify(tomAlertResult.error))
+      } else {
+        console.log(`[booking-webhook] Tom alert sent OK to ${process.env.NOTIFY_EMAIL}`)
+      }
     }
 
     return NextResponse.json({ ok: true })
