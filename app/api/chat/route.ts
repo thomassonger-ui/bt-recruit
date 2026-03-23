@@ -181,6 +181,12 @@ function extractLeadFieldsFromConversation(
       if (phone) result.phone = phone;
     }
 
+    // Email capture — Scout asked for email, user replied with one
+    if (question.includes("best email") || question.includes("calendar invite")) {
+      const email = extractEmail(answer);
+      if (email) (result as Record<string, unknown>).email = email;
+    }
+
     // Brokerage capture
     if (question.includes("hanging your license") || question.includes("current brokerage") || question.includes("currently with")) {
       if (answer.length < 80) result.brokerage = answer;
@@ -396,10 +402,13 @@ export async function POST(req: NextRequest) {
 
     // Extract lead fields from conversation to save to Supabase
     const extractedFields = extractLeadFieldsFromConversation(allMessages);
-    if (resolvedEmail && Object.keys(extractedFields).length > 0 && declaredContext === "public") {
-      await upsertLead({ email: resolvedEmail, ...extractedFields });
+    // Use email from conversation extraction as fallback
+    const finalEmail = resolvedEmail || (extractedFields as Record<string, unknown>).email as string | undefined;
+    if (finalEmail && declaredContext === "public") {
+      const savePayload = { email: finalEmail, ...extractedFields };
+      await upsertLead(savePayload);
       // Fire Tom alert when name+phone+email are all captured
-      if (extractedFields.name && extractedFields.phone && resolvedEmail) {
+      if (extractedFields.name && extractedFields.phone && finalEmail) {
         getResend().emails.send({
           from: "Scout <scout@joinbearteam.com>",
           to: "thomas.songer@gmail.com",
@@ -410,7 +419,7 @@ export async function POST(req: NextRequest) {
               <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
                 <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;width:110px;">Name</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;font-weight:600;">${extractedFields.name}</td></tr>
                 <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Phone</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${extractedFields.phone}</td></tr>
-                <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Email</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${resolvedEmail}</td></tr>
+                <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Email</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${finalEmail}</td></tr>
                 ${extractedFields.brokerage ? `<tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Brokerage</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${extractedFields.brokerage}</td></tr>` : ""}
                 ${extractedFields.deal_count !== undefined ? `<tr><td style="padding:10px 16px;font-size:0.85rem;color:#6b7280;">Deals/year</td><td style="padding:10px 16px;font-size:0.9rem;color:#1a1a1a;">${extractedFields.deal_count}</td></tr>` : ""}
               </table>
