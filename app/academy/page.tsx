@@ -242,7 +242,7 @@ export default function AcademyPage() {
         .hero-glass-card { padding: clamp(28px,6vw,48px) clamp(20px,6vw,40px); width: 100%; }
 
         /* Stats */
-        .stats-bar { gap: clamp(20px,6vw,48px); padding: clamp(16px,4vw,24px) 16px; }
+        .stats-bar { gap: clamp(32px,8vw,80px); padding: clamp(32px,6vw,56px) 16px; }
 
         /* Courses grid */
         .courses-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
@@ -412,8 +412,8 @@ export default function AcademyPage() {
       <div className="stats-bar" style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "center", flexWrap: "wrap" }}>
         {[["6", "Courses"], ["Free", "For All Agents"], ["~6 hrs", "Total Training"], ["100%", "Online & Self-Paced"]].map(([val, label]) => (
           <div key={label} style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#1b365d" }}>{val}</div>
-            <div style={{ fontSize: "0.78rem", color: "#6b7280", fontWeight: 500, marginTop: 2 }}>{label}</div>
+            <div style={{ fontSize: "clamp(2.8rem,6vw,4.5rem)", fontWeight: 800, color: "#1b365d" }}>{val}</div>
+            <div style={{ fontSize: "clamp(0.9rem,2vw,1.2rem)", color: "#6b7280", fontWeight: 500, marginTop: 8 }}>{label}</div>
           </div>
         ))}
       </div>
