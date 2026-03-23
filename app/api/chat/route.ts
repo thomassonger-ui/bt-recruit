@@ -386,7 +386,7 @@ export async function POST(req: NextRequest) {
         .replace(/a calendly link will be sent[^.]*\./gi, "")
         .trim();
       if (!finalReply.includes("calendly.com")) {
-        finalReply = finalReply + `\n\nHere's your link to book 15 minutes with Tom: ${CALENDLY_URL}`;
+        finalReply = finalReply + `\n\nI locked it in. Here's your link: ${CALENDLY_URL} — takes 30 seconds.`;
       }
     }
 
