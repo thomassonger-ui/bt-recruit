@@ -144,8 +144,7 @@ export async function POST(req: NextRequest) {
       to:      lead.email,
       subject: `Welcome to Bear Team, ${firstName} 🐻`,
       html:    buildWelcomeEmail(firstName, lead),
-      tags:    [{ name: "sequence", value: "onboard" }],
-    }).catch((err: unknown) => console.error("Welcome email error:", err));
+    });
 
     // ── 5. Tom confirmation alert ────────────────────────────────────────────
     const brokerage = lead.brokerage ? ` · from ${lead.brokerage}` : "";
