@@ -143,20 +143,32 @@ export async function POST(req: NextRequest) {
     const payload = body.payload
 
     // Extract agent info from Calendly invitee
+    // Calendly v2 uses payload.scheduled_event for event data (not payload.event)
+    // Questions are under payload.invitee.questions_and_answers
     const name = payload?.invitee?.name || "Unknown"
     const email = payload?.invitee?.email || ""
+
+    // questions_and_answers can be on invitee OR top-level payload depending on webhook version
+    const qaList = payload?.invitee?.questions_and_answers || payload?.questions_and_answers || []
     const phone =
-      payload?.questions_and_answers?.find(
+      qaList.find(
         (qa: { question: string; answer: string }) =>
           qa.question?.toLowerCase().includes("phone") ||
           qa.question?.toLowerCase().includes("number")
       )?.answer || ""
 
-    const eventStart = payload?.event?.start_time || null
-    const eventEnd = payload?.event?.end_time || null
-    const calendlyEventUri = payload?.event?.uri || null
+    // scheduled_event is the v2 field; fall back to event for older webhooks
+    const scheduledEvent = payload?.scheduled_event || payload?.event || {}
+    const eventStart = scheduledEvent?.start_time || null
+    const eventEnd = scheduledEvent?.end_time || null
+    const calendlyEventUri = scheduledEvent?.uri || null
     const calendlyInviteeUri = payload?.invitee?.uri || null
     const notes = payload?.invitee?.text_reminder_number || ""
+
+    console.log(`[booking-webhook] Parsed: name=${name} email=${email} start=${eventStart}`)
+    if (!email) {
+      console.error("[booking-webhook] WARNING: invitee email is empty — full payload:", JSON.stringify(body).slice(0, 500))
+    }
 
     // Format time for email
     const formattedTime = eventStart
