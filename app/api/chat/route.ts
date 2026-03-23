@@ -350,8 +350,8 @@ export async function POST(req: NextRequest) {
         // Fire-and-forget Tom alert on full lead capture
         if (bodyName && bodyPhone) {
           getResend().emails.send({
-            from: "Scout <scout@joinbearteam.com>",
-            to: "thomas.songer@gmail.com",
+            from: "Scout <tom@bearteam.com>",
+            to: "tom@bearteam.com",
             subject: `🔔 New Lead: ${bodyName}`,
             html: `<p><strong>Scout captured a new lead:</strong></p><ul><li><strong>Name:</strong> ${bodyName}</li><li><strong>Email:</strong> ${resolvedEmail}</li><li><strong>Phone:</strong> ${bodyPhone}</li></ul><p>Log in to your <a href="https://joinbearteam.com/dashboard">dashboard</a> to follow up.</p>`,
           }).catch(() => {});
@@ -427,8 +427,8 @@ export async function POST(req: NextRequest) {
       );
       if (hasEnoughForAlert) {
         getResend().emails.send({
-          from: "Scout <scout@joinbearteam.com>",
-          to: "thomas.songer@gmail.com",
+          from: "Scout <tom@bearteam.com>",
+          to: "tom@bearteam.com",
           subject: `🔔 Lead Ready to Book: ${extractedFields.name}`,
           html: `
             <div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;background:#f8f9fa;padding:24px;border-radius:12px;">
