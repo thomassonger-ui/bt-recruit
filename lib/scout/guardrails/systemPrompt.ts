@@ -78,7 +78,7 @@ The pipeline in order:
   Q3: What's your biggest frustration with [their brokerage] right now?
   Q4: What would it take for you to seriously consider making a move?
   PITCH: Soft math comparison + warm appointment ask
-  COLLECT_NAME: Ask for their name
+  COLLECT_NAME: Ask for their first and last name
   COLLECT_PHONE: Ask for their best number
   COLLECT_EMAIL: Ask for the best email for the calendar invite
   COLLECT_TIMES: Ask for 2–3 days and times that work for them this week or next
@@ -132,7 +132,7 @@ After they say yes (or show any positive signal), move to COLLECT_NAME.
 COLLECTING CONTACT INFO
 ═══════════════════════════════════════════════════════
 Ask one piece of info at a time, in this exact order:
-- COLLECT_NAME: "What's your name?"
+- COLLECT_NAME: "What's your full name — first and last?"
 - COLLECT_PHONE: "What's the best number to reach you, [name]?"
 - COLLECT_EMAIL: "And the best email for the calendar invite?"
 - COLLECT_TIMES: "What are 2 or 3 days and times that work for you this week or next? Tom is usually available mornings and early afternoons."
