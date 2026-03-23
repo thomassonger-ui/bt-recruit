@@ -179,8 +179,12 @@ function extractLeadFieldsFromConversation(
     const question = msg.content.toLowerCase();
     const answer = next.content.trim();
 
-    // Name capture
-    if ((question.includes("what's your name") || question.includes("your name?")) && answer.length > 0 && answer.length < 60 && !answer.includes("@")) {
+    // Name capture — broad match since Scout may phrase it various ways
+    const asksForName = question.includes("what's your name") || question.includes("your name?") ||
+      question.includes("your first name") || question.includes("get your name") ||
+      question.includes("may i get your name") || question.includes("can i get your name") ||
+      question.includes("name is") && question.includes("?");
+    if (asksForName && answer.length > 0 && answer.length < 60 && !answer.includes("@")) {
       result.name = answer;
     }
 
@@ -416,8 +420,12 @@ export async function POST(req: NextRequest) {
     if (finalEmail && declaredContext === "public") {
       const savePayload = { email: finalEmail, ...extractedFields };
       await upsertLead(savePayload);
-      // Fire Tom alert when name+phone+email are all captured
-      if (extractedFields.name && extractedFields.phone && finalEmail) {
+      // Fire Tom alert when email is captured + at least name OR phone
+      // At BOOK stage, send alert even if only email is available — lead is ready
+      const hasEnoughForAlert = finalEmail && (
+        extractedFields.name || extractedFields.phone || pipelineStage === "BOOK"
+      );
+      if (hasEnoughForAlert) {
         getResend().emails.send({
           from: "Scout <scout@joinbearteam.com>",
           to: "thomas.songer@gmail.com",
