@@ -40,6 +40,44 @@ async function callScoutAPI(
   return data.reply || "Something went wrong. Try again."
 }
 
+// ─── FADING SUBLINE ───────────────────────────────────────────────────────────
+
+function FadingSubline() {
+  const [showSecond, setShowSecond] = useState(false);
+
+  useEffect(() => {
+    // Wait 2.5s then start cycling every 3.5s
+    const start = setTimeout(() => {
+      setShowSecond(true);
+      const interval = setInterval(() => {
+        setShowSecond(prev => !prev);
+      }, 3500);
+      return () => clearInterval(interval);
+    }, 2500);
+    return () => clearTimeout(start);
+  }, []);
+
+  return (
+    <span style={{ position: "relative", display: "inline-block", minWidth: 120 }}>
+      <span style={{
+        position: "absolute", left: 0, top: 0,
+        transition: "opacity 1.2s ease",
+        opacity: showSecond ? 0 : 1,
+        whiteSpace: "nowrap",
+      }}>
+        Find What&apos;s Missing
+      </span>
+      <span style={{
+        transition: "opacity 1.2s ease",
+        opacity: showSecond ? 1 : 0,
+        whiteSpace: "nowrap",
+      }}>
+        Bear Team AI
+      </span>
+    </span>
+  );
+}
+
 // ─── MOBILE NAV ───────────────────────────────────────────────────────────────
 
 function MobileNav() {
@@ -342,7 +380,7 @@ function ChatPageInner() {
                   ? "Scout (Train)"
                   : context === "operations"
                   ? "Scout (Execute)"
-                  : "Scout — Find What's Missing"}
+                  : <FadingSubline />}
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
