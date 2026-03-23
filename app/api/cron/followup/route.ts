@@ -11,7 +11,6 @@ function getSupabase() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 }
-function getResend() { return { emails: { send: sendEmail } } as any // replaced; }
 
 const TOM_EMAIL = "tom@bearteam.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
@@ -177,16 +176,13 @@ export async function GET(req: NextRequest) {
       }
 
       // Verification passed — safe to send
-      const { error: emailError } = await getResend().emails.send({
+      await sendEmail({
         from: FROM_EMAIL,
         replyTo: REPLY_TO,
         to: lead.email,
         subject: `Checking back in, ${firstName}`,
         html,
-      });
-
-      if (emailError) {
-        console.error(`Follow-up email failed for ${lead.email}:`, emailError);
+      });:`, emailError);
         continue;
       }
 
@@ -196,7 +192,7 @@ export async function GET(req: NextRequest) {
     // Alert Tom so he knows these landed today
     if (results.length > 0) {
       const rows = results.map(r => `<li style="margin-bottom:4px;">${r.name || r.email} &lt;${r.email}&gt;</li>`).join("");
-      await getResend().emails.send({
+      await sendEmail({
         from: FROM_EMAIL,
         replyTo: REPLY_TO,
         to: TOM_EMAIL,
