@@ -14,10 +14,10 @@ function getSupabase() {
 }
 function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
-const TOM_EMAIL = "thomas.songer@gmail.com";
+const TOM_EMAIL = "tom@bearteam.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
-const FROM_EMAIL = "Tom Songer <tom@joinbearteam.com>";
-const REPLY_TO = "thomas.songer@gmail.com";
+const FROM_EMAIL = "Tom Songer <tom@bearteam.com>";
+const REPLY_TO = "tom@bearteam.com";
 
 // ─── COLD CRON — THREE SEGMENTS ───────────────────────────────────────────────
 //
