@@ -13,7 +13,6 @@ function getSupabase() {
   );
 }
 
-function getResend() { return { emails: { send: sendEmail } } as any // replaced; }
 
 const TOM_EMAIL = "tom@bearteam.com";
 const TOM_PHONE = "407-758-8102";
@@ -154,23 +153,20 @@ export async function GET(req: NextRequest) {
 
       // ── Email to recruit ──────────────────────────────────────────────────
       const recruitEmail = buildRecruitEmail(firstName, lead.email, lead.id as string);
-      const { error: recruitEmailError } = await getResend().emails.send({
+      await sendEmail({
         from: FROM_EMAIL,
         replyTo: REPLY_TO, // Fix: agents who want to reschedule now have somewhere to reply
         to: lead.email,
         subject: `We missed you today, ${firstName}`,
         html: recruitEmail,
         tags: [{ name: "sequence", value: "noshow" }],
-      });
-
-      if (recruitEmailError) {
-        console.error(`Failed to send recruit email to ${lead.email}:`, recruitEmailError);
+      });:`, recruitEmailError);
         // Lead already marked — Tom still gets notified below, can follow up manually
       }
 
       // ── Notification email to Tom ─────────────────────────────────────────
       const tomEmail = buildTomNotificationEmail(lead);
-      await getResend().emails.send({
+      await sendEmail({
         from: FROM_EMAIL,
         to: TOM_EMAIL,
         subject: `[No-Show] ${lead.name || lead.email} missed their call`,
