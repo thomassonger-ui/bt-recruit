@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
 import { createHmac, timingSafeEqual } from "crypto"
-import { verifyWrite } from "@/lib/db/verifyWrite"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
