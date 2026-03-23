@@ -176,13 +176,16 @@ export async function GET(req: NextRequest) {
       }
 
       // Verification passed — safe to send
-      await sendEmail({
-        from: FROM_EMAIL,
-        replyTo: REPLY_TO,
-        to: lead.email,
-        subject: `Checking back in, ${firstName}`,
-        html,
-      });:`, emailError);
+      try {
+        await sendEmail({
+          from: FROM_EMAIL,
+          replyTo: REPLY_TO,
+          to: lead.email,
+          subject: `Checking back in, ${firstName}`,
+          html,
+        });
+      } catch (emailError) {
+        console.error(`Failed to send follow-up email to ${lead.email}:`, emailError);
         continue;
       }
 
