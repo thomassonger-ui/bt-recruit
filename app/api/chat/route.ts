@@ -102,6 +102,89 @@ function extractEmail(text: string): string | null {
 }
 
 /**
+ * Extracts a phone number from a message string, if present.
+ */
+function extractPhone(text: string): string | null {
+  const match = text.match(/(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}/);
+  return match ? match[0].replace(/\D/g, "").slice(-10) : null;
+}
+
+/**
+ * Detects which pipeline stage the conversation has reached based on
+ * Scout's responses. Returns the stage string or null.
+ * Used by the frontend to trigger Calendly handoff at BOOK stage.
+ */
+function detectPipelineStage(messages: { role: string; content: string }[]): string | null {
+  const assistantMessages = messages.filter(m => m.role === "assistant").map(m => m.content.toLowerCase());
+  const allAssistant = assistantMessages.join(" ");
+  const lastAssistant = assistantMessages[assistantMessages.length - 1] || "";
+
+  // BOOK stage — Scout has collected name+phone+email and is ready for Calendly
+  if (
+    (allAssistant.includes("best email") || allAssistant.includes("calendar invite")) &&
+    (allAssistant.includes("best number") || allAssistant.includes("reach you")) &&
+    (allAssistant.includes("what's your name") || allAssistant.includes("your name"))
+  ) return "BOOK";
+
+  // COLLECT_EMAIL stage
+  if (lastAssistant.includes("best email") || lastAssistant.includes("calendar invite")) return "COLLECT_EMAIL";
+
+  // COLLECT_PHONE stage
+  if (lastAssistant.includes("best number") || (lastAssistant.includes("reach you") && lastAssistant.includes("name"))) return "COLLECT_PHONE";
+
+  // COLLECT_NAME stage
+  if (lastAssistant.includes("what's your name") || lastAssistant.includes("what is your name")) return "COLLECT_NAME";
+
+  // PITCH stage
+  if (lastAssistant.includes("worth 15 minutes") || lastAssistant.includes("15-minute") || lastAssistant.includes("15 minute")) return "PITCH";
+
+  return null;
+}
+
+/**
+ * Scans the full conversation to extract name/phone/brokerage/deals
+ * from user messages based on what Scout asked just before.
+ */
+function extractLeadFieldsFromConversation(
+  messages: { role: string; content: string }[]
+): { name?: string; phone?: string; brokerage?: string; deal_count?: number } {
+  const result: { name?: string; phone?: string; brokerage?: string; deal_count?: number } = {};
+
+  for (let i = 0; i < messages.length - 1; i++) {
+    const msg = messages[i];
+    const next = messages[i + 1];
+    if (msg.role !== "assistant" || next?.role !== "user") continue;
+
+    const question = msg.content.toLowerCase();
+    const answer = next.content.trim();
+
+    // Name capture
+    if ((question.includes("what's your name") || question.includes("your name?")) && answer.length > 0 && answer.length < 60 && !answer.includes("@")) {
+      result.name = answer;
+    }
+
+    // Phone capture
+    if (question.includes("best number") || question.includes("reach you")) {
+      const phone = extractPhone(answer);
+      if (phone) result.phone = phone;
+    }
+
+    // Brokerage capture
+    if (question.includes("hanging your license") || question.includes("current brokerage") || question.includes("currently with")) {
+      if (answer.length < 80) result.brokerage = answer;
+    }
+
+    // Deal count capture
+    if (question.includes("how many deals") || question.includes("close per year") || question.includes("transactions")) {
+      const num = parseInt(answer.replace(/[^0-9]/g, ""), 10);
+      if (!isNaN(num) && num >= 0 && num < 500) result.deal_count = num;
+    }
+  }
+
+  return result;
+}
+
+/**
  * Builds a returning-agent context block to inject into the system prompt.
  * This gives Scout full prior context so the agent never has to re-explain.
  */
@@ -277,13 +360,34 @@ export async function POST(req: NextRequest) {
       response.choices[0]?.message?.content ||
       "Something went wrong. Try again.";
 
+    // Detect pipeline stage from full conversation + new reply
+    const allMessages = [...chatMessages, { role: "assistant", content: reply }];
+    const pipelineStage = detectPipelineStage(allMessages);
+
+    // Extract lead fields from conversation to save to Supabase
+    const extractedFields = extractLeadFieldsFromConversation(allMessages);
+    if (resolvedEmail && Object.keys(extractedFields).length > 0 && declaredContext === "public") {
+      await upsertLead({ email: resolvedEmail, ...extractedFields });
+      // Fire Tom alert when name+phone are both captured for the first time
+      if (extractedFields.name && extractedFields.phone) {
+        getResend().emails.send({
+          from: "Scout <scout@joinbearteam.com>",
+          to: "thomas.songer@gmail.com",
+          subject: `🔔 Lead Ready to Book: ${extractedFields.name}`,
+          html: `<p><strong>Scout qualified a lead and they're ready to book:</strong></p><ul><li><strong>Name:</strong> ${extractedFields.name}</li><li><strong>Email:</strong> ${resolvedEmail}</li><li><strong>Phone:</strong> ${extractedFields.phone}</li>${extractedFields.brokerage ? `<li><strong>Brokerage:</strong> ${extractedFields.brokerage}</li>` : ""}${extractedFields.deal_count !== undefined ? `<li><strong>Deals/year:</strong> ${extractedFields.deal_count}</li>` : ""}</ul><p><a href="https://joinbearteam.com/dashboard">View in dashboard →</a></p>`,
+        }).catch(() => {});
+      }
+    }
+
     return NextResponse.json({
       reply,
       role: "assistant",
       content: reply,
       context: rawContext,
       mode,
-      returning: !!returningLeadBlock, // tells frontend whether memory was loaded
+      returning: !!returningLeadBlock,
+      pipeline_stage: pipelineStage,
+      calendly_url: pipelineStage === "BOOK" ? "https://calendly.com/thomas-songer/bear-team-meet" : null,
     });
   } catch (error) {
     console.error("Scout API error:", error);
