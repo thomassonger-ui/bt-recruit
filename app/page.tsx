@@ -1944,7 +1944,7 @@ export default function HomePage() {
           <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
           <a href="/academy" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Academy</a>
         </div>
-        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)" }}>© 2026 Bear Team Real Estate · Bethanne Baer, Broker/Owner · Orlando, FL · All rights reserved.</div>
+        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)" }}>Copyright WorldTeachPathways 2026</div>
       </footer>
     </main>
   );
