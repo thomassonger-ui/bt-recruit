@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Resend } from "resend"
 
 
 // ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
@@ -54,8 +53,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // sendEmail helper used instead
-    await sendEmail({
+        await sendEmail({
       from: "Scout <tom@bearteam.com>",
       to: process.env.NOTIFY_EMAIL!,
       subject: "Someone is using Scout",
