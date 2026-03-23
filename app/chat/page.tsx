@@ -15,12 +15,18 @@ interface Message {
 
 // ─── API CALL ─────────────────────────────────────────────────────────────────
 
+interface ScoutAPIResponse {
+  reply: string;
+  pipeline_stage: string | null;
+  calendly_url: string | null;
+}
+
 async function callScoutAPI(
   messages: Message[],
   context: string,
   sessionId: string,
   agentEmail?: string
-): Promise<string> {
+): Promise<ScoutAPIResponse> {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -37,7 +43,11 @@ async function callScoutAPI(
   }
 
   const data = await res.json()
-  return data.reply || "Something went wrong. Try again."
+  return {
+    reply: data.reply || "Something went wrong. Try again.",
+    pipeline_stage: data.pipeline_stage || null,
+    calendly_url: data.calendly_url || null,
+  }
 }
 
 // ─── FADING SUBLINE ───────────────────────────────────────────────────────────
@@ -131,6 +141,7 @@ function ChatPageInner() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [agentEmail, setAgentEmail] = useState<string | undefined>(undefined)
+  const [calendlyUrl, setCalendlyUrl] = useState<string | null>(null)
 
   // Stable session ID for this browser session
   const sessionId = useRef<string>(
@@ -205,15 +216,19 @@ function ChatPageInner() {
       if (emailMatch && !agentEmail) setAgentEmail(emailMatch[0].toLowerCase());
 
       try {
-        const reply = await callScoutAPI(updatedMessages, context, sessionId, agentEmail || emailMatch?.[0]?.toLowerCase())
+        const response = await callScoutAPI(updatedMessages, context, sessionId, agentEmail || emailMatch?.[0]?.toLowerCase())
         setMessages((prev) => [
           ...prev,
           {
             id: `assistant-${Date.now()}`,
             role: "assistant",
-            content: reply,
+            content: response.reply,
           },
         ])
+        // Trigger Calendly handoff when pipeline reaches BOOK stage
+        if (response.calendly_url) {
+          setCalendlyUrl(response.calendly_url)
+        }
       } catch (err) {
         console.error("Scout error:", err)
         setMessages((prev) => [
