@@ -347,8 +347,6 @@ export async function POST(req: NextRequest) {
           .eq("email", email.toLowerCase().trim())
           .maybeSingle()
         if (freshLead) leadRecord = freshLead
-
-        const resend = new Resend(process.env.RESEND_API_KEY)
         await sendEmail({
           from: FROM_EMAIL,
           replyTo: REPLY_TO,
@@ -372,7 +370,7 @@ export async function POST(req: NextRequest) {
 
     // ── Send email to Tom ──────────────────────────────────────────────────────
     if (process.env.NOTIFY_EMAIL) {
-      const tomAlertResult = await sendEmail({
+      await sendEmail({
         from: "Scout <tom@bearteam.com>",
         to: process.env.NOTIFY_EMAIL,
         subject: `📞 Call booked — ${name} · ${formattedTime}`,
