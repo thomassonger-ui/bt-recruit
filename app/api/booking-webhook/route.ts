@@ -17,7 +17,7 @@ export const runtime = "nodejs"
 //   SUPABASE_URL              — from Supabase project settings
 //   SUPABASE_ANON_KEY         — from Supabase project settings
 //   RESEND_API_KEY            — already set
-//   NOTIFY_EMAIL              — already set (thomas.songer@gmail.com)
+//   NOTIFY_EMAIL              — already set (tom@bearteam.com)
 //   CALENDLY_WEBHOOK_SECRET   — from Calendly: Integrations → Webhooks → signing key
 //
 // Signature verification:
@@ -42,8 +42,8 @@ export const runtime = "nodejs"
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet"
-const FROM_EMAIL    = "Tom Songer <tom@joinbearteam.com>"
-const REPLY_TO      = "thomas.songer@gmail.com"
+const FROM_EMAIL    = "Tom Songer <tom@bearteam.com>"
+const REPLY_TO      = "tom@bearteam.com"
 
 function verifyCalendlySignature(
   rawBody: string,
@@ -313,7 +313,7 @@ export async function POST(req: NextRequest) {
     if (process.env.RESEND_API_KEY && process.env.NOTIFY_EMAIL) {
       const resend = new Resend(process.env.RESEND_API_KEY)
       await resend.emails.send({
-        from: "Scout <scout@joinbearteam.com>",
+        from: "Scout <tom@bearteam.com>",
         to: process.env.NOTIFY_EMAIL,
         subject: `📞 Call booked — ${name} · ${formattedTime}`,
         html: `
