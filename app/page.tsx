@@ -605,14 +605,14 @@ function HeroParallax() {
           backdropFilter: "blur(24px) saturate(180%)",
           WebkitBackdropFilter: "blur(24px) saturate(180%)",
           borderRadius: "24px",
-          border: "1px solid rgba(201,168,76,0.4)",
+          border: "1px solid rgba(59,130,246,0.4)",
           boxShadow: "0 20px 60px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.06) inset",
         }}>
           <HeroFade delay={0}>
             <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, color: "#ffffff", marginBottom: "20px", letterSpacing: "-0.02em" }}>
               Built Exclusively for
               <br />
-              <span style={{ color: "#c9a84c" }}>
+              <span style={{ color: "#3b82f6" }}>
                 Bear Team Agents
               </span>
             </h1>
@@ -1883,7 +1883,7 @@ export default function HomePage() {
                 detail: "Coldwell Banker → Bear Team",
                 stat: "Top 1% Producer",
                 initials: "M",
-                color: "#c9a84c",
+                color: "#3b82f6",
               },
             ].map(({ quote, name, detail, stat, initials, color }, i) => (
               <Reveal key={name} delay={i * 120}>
