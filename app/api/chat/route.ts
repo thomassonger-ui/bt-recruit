@@ -123,20 +123,26 @@ function detectPipelineStage(messages: { role: string; content: string }[]): str
   const lastAssistant = assistantMessages[assistantMessages.length - 1] || "";
   const lastUser = userMessages[userMessages.length - 1] || "";
 
-  // BOOK stage — Scout asked for email AND user just replied with an email
+  // BOOK stage — Scout asked for times AND user just replied with time preferences
+  // OR Scout explicitly sends the Calendly link in reply
+  const scoutAskedForTimes = lastAssistant.includes("days and times") || lastAssistant.includes("days/times") || lastAssistant.includes("what time") || lastAssistant.includes("works for you this week") || lastAssistant.includes("mornings and early");
+  const userGaveTimes = /(monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|am|pm|\d+:\d+|\d+ ?[ap]m|this week|next week|anytime|flexible|tomorrow)/i.test(lastUser);
+  if (scoutAskedForTimes && userGaveTimes) return "BOOK";
+
+  // BOOK stage fallback — Scout explicitly includes the Calendly link
+  if (lastAssistant.includes("calendly.com")) return "BOOK";
+
+  // COLLECT_TIMES stage — Scout asked for email and user just provided it
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
   const scoutAskedForEmail = allAssistant.includes("best email") || allAssistant.includes("calendar invite");
   const userJustGaveEmail = emailRegex.test(lastUser);
-  if (scoutAskedForEmail && userJustGaveEmail) return "BOOK";
-
-  // BOOK stage fallback — Scout explicitly says it will send the calendly link
-  if (lastAssistant.includes("calendly") || lastAssistant.includes("calendar link") || lastAssistant.includes("send you a")) return "BOOK";
+  if (scoutAskedForEmail && userJustGaveEmail) return "COLLECT_TIMES";
 
   // COLLECT_EMAIL stage
   if (lastAssistant.includes("best email") || lastAssistant.includes("calendar invite")) return "COLLECT_EMAIL";
 
   // COLLECT_PHONE stage
-  if (lastAssistant.includes("best number") || (lastAssistant.includes("reach you"))) return "COLLECT_PHONE";
+  if (lastAssistant.includes("best number") || lastAssistant.includes("reach you")) return "COLLECT_PHONE";
 
   // COLLECT_NAME stage
   if (lastAssistant.includes("what's your name") || lastAssistant.includes("what is your name")) return "COLLECT_NAME";
