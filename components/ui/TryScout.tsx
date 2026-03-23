@@ -12,63 +12,80 @@ interface ScoutOption {
 
 const OPTIONS: ScoutOption[] = [
   {
-    label: "Write a listing description",
+    label: "Write a listing presentation for 2413 Summerfield Rd, Winter Park FL 32789 — Tom Songer",
     prompt:
-      "Write a listing description for a 3 bed 2 bath in Winter Park",
-    response: `Welcome to this beautifully maintained 3-bedroom, 2-bathroom home in the heart of Winter Park. Step inside to find an open-concept living area with natural light flowing through every room. The updated kitchen features granite countertops, stainless steel appliances, and a breakfast bar that opens to the family room.
+      "Write a listing presentation for 2413 Summerfield Road, Winter Park, Florida 32789 for Tom Songer",
+    response: `LISTING PRESENTATION
+2413 Summerfield Road, Winter Park, FL 32789
+Prepared by Tom Songer | Bear Team Real Estate
 
-The primary suite offers a walk-in closet and an en-suite bathroom with dual vanities. Two additional bedrooms provide flexible space for a home office, guest room, or growing family.
+PRICING STRATEGY
+Based on 6 recent comparable sales within 0.5 miles, the data supports a list price of $589,000–$605,000. Homes in this pocket of Winter Park are averaging 97.2% of list price with 14 days on market when priced correctly at entry.
 
-Step outside to a spacious backyard with a covered patio -- perfect for entertaining year-round. Located minutes from Park Avenue shopping, dining, and top-rated schools.
+WHY THIS HOME WINS AT THIS PRICE
+- Corner lot with mature oak canopy — rare in this subdivision
+- Updated kitchen (2021) with quartz countertops and gas range
+- 3 bed / 2.5 bath, 2,140 sq ft — priced $18/sqft below the street average
+- New roof (2022) eliminates the #1 buyer objection before it starts
 
-Key Features:
-- 1,850 sq ft living space
-- Updated kitchen with modern finishes
-- Covered patio with private backyard
-- Two-car garage
-- Walk to Park Avenue`,
+BEAR TEAM MARKETING PLAN
+Week 1: Professional photography, 3D Matterport tour, MLS launch
+Week 1–2: Targeted Facebook/Instagram campaign — Winter Park move-up buyers
+Week 2: Open house Saturday 11am–2pm, sphere blast to 400+ contacts
+Ongoing: Weekly seller updates, showing feedback within 24 hours
+
+COMPARABLE SALES (Last 90 Days)
+- 2388 Summerfield Rd — $572,000 | 18 DOM
+- 1947 Howell Branch Rd — $598,500 | 11 DOM
+- 2501 Fontaine Blvd — $615,000 | 9 DOM
+
+NEXT STEP
+Sign the listing agreement today and we go live Thursday. Inventory in this zip is down 22% year-over-year — buyers are ready.`,
   },
   {
-    label: "Draft a follow-up message",
+    label: "Write a follow-up text to Marcus — showed 4 homes, went quiet for 3 days",
     prompt:
-      "Draft a follow-up message to a buyer who visited a home yesterday",
-    response: `Hi Sarah,
+      "Write a follow-up text to Marcus — he toured 4 homes with me last Tuesday, said he needed to think, and hasn't responded in 3 days",
+    response: `Hey Marcus — Tom here. Wanted to check in since we looked at those four homes last Tuesday.
 
-Thank you for taking the time to visit the Lake Nona property yesterday. I wanted to follow up and see how you're feeling about it.
+Totally understand needing a few days to process — four properties in one afternoon is a lot to think through.
 
-Based on what you mentioned during the showing -- the open kitchen layout, the proximity to top-rated schools, and the backyard space for the kids -- I think this one checks a lot of your boxes.
+Quick heads up: the Delaney Park split-level (the one with the workshop garage you mentioned liking) had two showings this weekend. It's still available but it's getting attention.
 
-I pulled a few comparable sales in the area so you can see where this home sits relative to recent transactions. Happy to walk through those numbers whenever you're ready.
+No pressure at all — just wanted to make sure you had what you need to make a decision that feels right.
 
-If you'd like to schedule a second visit or if anything else caught your eye, just let me know. I'm here to help you make the best decision for your family.
+If it helps, I can pull a quick side-by-side of the top two and run the numbers on what each looks like at closing. Takes me 10 minutes.
 
-Looking forward to hearing from you.`,
+Worth a call this week? I'm open Tuesday or Wednesday afternoon.
+
+— Tom`,
   },
   {
-    label: "Organize my daily workflow",
+    label: "Build my prospecting plan — I have 2 hours and 40 contacts to work through",
     prompt:
-      "Help me organize my prospecting and follow-up for today",
-    response: `Here's your daily workflow for today:
+      "Build me a prospecting plan for today — I have 2 hours blocked and 40 contacts to work through. Mix of past clients, open house leads from last weekend, and a cold geo-farm list in Baldwin Park",
+    response: `PROSPECTING PLAN — 2-Hour Block
+40 Contacts | 3 Segments
 
-Morning Block (8:00 - 10:00 AM)
-- Review new leads from overnight inquiries
-- Send follow-up messages to 3 active buyers from this week
-- Confirm showing appointments for today and tomorrow
+SEGMENT 1 — Past Clients (10 contacts) | 35 minutes
+Goal: Referral activation + equity check-in
+Script opener: "Hey [Name], it's Tom — just checking in. You've been in your place about [X] years now. Values in your neighborhood have moved — wanted to make sure you had the latest numbers in case it ever comes up."
+Target outcome: 2 referral conversations, 1 equity review booked
 
-Midday Block (10:00 AM - 12:00 PM)
-- Prospecting calls: 15 contacts from your sphere of influence
-- Check MLS for new listings matching buyer criteria
-- Update CRM notes from yesterday's showings
+SEGMENT 2 — Open House Leads (15 contacts) | 45 minutes
+Goal: Qualify and convert to showing appointments
+Script opener: "Hi [Name], this is Tom Songer — you came through the open house on [address] this past weekend. Just wanted to follow up personally and see if that one was in the right direction for you."
+Target outcome: 3 showings booked, 5 moved to nurture
 
-Afternoon Block (1:00 - 3:00 PM)
-- Prepare listing presentation for Thursday consultation
-- Review pending transaction checklist (Rivera closing March 28)
-- Send weekly market update to your seller pipeline
+SEGMENT 3 — Baldwin Park Geo-Farm (15 contacts) | 40 minutes
+Goal: Brand awareness + off-market lead generation
+Script opener: "Hi [Name], my name is Tom Songer with Bear Team Real Estate — I specialize in the Baldwin Park area and wanted to introduce myself. Are you planning on staying in the neighborhood long-term or keeping your options open?"
+Target outcome: 1 listing conversation, 3 "call me in 6 months"
 
-End of Day (4:00 - 5:00 PM)
-- Log all conversations and next steps in CRM
-- Schedule tomorrow's priority tasks
-- Review pending offers and counter deadlines`,
+TRACK AS YOU GO
+Hot (ready now): Schedule immediately
+Warm (3–6 months): Set calendar follow-up
+Cold (12+ months): Add to monthly email list`,
   },
 ];
 
