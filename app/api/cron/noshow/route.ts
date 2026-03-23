@@ -153,14 +153,16 @@ export async function GET(req: NextRequest) {
 
       // ── Email to recruit ──────────────────────────────────────────────────
       const recruitEmail = buildRecruitEmail(firstName, lead.email, lead.id as string);
-      await sendEmail({
-        from: FROM_EMAIL,
-        replyTo: REPLY_TO, // Fix: agents who want to reschedule now have somewhere to reply
-        to: lead.email,
-        subject: `We missed you today, ${firstName}`,
-        html: recruitEmail,
-        tags: [{ name: "sequence", value: "noshow" }],
-      });:`, recruitEmailError);
+      try {
+        await sendEmail({
+          from: FROM_EMAIL,
+          replyTo: REPLY_TO,
+          to: lead.email,
+          subject: `We missed you today, ${firstName}`,
+          html: recruitEmail,
+        });
+      } catch (recruitEmailError) {
+        console.error(`Failed to send no-show email to ${lead.email}:`, recruitEmailError);
         // Lead already marked — Tom still gets notified below, can follow up manually
       }
 
