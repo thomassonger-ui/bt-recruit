@@ -13,7 +13,6 @@ function getSupabase() {
   );
 }
 
-function getResend() { return { emails: { send: sendEmail } } as any // replaced; }
 
 const TOM_EMAIL = "tom@bearteam.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
@@ -191,7 +190,7 @@ export async function GET(req: NextRequest) {
         // Verification passed — safe to send
         const html = buildDripEmail(step.emailIndex, firstName, lead);
 
-        const { error: emailError } = await getResend().emails.send({
+        await sendEmail({
           from: FROM_EMAIL,
           replyTo: REPLY_TO,
           to: lead.email,
@@ -201,10 +200,7 @@ export async function GET(req: NextRequest) {
             { name: "drip_step", value: String(step.emailIndex + 1) },
             { name: "sequence",  value: "drip" },
           ],
-        });
-
-        if (emailError) {
-          console.error(`Drip email error for ${lead.email}:`, emailError);
+        });:`, emailError);
           continue;
         }
 
@@ -212,7 +208,7 @@ export async function GET(req: NextRequest) {
         if (newDripStep >= 5) {
           const brokerage = lead.brokerage ? ` · ${lead.brokerage}` : "";
           const dealInfo = lead.deal_count ? ` · ${lead.deal_count} deals/yr` : "";
-          await getResend().emails.send({
+          await sendEmail({
             from: FROM_EMAIL,
             to: TOM_EMAIL,
             subject: `[Drip Complete] ${lead.name || lead.email} — sequence finished, no response`,
@@ -243,7 +239,7 @@ export async function GET(req: NextRequest) {
 
     // Notify Tom if any drip emails went out
     if (results.length > 0) {
-      await getResend().emails.send({
+      await sendEmail({
         from: FROM_EMAIL,
         to: TOM_EMAIL,
         subject: `[Scout Drip] ${results.length} nurture email(s) sent today`,
