@@ -4,10 +4,16 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/ui/Button";
 
+interface CtaButton {
+  label: string;
+  icon: string;
+}
+
 interface ScoutOption {
   label: string;
   prompt: string;
   response: string;
+  ctaButtons: CtaButton[];
 }
 
 const OPTIONS: ScoutOption[] = [
@@ -264,12 +270,57 @@ export default function TryScout() {
               </div>
             </motion.div>
 
+            {/* CTA buttons */}
+            {state === "done" && selected && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="mt-5 flex flex-wrap gap-2"
+              >
+                {selected.ctaButtons.map((btn, idx) => (
+                  <button
+                    key={idx}
+                    className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98]"
+                    style={{
+                      background: idx === 0 ? "#1b365d" : idx === 1 ? "#2d4a6b" : "#f0f4f8",
+                      color: idx === 2 ? "#1b365d" : "#ffffff",
+                      fontFamily: "Inter, sans-serif",
+                      border: idx === 2 ? "1px solid #d1dce8" : "none",
+                    }}
+                    onClick={() => {
+                      // Simulated actions — visual feedback only
+                      const el = document.activeElement as HTMLElement;
+                      if (el) el.blur();
+                    }}
+                  >
+                    {btn.icon === "download" && (
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    )}
+                    {btn.icon === "email" && (
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    )}
+                    {btn.icon === "excel" && (
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+                    )}
+                    {btn.icon === "sms" && (
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    )}
+                    {btn.icon === "save" && (
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+                    )}
+                    {btn.label}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+
             {/* Try another */}
             {state === "done" && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
                 className="mt-4"
               >
                 <button
