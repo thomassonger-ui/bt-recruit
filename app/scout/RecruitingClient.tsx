@@ -24,6 +24,41 @@ import Button from "@/components/ui/Button";
 import Footer from "@/components/ui/Footer";
 import ScoutPainPopups from "@/components/ui/ScoutPainPopups";
 
+/* ── Hero fading subline ── */
+function HeroFadingSubline() {
+  const [showSecond, setShowSecond] = React.useState(false);
+  React.useEffect(() => {
+    const start = setTimeout(() => {
+      setShowSecond(true);
+      const interval = setInterval(() => {
+        setShowSecond((p) => !p);
+      }, 3500);
+      return () => clearInterval(interval);
+    }, 2500);
+    return () => clearTimeout(start);
+  }, []);
+  return (
+    <span style={{ position: "relative", display: "inline-block" }}>
+      <span style={{
+        transition: "opacity 1.4s ease",
+        opacity: showSecond ? 0 : 1,
+        position: "absolute", left: 0, top: 0,
+        whiteSpace: "nowrap",
+      }}>
+        Find What&apos;s Missing
+      </span>
+      <span style={{
+        transition: "opacity 1.4s ease",
+        opacity: showSecond ? 1 : 0,
+        whiteSpace: "nowrap",
+        visibility: showSecond ? "visible" : "hidden",
+      }}>
+        Bear Team AI
+      </span>
+    </span>
+  );
+}
+
 /* ── Animation helpers ── */
 const fadeUp = {
   initial: { opacity: 0, y: 32 },
@@ -451,9 +486,9 @@ function HeroParallaxContent() {
                 </h1>
                 <h3
                   className="mt-2 text-2xl font-semibold sm:text-3xl"
-                  style={{ fontFamily: "Inter, sans-serif", color: "#93c5fd" }}
+                  style={{ fontFamily: "Inter, sans-serif", color: "#93c5fd", position: "relative", display: "inline-block" }}
                 >
-                  Find What&apos;s Missing
+                  <HeroFadingSubline />
                 </h3>
                 <p
                   className="mt-3 text-lg font-medium sm:text-xl"
