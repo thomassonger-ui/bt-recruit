@@ -409,10 +409,15 @@ export default function DashboardPage() {
                             <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
                           ) : null}
                           {lead.status !== "joined" && lead.email ? (
-                            <button onClick={() => pauseDrip(lead.id, "pause")} disabled={pausingDripId === lead.id}
-                              style={{ background: pausingDripId === lead.id ? "#E5E7EB" : "#FEF2F2", color: pausingDripId === lead.id ? "#9CA3AF" : "#C62828", border: "1px solid #FECACA", borderRadius: 6, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: pausingDripId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
-                              {pausingDripId === lead.id ? "..." : "⏸ Pause"}
-                            </button>
+                            lead.drip_unsubscribed
+                              ? <button onClick={() => pauseDrip(lead.id, "resume")} disabled={pausingDripId === lead.id}
+                                  style={{ background: pausingDripId === lead.id ? "#E5E7EB" : "#F0FDF4", color: pausingDripId === lead.id ? "#9CA3AF" : "#166534", border: "1px solid #BBF7D0", borderRadius: 6, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: pausingDripId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
+                                  {pausingDripId === lead.id ? "..." : "▶ Resume"}
+                                </button>
+                              : <button onClick={() => pauseDrip(lead.id, "pause")} disabled={pausingDripId === lead.id}
+                                  style={{ background: pausingDripId === lead.id ? "#E5E7EB" : "#FEF2F2", color: pausingDripId === lead.id ? "#9CA3AF" : "#C62828", border: "1px solid #FECACA", borderRadius: 6, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: pausingDripId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
+                                  {pausingDripId === lead.id ? "..." : "⏸ Pause"}
+                                </button>
                           ) : null}
                         </div>
                       </td>
