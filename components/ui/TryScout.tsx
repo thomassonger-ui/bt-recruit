@@ -47,6 +47,11 @@ COMPARABLE SALES (Last 90 Days)
 
 NEXT STEP
 Sign the listing agreement today and we go live Thursday. Inventory in this zip is down 22% year-over-year — buyers are ready.`,
+    ctaButtons: [
+      { label: "Download CMA", icon: "download" },
+      { label: "Send to Seller", icon: "email" },
+      { label: "Download Excel", icon: "excel" },
+    ],
   },
   {
     label: "Write a follow-up text to Marcus — showed 4 homes, went quiet for 3 days",
@@ -65,6 +70,11 @@ If it helps, I can pull a quick side-by-side of the top two and run the numbers 
 Worth a call this week? I'm open Tuesday or Wednesday afternoon.
 
 — Tom`,
+    ctaButtons: [
+      { label: "Send Text", icon: "sms" },
+      { label: "Send Email", icon: "email" },
+      { label: "Save to CRM", icon: "save" },
+    ],
   },
   {
     label: "Build my prospecting plan — I have 2 hours and 40 contacts to work through",
@@ -92,6 +102,11 @@ TRACK AS YOU GO
 Hot (ready now): Schedule immediately
 Warm (3–6 months): Set calendar follow-up
 Cold (12+ months): Add to monthly email list`,
+    ctaButtons: [
+      { label: "Download Plan", icon: "download" },
+      { label: "Download Excel", icon: "excel" },
+      { label: "Send to My Email", icon: "email" },
+    ],
   },
 ];
 
