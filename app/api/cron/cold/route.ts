@@ -11,7 +11,6 @@ function getSupabase() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 }
-function getResend() { return { emails: { send: sendEmail } } as any // replaced; }
 
 const TOM_EMAIL = "tom@bearteam.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
@@ -218,7 +217,7 @@ export async function GET(req: NextRequest) {
       }
 
       // Verification passed — safe to send
-      await getResend().emails.send({
+      await sendEmail({
         from: FROM_EMAIL,
         replyTo: REPLY_TO,
         to: lead.email,
@@ -231,7 +230,7 @@ export async function GET(req: NextRequest) {
       });
 
       if (isRecovery) {
-        await getResend().emails.send({
+        await sendEmail({
           from: FROM_EMAIL,
           replyTo: REPLY_TO,
           to: TOM_EMAIL,
@@ -263,7 +262,7 @@ export async function GET(req: NextRequest) {
     const segBCount = recovered.filter(l => l.startsWith("[B]")).length;
     const segCCount = recovered.filter(l => l.startsWith("[C]")).length;
     const leadRows = recovered.map(l => `<li style="margin-bottom:4px;">${l}</li>`).join("");
-    await getResend().emails.send({
+    await sendEmail({
       from: FROM_EMAIL,
       replyTo: REPLY_TO,
       to: TOM_EMAIL,
