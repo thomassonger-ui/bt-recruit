@@ -356,14 +356,12 @@ export default function ScoutDemo({
             AI-Powered
           </p>
           <h2
-            className="text-heading mb-5 text-foreground"
+            className="text-heading mb-0 text-foreground"
             style={{ fontFamily: "Inter, sans-serif" }}
           >
             Scout in Action
           </h2>
-          <p className="text-lg leading-relaxed text-muted">
-            See how Scout qualifies agents, uncovers their pain, and moves them toward a call with Tom.
-          </p>
+
         </motion.div>
 
         {/* Chat interface */}
