@@ -99,7 +99,7 @@ export async function GET(req: Request) {
 </div>`
 
   await sendEmail({
-    from: "Scout <onboarding@resend.dev>",
+    from: "Scout <tom@bearteam.com>",
     to: process.env.NOTIFY_EMAIL!,
     subject: `Bear Team Weekly Leads — ${count} new lead${count !== 1 ? "s" : ""} | ${dateRange}`,
     html,
