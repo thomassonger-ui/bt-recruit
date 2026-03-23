@@ -227,52 +227,37 @@ export async function POST(req: NextRequest) {
         }
       } else {
         // New lead or pre-drip re-booking: full upsert
-        const { error } = await supabase.from("leads").upsert(
-          {
-            name,
-            email,
-            phone,
-            event_start: eventStart,
-            event_end: eventEnd,
-            calendly_event_uri: calendlyEventUri,
-            calendly_invitee_uri: calendlyInviteeUri,
-            notes,
-            status: "booked",
-          },
-          { onConflict: "email" }
-        )
+        // Try update first, then insert if no row exists
+        const emailKey = email.toLowerCase().trim()
+        const { data: existing } = await supabase
+          .from("leads").select("id").eq("email", emailKey).maybeSingle()
+
+        const { error } = existing
+          ? await supabase.from("leads").update({
+              name, phone,
+              event_start: eventStart, event_end: eventEnd,
+              calendly_event_uri: calendlyEventUri,
+              calendly_invitee_uri: calendlyInviteeUri,
+              notes, status: "booked",
+              updated_at: new Date().toISOString(),
+            }).eq("id", existing.id)
+          : await supabase.from("leads").insert({
+              name, email: emailKey, phone,
+              event_start: eventStart, event_end: eventEnd,
+              calendly_event_uri: calendlyEventUri,
+              calendly_invitee_uri: calendlyInviteeUri,
+              notes, status: "booked",
+            })
 
         if (error) {
           console.error("Supabase insert error:", error)
         }
       }
 
-      // ── TICKET-04: Write verification before sending confirmation email ──────
-      // Confirm the lead row is persisted in Supabase before sending any email.
-      // If the write failed silently (RLS block, network hiccup, constraint error),
-      // verification catches it here and aborts the send rather than emailing a
-      // lead whose state we can't confirm.
-      if (process.env.RESEND_API_KEY && !isRebooking) {
-        const isVerified = await verifyWrite({
-          supabase,
-          table: "leads",
-          match: { email: email.toLowerCase().trim() },
-          expected: { email: email.toLowerCase().trim() },
-        })
-
-        if (!isVerified) {
-          // Write could not be confirmed — skip email, log for monitoring
-          console.error("WRITE VERIFICATION FAILED", {
-            route: "booking-webhook",
-            email,
-          })
-          // Still return 200 to Calendly (don't cause retries on our DB issue)
-          return NextResponse.json({ ok: false, reason: "verification_failed" })
-        }
-
-        // Verification passed — safe to send booking confirmation
+      // Send booking confirmation email directly after upsert — no verifyWrite gate
+      if (process.env.RESEND_API_KEY && !isRebooking && email) {
         const firstName = name?.split(" ")[0] || "there"
-        // Fetch lead for personalization (deal_count, brokerage, notes)
+        // Fetch lead for personalization
         let leadRecord: Record<string, string | number | boolean | null> = { name, email }
         const { data: freshLead } = await supabase
           .from("leads")
@@ -290,11 +275,18 @@ export async function POST(req: NextRequest) {
           html: buildBookingConfirmationEmail(firstName, leadRecord, formattedTime),
           tags: [{ name: "sequence", value: "booking_confirmation" }],
         }).catch((err: unknown) => console.error("Booking confirmation email error:", err))
-        // Note: drip_step intentionally NOT set here. The drip cron owns Email 1 (post-call recap).
       }
-    } else if (process.env.RESEND_API_KEY && !isRebooking) {
-      // No Supabase env vars — skip confirmation email (can't verify write)
-      console.warn("booking-webhook: SUPABASE env vars missing — confirmation email skipped")
+    } else if (process.env.RESEND_API_KEY && !isRebooking && email) {
+      // No Supabase — send confirmation anyway
+      const firstName = name?.split(" ")[0] || "there"
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        replyTo: REPLY_TO,
+        to: email,
+        subject: `Looking forward to our call, ${firstName}`,
+        html: buildBookingConfirmationEmail(firstName, { name, email }, formattedTime),
+      }).catch((err: unknown) => console.error("Booking confirmation fallback error:", err))
     }
 
     // ── Send email to Tom ──────────────────────────────────────────────────────
