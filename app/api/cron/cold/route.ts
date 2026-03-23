@@ -223,10 +223,6 @@ export async function GET(req: NextRequest) {
         to: lead.email,
         subject,
         html,
-        tags: [
-          { name: "sequence", value: "cold" },
-          { name: "segment",  value: lead.segment },
-        ],
       });
 
       if (isRecovery) {
