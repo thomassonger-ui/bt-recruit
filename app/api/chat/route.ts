@@ -7,7 +7,7 @@ import type { ScoutMode } from "@/lib/scout/guardrails/systemPrompt";
 import { checkInboundCompliance } from "@/lib/scout/guardrails/complianceRules";
 
 
-// ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
+// --- SENDGRID EMAIL HELPER ----------------------------------------------------
 async function sendEmail({
   to, from: fromAddr, replyTo, subject, html
 }: {
@@ -38,14 +38,14 @@ async function sendEmail({
     console.log(`[sendEmail] Sent OK to ${to}`)
   }
 }
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function getOpenAI() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
 
-// Lazy init — avoids build-time crash
+// Lazy init - avoids build-time crash
 function getSupabase() {
   return createClient(
     (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
@@ -53,7 +53,7 @@ function getSupabase() {
   );
 }
 
-// ─── TYPES ────────────────────────────────────────────────────────────────────
+// --- TYPES --------------------------------------------------------------------
 
 interface LeadRecord {
   id?: string;
@@ -77,7 +77,7 @@ interface LeadRecord {
   follow_up_date?: string;
 }
 
-// ─── SUPABASE MEMORY HELPERS ──────────────────────────────────────────────────
+// --- SUPABASE MEMORY HELPERS --------------------------------------------------
 
 /**
  * Look up a returning recruit by email in Supabase.
@@ -101,7 +101,7 @@ async function getReturningLead(email: string): Promise<LeadRecord | null> {
 }
 
 /**
- * Upsert a lead record — creates new or updates existing on email match.
+ * Upsert a lead record - creates new or updates existing on email match.
  * Called when Scout captures a new lead OR when a returning lead provides
  * updated information during a conversation.
  */
@@ -164,16 +164,16 @@ function detectPipelineStage(messages: { role: string; content: string }[]): str
   const lastAssistant = assistantMessages[assistantMessages.length - 1] || "";
   const lastUser = userMessages[userMessages.length - 1] || "";
 
-  // BOOK stage — Scout asked for times AND user just replied with time preferences
+  // BOOK stage - Scout asked for times AND user just replied with time preferences
   // OR Scout explicitly sends the Calendly link in reply
   const scoutAskedForTimes = lastAssistant.includes("days and times") || lastAssistant.includes("days/times") || lastAssistant.includes("what time") || lastAssistant.includes("works for you this week") || lastAssistant.includes("mornings and early");
   const userGaveTimes = /(monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|am|pm|\d+:\d+|\d+ ?[ap]m|this week|next week|anytime|flexible|tomorrow)/i.test(lastUser);
   if (scoutAskedForTimes && userGaveTimes) return "BOOK";
 
-  // BOOK stage fallback — Scout explicitly includes the Calendly link
+  // BOOK stage fallback - Scout explicitly includes the Calendly link
   if (lastAssistant.includes("calendly.com")) return "BOOK";
 
-  // COLLECT_TIMES stage — Scout asked for email and user just provided it
+  // COLLECT_TIMES stage - Scout asked for email and user just provided it
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
   const scoutAskedForEmail = allAssistant.includes("best email") || allAssistant.includes("calendar invite");
   const userJustGaveEmail = emailRegex.test(lastUser);
@@ -211,7 +211,7 @@ function extractLeadFieldsFromConversation(
     const question = msg.content.toLowerCase();
     const answer = next.content.trim();
 
-    // Name capture — catch any Scout message that mentions "name"
+    // Name capture - catch any Scout message that mentions "name"
     // Covers: "what's your name", "your first name", "who am I speaking with",
     // "mind sharing your name", "and your name?", etc.
     const asksForName = question.includes("name");
@@ -225,7 +225,7 @@ function extractLeadFieldsFromConversation(
       if (phone) result.phone = phone;
     }
 
-    // Email capture — Scout asked for email, user replied with one
+    // Email capture - Scout asked for email, user replied with one
     if (question.includes("best email") || question.includes("calendar invite")) {
       const email = extractEmail(answer);
       if (email) (result as Record<string, unknown>).email = email;
@@ -252,7 +252,7 @@ function extractLeadFieldsFromConversation(
  */
 function buildMemoryBlock(lead: LeadRecord): string {
   const lines: string[] = [
-    "─── RETURNING RECRUIT — PRIOR CONTEXT ───────────────────────────────────────",
+    "--- RETURNING RECRUIT - PRIOR CONTEXT ---------------------------------------",
     `This agent has contacted Bear Team before. Do NOT ask them to re-explain their situation.`,
     `Use the context below to pick up where the conversation left off.`,
     "",
@@ -274,17 +274,17 @@ function buildMemoryBlock(lead: LeadRecord): string {
 
   lines.push("");
   lines.push("RETURNING AGENT RULES:");
-  lines.push("1. Acknowledge them by name if you have it — 'Welcome back, [Name].'");
-  lines.push("2. Reference their specific situation immediately — brokerage, deal count.");
+  lines.push("1. Acknowledge them by name if you have it - 'Welcome back, [Name].'");
+  lines.push("2. Reference their specific situation immediately - brokerage, deal count.");
   lines.push("3. Do NOT restart the funnel from Stage 1. Jump to Stage 3 (Math Moment) or wherever they left off.");
   lines.push("4. If they previously raised an objection, address it directly in your opening.");
   lines.push("5. Your first qualifying question should advance from where they stopped, not restart.");
-  lines.push("─────────────────────────────────────────────────────────────────────────────");
+  lines.push("-----------------------------------------------------------------------------");
 
   return lines.join("\n");
 }
 
-// ─── MODE INFERENCE ──────────────────────────────────────────────────────────
+// --- MODE INFERENCE ----------------------------------------------------------
 // Maps legacy context strings and URL pathnames to Scout mode.
 // Explicit mode in request body always wins.
 
@@ -296,7 +296,7 @@ function inferMode(context: string, pathname?: string): ScoutMode {
   return "recruit";
 }
 
-// ─── ROUTE HANDLER ────────────────────────────────────────────────────────────
+// --- ROUTE HANDLER ------------------------------------------------------------
 
 export async function POST(req: NextRequest) {
   try {
@@ -313,7 +313,7 @@ export async function POST(req: NextRequest) {
     const chatMessages: { role: "user" | "assistant"; content: string }[] =
       messages || [{ role: "user", content: message || "" }];
 
-    // ─── MEMORY LAYER — Returning Recruit Lookup ───────────────────────────────
+    // --- MEMORY LAYER - Returning Recruit Lookup -------------------------------
     // 1. Check if email was passed explicitly in the request body
     // 2. If not, scan the first user message for an email address
     // 3. If we have an email, query Supabase for a returning lead record
@@ -325,7 +325,7 @@ export async function POST(req: NextRequest) {
       .reverse()
       .find((m) => m.role === "user")?.content?.toLowerCase() || "";
 
-    // Scan ALL user messages for email — email is often provided mid-conversation
+    // Scan ALL user messages for email - email is often provided mid-conversation
     const allUserText = chatMessages
       .filter(m => m.role === "user")
       .map(m => m.content)
@@ -339,15 +339,15 @@ export async function POST(req: NextRequest) {
         returningLeadBlock = "\n\n" + buildMemoryBlock(returningLead);
       }
 
-      // Save/update lead record whenever we have an email — captures name+phone if provided
+      // Save/update lead record whenever we have an email - captures name+phone if provided
       if (declaredContext === "public") {
         const leadData: Partial<LeadRecord> = { email: resolvedEmail, stage: "scout_captured" };
         if (bodyName) leadData.name = bodyName;
         if (bodyPhone) leadData.phone = bodyPhone;
 
-        // ── Priority 2: Auto-compute tier from deal_count ──────────────────
+        // -- Priority 2: Auto-compute tier from deal_count ------------------
         // Stored so email variants can branch without re-calculating each time.
-        // tier_1 = <10 deals, tier_2 = 10–19, tier_3 = 20+
+        // tier_1 = <10 deals, tier_2 = 10-19, tier_3 = 20+
         if (body.deal_count !== undefined) {
           const dc = Number(body.deal_count);
           leadData.deal_count = dc;
@@ -359,11 +359,11 @@ export async function POST(req: NextRequest) {
         if (body.brokerage !== undefined)    leadData.brokerage = body.brokerage;
         if (body.years_licensed !== undefined) (leadData as Record<string, unknown>).years_licensed = Number(body.years_licensed);
 
-        // ── Priority 3: Classify pain_type from Scout-captured frustration ──
+        // -- Priority 3: Classify pain_type from Scout-captured frustration --
         // Scout stores raw objection/frustration text in `objections`. This
         // classifies it into one of 5 structured buckets so downstream emails
         // can vary hooks without parsing freeform text at send time.
-        // Classification is keyword-based — fast, no LLM call needed.
+        // Classification is keyword-based - fast, no LLM call needed.
         if (body.objections || body.notes) {
           const painText = ((body.objections || "") + " " + (body.notes || "")).toLowerCase();
           let painType: string | null = null;
@@ -389,53 +389,53 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-    // ──────────────────────────────────────────────────────────────────────────
+    // --------------------------------------------------------------------------
 
-    // Mode is set via body, URL param, or inferred from pathname — never from message content
+    // Mode is set via body, URL param, or inferred from pathname - never from message content
     const rawContext = (body.context as string) || (body.mode as string) || urlContext || "recruit";
     const mode = inferMode(rawContext, req.url);
 
     // Build Scout system prompt for this mode (web channel)
     let systemPrompt = getScoutPrompt(mode, "web");
 
-    // Inject returning lead memory block — recruit mode only
+    // Inject returning lead memory block - recruit mode only
     if (returningLeadBlock && mode === "recruit") {
       systemPrompt = systemPrompt + returningLeadBlock;
     }
 
-    // ── Inject CONVERSATION STATE block so Scout knows exactly where it is ────
+    // -- Inject CONVERSATION STATE block so Scout knows exactly where it is ----
     // Detect current stage from messages BEFORE the new reply
     if (mode === "recruit") {
       const currentStage = detectPipelineStage(chatMessages);
       const stageInstructions: Record<string, string> = {
-        "COLLECT_NAME":  "NEXT ACTION: Ask for their full name — first and last. Say exactly: \"What's your full name — first and last?\" Do not ask anything else.",
+        "COLLECT_NAME":  "NEXT ACTION: Ask for their full name - first and last. Say exactly: \"What's your full name - first and last?\" Do not ask anything else.",
         "COLLECT_PHONE": "NEXT ACTION: Ask for their best phone number. Say exactly: \"What's the best number to reach you?\" Do not ask anything else.",
         "COLLECT_EMAIL": "NEXT ACTION: Ask for their best email for the calendar invite. Say exactly: \"And the best email for the calendar invite?\" Do not ask anything else.",
         "COLLECT_TIMES": "NEXT ACTION: Ask for 2-3 preferred days and times. Say exactly: \"What are 2 or 3 days and times that work for you this week or next? Tom is usually available mornings and early afternoons.\" Do not ask anything else.",
-        "BOOK":          "NEXT ACTION: You have all the information. Send the Calendly link RIGHT NOW. Say: \"I locked it in. Here's your link: https://calendly.com/thomas-songer/bear-team-meet — takes 30 seconds.\" Do NOT ask for more information.",
+        "BOOK":          "NEXT ACTION: You have all the information. Send the Calendly link RIGHT NOW. Say: \"I locked it in. Here's your link: https://calendly.com/thomas-songer/bear-team-meet - takes 30 seconds.\" Do NOT ask for more information.",
         "PITCH":         "NEXT ACTION: Deliver the soft math pitch comparing their current brokerage costs to Bear Team, then ask if 15 minutes with Tom is worth their time.",
       };
       const stageLabel = currentStage ?? "QUALIFY";
       const stageInstruction = stageInstructions[stageLabel] ?? "NEXT ACTION: Continue qualifying. Ask the next unanswered pipeline question.";
       systemPrompt = systemPrompt + \`
 
-═══════════════════════════════════════════════════════
-CONVERSATION STATE (injected by system — do not repeat this to the user)
-═══════════════════════════════════════════════════════
+=======================================================
+CONVERSATION STATE (injected by system - do not repeat this to the user)
+=======================================================
 CURRENT STAGE: \${stageLabel}
 \${stageInstruction}
-═══════════════════════════════════════════════════════\`;
+=======================================================\`;
     }
-    // ──────────────────────────────────────────────────────────────────────────
+    // --------------------------------------------------------------------------
 
-    // ── Compliance check — runs before LLM on every request ──────────────────
+    // -- Compliance check - runs before LLM on every request ------------------
     const lastMessage = chatMessages.filter(m => m.role === "user").slice(-1)[0]?.content ?? "";
     const compliance = checkInboundCompliance(lastMessage);
     if (compliance.requiresDeflection) {
-      const deflected = compliance.fallbackOverride ?? "That's a great question — your agent will be the best person to guide you on that.";
+      const deflected = compliance.fallbackOverride ?? "That's a great question - your agent will be the best person to guide you on that.";
       return NextResponse.json({ reply: deflected, role: "assistant", content: deflected, mode, deflected: true });
     }
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     const response = await getOpenAI().chat.completions.create({
       model: "gpt-4o",
@@ -465,7 +465,7 @@ CURRENT STAGE: \${stageLabel}
         .replace(/a calendly link will be sent[^.]*\./gi, "")
         .trim();
       if (!finalReply.includes("calendly.com")) {
-        finalReply = finalReply + `\n\nI locked it in. Here's your link: ${CALENDLY_URL} — takes 30 seconds.`;
+        finalReply = finalReply + `\n\nI locked it in. Here's your link: ${CALENDLY_URL} - takes 30 seconds.`;
       }
     }
 
@@ -477,7 +477,7 @@ CURRENT STAGE: \${stageLabel}
       const savePayload = { email: finalEmail, ...extractedFields };
       await upsertLead(savePayload);
       // Fire Tom alert when email is captured + at least name OR phone
-      // At BOOK stage, send alert even if only email is available — lead is ready
+      // At BOOK stage, send alert even if only email is available - lead is ready
       const hasEnoughForAlert = finalEmail && (
         extractedFields.name || extractedFields.phone || pipelineStage === "BOOK"
       );
@@ -488,7 +488,7 @@ CURRENT STAGE: \${stageLabel}
           subject: `🔔 Lead Ready to Book: ${extractedFields.name}`,
           html: `
             <div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;background:#f8f9fa;padding:24px;border-radius:12px;">
-              <h2 style="margin:0 0 16px;color:#0b1d3a;font-size:1.1rem;">Scout qualified a lead — ready to book</h2>
+              <h2 style="margin:0 0 16px;color:#0b1d3a;font-size:1.1rem;">Scout qualified a lead - ready to book</h2>
               <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
                 <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;width:110px;">Name</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;font-weight:600;">${extractedFields.name}</td></tr>
                 <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Phone</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${extractedFields.phone}</td></tr>
@@ -522,5 +522,6 @@ CURRENT STAGE: \${stageLabel}
     );
   }
 }
+
 
 
