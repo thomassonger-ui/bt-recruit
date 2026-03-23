@@ -321,8 +321,7 @@ function ChatPageInner() {
             background: "#FFFFFF",
             boxShadow: "0 8px 48px rgba(0,0,0,0.30)",
             border: "1px solid rgba(255,255,255,0.12)",
-            /* Full height only when conversation is active */
-            minHeight: isEmpty ? "auto" : "calc(100vh - 60px)",
+            minHeight: "auto",
           }}
         >
           {/* ── CHAT HEADER ── */}
@@ -359,8 +358,8 @@ function ChatPageInner() {
             className={`${isEmpty ? "" : "flex-1"} overflow-x-hidden overflow-y-auto px-4 pt-2 pb-2 sm:px-6`}
             style={{
               /* On mobile fill remaining space; on desktop cap at comfortable reading height */
-              minHeight: isEmpty ? "auto" : "0",
-              maxHeight: isEmpty ? "none" : "clamp(300px, 60vh, 600px)",
+              minHeight: "auto",
+              maxHeight: "none",
             }}
           >
             {isEmpty ? (
