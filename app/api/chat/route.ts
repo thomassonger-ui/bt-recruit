@@ -1,17 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
-import { Resend } from "resend";
 
 import { getScoutPrompt } from "@/lib/scout/guardrails/systemPrompt";
 import type { ScoutMode } from "@/lib/scout/guardrails/systemPrompt";
 import { checkInboundCompliance } from "@/lib/scout/guardrails/complianceRules";
 
+
+// ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
+async function sendEmail({
+  to, from: fromAddr, replyTo, subject, html
+}: {
+  to: string
+  from: string
+  replyTo?: string
+  subject: string
+  html: string
+}): Promise<void> {
+  const apiKey = process.env.SENDGRID_API_KEY
+  if (!apiKey) { console.error("[sendEmail] SENDGRID_API_KEY not set"); return }
+  const body: Record<string, unknown> = {
+    personalizations: [{ to: [{ email: to }] }],
+    from: { email: fromAddr },
+    subject,
+    content: [{ type: "text/html", value: html }],
+  }
+  if (replyTo) body.reply_to = { email: replyTo }
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    console.error(`[sendEmail] SendGrid error ${res.status}:`, errText)
+  } else {
+    console.log(`[sendEmail] Sent OK to ${to}`)
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function getOpenAI() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
-function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
 // Lazy init — avoids build-time crash
 function getSupabase() {
@@ -348,12 +380,12 @@ export async function POST(req: NextRequest) {
         await upsertLead(leadData);
         // Fire-and-forget Tom alert on full lead capture
         if (bodyName && bodyPhone) {
-          getResend().emails.send({
+          sendEmail({
             from: "Scout <tom@bearteam.com>",
             to: "tom@bearteam.com",
             subject: `🔔 New Lead: ${bodyName}`,
             html: `<p><strong>Scout captured a new lead:</strong></p><ul><li><strong>Name:</strong> ${bodyName}</li><li><strong>Email:</strong> ${resolvedEmail}</li><li><strong>Phone:</strong> ${bodyPhone}</li></ul><p>Log in to your <a href="https://joinbearteam.com/dashboard">dashboard</a> to follow up.</p>`,
-          }).catch(() => {});
+          });
         }
       }
     }
@@ -450,7 +482,7 @@ CURRENT STAGE: \${stageLabel}
         extractedFields.name || extractedFields.phone || pipelineStage === "BOOK"
       );
       if (hasEnoughForAlert) {
-        getResend().emails.send({
+        sendEmail({
           from: "Scout <tom@bearteam.com>",
           to: "tom@bearteam.com",
           subject: `🔔 Lead Ready to Book: ${extractedFields.name}`,
@@ -468,7 +500,7 @@ CURRENT STAGE: \${stageLabel}
                 <a href="https://joinbearteam.com/dashboard" style="display:inline-block;padding:10px 22px;background:#1b365d;color:#fff;border-radius:8px;text-decoration:none;font-size:0.88rem;font-weight:600;">View in Dashboard →</a>
               </div>
             </div>`,
-        }).catch(() => {});
+        });
       }
     }
 
