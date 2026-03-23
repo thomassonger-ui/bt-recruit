@@ -190,17 +190,16 @@ export async function GET(req: NextRequest) {
         // Verification passed — safe to send
         const html = buildDripEmail(step.emailIndex, firstName, lead);
 
-        await sendEmail({
-          from: FROM_EMAIL,
-          replyTo: REPLY_TO,
-          to: lead.email,
-          subject,
-          html,
-          tags: [
-            { name: "drip_step", value: String(step.emailIndex + 1) },
-            { name: "sequence",  value: "drip" },
-          ],
-        });:`, emailError);
+        try {
+          await sendEmail({
+            from: FROM_EMAIL,
+            replyTo: REPLY_TO,
+            to: lead.email,
+            subject,
+            html,
+          });
+        } catch (emailError) {
+          console.error(`Failed to send drip email to ${lead.email}:`, emailError);
           continue;
         }
 
@@ -479,3 +478,4 @@ function buildTomDripSummary(results: Array<{ email: string; name: string; drip_
 </body>
 </html>`.trim();
 }
+
