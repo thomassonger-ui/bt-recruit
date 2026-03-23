@@ -16,11 +16,11 @@ function getSupabase() {
 
 function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
-const TOM_EMAIL = "thomas.songer@gmail.com";
+const TOM_EMAIL = "tom@bearteam.com";
 const TOM_PHONE = "407-758-8102";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
-const FROM_EMAIL = "Scout <scout@joinbearteam.com>";
-const REPLY_TO = "thomas.songer@gmail.com"; // Fix: replies from agents now route to Tom, not a void
+const FROM_EMAIL = "Scout <tom@bearteam.com>";
+const REPLY_TO = "tom@bearteam.com"; // Fix: replies from agents now route to Tom, not a void
 
 // ─── NO-SHOW DETECTION LOGIC ──────────────────────────────────────────────────
 //
