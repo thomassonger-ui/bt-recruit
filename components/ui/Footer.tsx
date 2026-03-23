@@ -2,15 +2,17 @@
 
 export default function Footer() {
   return (
-    <footer
-      className="px-6 py-10 text-center text-sm"
-      style={{
-        background: "#F2F2F2",
-        borderTop: "1px solid var(--color-border-light)",
-        color: "#6B7280",
-      }}
-    >
-      <p>Copyright 2026 WorldTeachPathways | Bear Team All rights reserved.</p>
+    <footer style={{ background: "#060e1c", padding: "clamp(40px,8vw,60px) clamp(16px,5vw,40px)", textAlign: "center" }}>
+      <div style={{ fontSize: "1rem", fontWeight: 700, color: "#ffffff", marginBottom: "8px", letterSpacing: "0.04em" }}>Bear Team Real Estate</div>
+      <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.35)", marginBottom: "24px", lineHeight: 1.6 }}>Orlando, FL · Independent Licensed Brokerage · Bethanne Baer, Broker</div>
+      <div style={{ display: "flex", gap: "24px", justifyContent: "center", flexWrap: "wrap", marginBottom: "28px" }}>
+        <a href="/chat" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Talk to Scout</a>
+        <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
+        <a href="/scout" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>The System</a>
+        <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
+        <a href="/academy" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Academy</a>
+      </div>
+      <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)" }}>© 2026 Bear Team Real Estate · Bethanne Baer, Broker/Owner · Orlando, FL · All rights reserved.</div>
     </footer>
   )
 }
