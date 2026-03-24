@@ -45,7 +45,6 @@ export const runtime = "nodejs";
 
 function getOpenAI() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
 
-// Lazy init - avoids build-time crash
 function getSupabase() {
   return createClient(
     (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
@@ -79,20 +78,14 @@ interface LeadRecord {
 
 // --- SUPABASE MEMORY HELPERS --------------------------------------------------
 
-/**
- * Look up a returning recruit by email in Supabase.
- * Returns their lead record if found, null if not.
- */
 async function getReturningLead(email: string): Promise<LeadRecord | null> {
   if (!email || !email.includes("@")) return null;
-
   try {
     const { data, error } = await getSupabase()
       .from("leads")
       .select("*")
       .eq("email", email.toLowerCase().trim())
       .single();
-
     if (error || !data) return null;
     return data as LeadRecord;
   } catch {
@@ -100,14 +93,8 @@ async function getReturningLead(email: string): Promise<LeadRecord | null> {
   }
 }
 
-/**
- * Upsert a lead record - creates new or updates existing on email match.
- * Called when Scout captures a new lead OR when a returning lead provides
- * updated information during a conversation.
- */
 async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
   if (!lead.email) return;
-
   try {
     const supabase = getSupabase();
     const emailKey = lead.email.toLowerCase().trim();
@@ -116,13 +103,11 @@ async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
       .select("id")
       .eq("email", emailKey)
       .maybeSingle();
-
     const payload = {
       ...lead,
       email: emailKey,
       updated_at: new Date().toISOString(),
     };
-
     if (existing) {
       await supabase.from("leads").update(payload).eq("id", existing.id);
     } else {
@@ -133,28 +118,16 @@ async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
   }
 }
 
-/**
- * Extracts an email address from a message string, if present.
- * Scout can use this to trigger memory lookup mid-conversation.
- */
 function extractEmail(text: string): string | null {
   const match = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   return match ? match[0] : null;
 }
 
-/**
- * Extracts a phone number from a message string, if present.
- */
 function extractPhone(text: string): string | null {
   const match = text.match(/(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}/);
   return match ? match[0].replace(/\D/g, "").slice(-10) : null;
 }
 
-/**
- * Detects which pipeline stage the conversation has reached based on
- * Scout's responses. Returns the stage string or null.
- * Used by the frontend to trigger Calendly handoff at BOOK stage.
- */
 const CALENDLY_URL = "https://calendly.com/thomas-songer/bear-team-meet";
 
 function detectPipelineStage(messages: { role: string; content: string }[]): string | null {
@@ -164,40 +137,25 @@ function detectPipelineStage(messages: { role: string; content: string }[]): str
   const lastAssistant = assistantMessages[assistantMessages.length - 1] || "";
   const lastUser = userMessages[userMessages.length - 1] || "";
 
-  // BOOK stage - Scout asked for times AND user just replied with time preferences
-  // OR Scout explicitly sends the Calendly link in reply
   const scoutAskedForTimes = lastAssistant.includes("days and times") || lastAssistant.includes("days/times") || lastAssistant.includes("what time") || lastAssistant.includes("works for you this week") || lastAssistant.includes("mornings and early");
-  const userGaveTimes = /(monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|am|pm|\d+:\d+|\d+ ?[ap]m|this week|next week|anytime|flexible|tomorrow)/i.test(lastUser);
+  const userGaveTimes = /(monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|am|pm|\d+:\d+|\d+ ?[ap]m|this week|next week|anytime|flexible|tomorrow)/i.test(lastUser);
   if (scoutAskedForTimes && userGaveTimes) return "BOOK";
 
-  // BOOK stage fallback - Scout explicitly includes the Calendly link
   if (lastAssistant.includes("calendly.com")) return "BOOK";
 
-  // COLLECT_TIMES stage - Scout asked for email and user just provided it
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
   const scoutAskedForEmail = allAssistant.includes("best email") || allAssistant.includes("calendar invite");
   const userJustGaveEmail = emailRegex.test(lastUser);
   if (scoutAskedForEmail && userJustGaveEmail) return "COLLECT_TIMES";
 
-  // COLLECT_EMAIL stage
   if (lastAssistant.includes("best email") || lastAssistant.includes("calendar invite")) return "COLLECT_EMAIL";
-
-  // COLLECT_PHONE stage
   if (lastAssistant.includes("best number") || lastAssistant.includes("reach you")) return "COLLECT_PHONE";
-
-  // COLLECT_NAME stage
   if (lastAssistant.includes("what's your name") || lastAssistant.includes("what is your name") || lastAssistant.includes("full name") || lastAssistant.includes("first and last")) return "COLLECT_NAME";
-
-  // PITCH stage
   if (lastAssistant.includes("worth 15 minutes") || lastAssistant.includes("15-minute") || lastAssistant.includes("15 minute")) return "PITCH";
 
   return null;
 }
 
-/**
- * Scans the full conversation to extract name/phone/brokerage/deals
- * from user messages based on what Scout asked just before.
- */
 function extractLeadFieldsFromConversation(
   messages: { role: string; content: string }[]
 ): { name?: string; phone?: string; brokerage?: string; deal_count?: number } {
@@ -211,32 +169,21 @@ function extractLeadFieldsFromConversation(
     const question = msg.content.toLowerCase();
     const answer = next.content.trim();
 
-    // Name capture - catch any Scout message that mentions "name"
-    // Covers: "what's your name", "your first name", "who am I speaking with",
-    // "mind sharing your name", "and your name?", etc.
     const asksForName = question.includes("name");
     if (asksForName && answer.length > 0 && answer.length < 60 && !answer.includes("@") && !answer.match(/\d{7,}/)) {
       result.name = answer;
     }
-
-    // Phone capture
     if (question.includes("best number") || question.includes("reach you")) {
       const phone = extractPhone(answer);
       if (phone) result.phone = phone;
     }
-
-    // Email capture - Scout asked for email, user replied with one
     if (question.includes("best email") || question.includes("calendar invite")) {
       const email = extractEmail(answer);
       if (email) (result as Record<string, unknown>).email = email;
     }
-
-    // Brokerage capture
     if (question.includes("hanging your license") || question.includes("current brokerage") || question.includes("currently with")) {
       if (answer.length < 80) result.brokerage = answer;
     }
-
-    // Deal count capture
     if (question.includes("how many deals") || question.includes("close per year") || question.includes("transactions")) {
       const num = parseInt(answer.replace(/[^0-9]/g, ""), 10);
       if (!isNaN(num) && num >= 0 && num < 500) result.deal_count = num;
@@ -246,10 +193,6 @@ function extractLeadFieldsFromConversation(
   return result;
 }
 
-/**
- * Builds a returning-agent context block to inject into the system prompt.
- * This gives Scout full prior context so the agent never has to re-explain.
- */
 function buildMemoryBlock(lead: LeadRecord): string {
   const lines: string[] = [
     "--- RETURNING RECRUIT - PRIOR CONTEXT ---------------------------------------",
@@ -285,8 +228,6 @@ function buildMemoryBlock(lead: LeadRecord): string {
 }
 
 // --- MODE INFERENCE ----------------------------------------------------------
-// Maps legacy context strings and URL pathnames to Scout mode.
-// Explicit mode in request body always wins.
 
 function inferMode(context: string, pathname?: string): ScoutMode {
   if (context === "academy") return "academy";
@@ -306,18 +247,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { messages, message, context: bodyContext, email: bodyEmail, name: bodyName, phone: bodyPhone } = body;
 
-    // Context priority: URL param → request body → default public
     const declaredContext = urlContext || bodyContext || "public";
 
-    // Support both single message and full conversation history
     const chatMessages: { role: "user" | "assistant"; content: string }[] =
       messages || [{ role: "user", content: message || "" }];
-
-    // --- MEMORY LAYER - Returning Recruit Lookup -------------------------------
-    // 1. Check if email was passed explicitly in the request body
-    // 2. If not, scan the first user message for an email address
-    // 3. If we have an email, query Supabase for a returning lead record
-    // 4. If found, inject their prior context into the system prompt
 
     let returningLeadBlock = "";
     const firstUserMessage = chatMessages.find((m) => m.role === "user")?.content || "";
@@ -325,7 +258,6 @@ export async function POST(req: NextRequest) {
       .reverse()
       .find((m) => m.role === "user")?.content?.toLowerCase() || "";
 
-    // Scan ALL user messages for email - email is often provided mid-conversation
     const allUserText = chatMessages
       .filter(m => m.role === "user")
       .map(m => m.content)
@@ -339,15 +271,11 @@ export async function POST(req: NextRequest) {
         returningLeadBlock = "\n\n" + buildMemoryBlock(returningLead);
       }
 
-      // Save/update lead record whenever we have an email - captures name+phone if provided
       if (declaredContext === "public") {
         const leadData: Partial<LeadRecord> = { email: resolvedEmail, stage: "scout_captured" };
         if (bodyName) leadData.name = bodyName;
         if (bodyPhone) leadData.phone = bodyPhone;
 
-        // -- Priority 2: Auto-compute tier from deal_count ------------------
-        // Stored so email variants can branch without re-calculating each time.
-        // tier_1 = <10 deals, tier_2 = 10-19, tier_3 = 20+
         if (body.deal_count !== undefined) {
           const dc = Number(body.deal_count);
           leadData.deal_count = dc;
@@ -359,11 +287,6 @@ export async function POST(req: NextRequest) {
         if (body.brokerage !== undefined)    leadData.brokerage = body.brokerage;
         if (body.years_licensed !== undefined) (leadData as Record<string, unknown>).years_licensed = Number(body.years_licensed);
 
-        // -- Priority 3: Classify pain_type from Scout-captured frustration --
-        // Scout stores raw objection/frustration text in `objections`. This
-        // classifies it into one of 5 structured buckets so downstream emails
-        // can vary hooks without parsing freeform text at send time.
-        // Classification is keyword-based - fast, no LLM call needed.
         if (body.objections || body.notes) {
           const painText = ((body.objections || "") + " " + (body.notes || "")).toLowerCase();
           let painType: string | null = null;
@@ -378,7 +301,6 @@ export async function POST(req: NextRequest) {
         }
 
         await upsertLead(leadData);
-        // Fire-and-forget Tom alert on full lead capture
         if (bodyName && bodyPhone) {
           sendEmail({
             from: "Scout <tom@bearteam.com>",
@@ -391,12 +313,62 @@ export async function POST(req: NextRequest) {
     }
     // --------------------------------------------------------------------------
 
-    // Mode is set via body, URL param, or inferred from pathname - never from message content
+    // ── SUPABASE STAGE GUARD ──────────────────────────────────────────────────
+    // Hydrate lead from Supabase so Scout never re-asks for data it already has.
+    const sessionId = body.session_id || body.sessionId || null;
+    let existingLead: { name?: string; phone?: string; email?: string } = {};
+    if (sessionId) {
+      const { data: sessionLead } = await getSupabase()
+        .from("leads")
+        .select("name, phone, email")
+        .eq("session_id", sessionId)
+        .maybeSingle();
+      existingLead = sessionLead ?? {};
+    } else if (resolvedEmail) {
+      const { data: emailLead } = await getSupabase()
+        .from("leads")
+        .select("name, phone, email")
+        .eq("email", resolvedEmail.toLowerCase().trim())
+        .maybeSingle();
+      existingLead = emailLead ?? {};
+    }
+
+    // Hard stop — if all three fields exist, skip collection entirely
+    if (existingLead.name && existingLead.phone && existingLead.email) {
+      const bookingReply = `Welcome back, ${existingLead.name}! I have everything I need. Here's your link to book a quick call with Tom: ${CALENDLY_URL} — takes 30 seconds.`;
+      return NextResponse.json({
+        reply: bookingReply,
+        role: "assistant",
+        content: bookingReply,
+        pipeline_stage: "BOOK",
+        calendly_url: CALENDLY_URL,
+      });
+    }
+    // ── END STAGE GUARD ───────────────────────────────────────────────────────
+
     const rawContext = (body.context as string) || (body.mode as string) || urlContext || "recruit";
     const mode = inferMode(rawContext, req.url);
 
     // Build Scout system prompt for this mode (web channel)
     let systemPrompt = getScoutPrompt(mode, "web");
+
+    // ── INJECT KNOWN DATA INTO SYSTEM PROMPT ─────────────────────────────────
+    // Tells the LLM exactly what it already has — prevents re-asking at the model level
+    if (mode === "recruit" && (existingLead.name || existingLead.phone || existingLead.email)) {
+      systemPrompt += `
+
+KNOWN USER DATA (DO NOT ASK AGAIN):
+Name: ${existingLead.name || "MISSING"}
+Phone: ${existingLead.phone || "MISSING"}
+Email: ${existingLead.email || "MISSING"}
+
+CRITICAL RULE:
+- Never ask for any field that is not marked MISSING
+- Only collect fields marked MISSING
+- If all three fields exist, move directly to booking
+`;
+    }
+    // ── END KNOWN DATA INJECTION ──────────────────────────────────────────────
 
     // Inject returning lead memory block - recruit mode only
     if (returningLeadBlock && mode === "recruit") {
@@ -404,7 +376,6 @@ export async function POST(req: NextRequest) {
     }
 
     // -- Inject CONVERSATION STATE block so Scout knows exactly where it is ----
-    // Detect current stage from messages BEFORE the new reply
     if (mode === "recruit") {
       const currentStage = detectPipelineStage(chatMessages);
       const stageInstructions: Record<string, string> = {
@@ -427,7 +398,7 @@ export async function POST(req: NextRequest) {
     }
     // --------------------------------------------------------------------------
 
-    // -- Compliance check - runs before LLM on every request ------------------
+    // -- Compliance check ------------------------------------------------------
     const lastMessage = chatMessages.filter(m => m.role === "user").slice(-1)[0]?.content ?? "";
     const compliance = checkInboundCompliance(lastMessage);
     if (compliance.requiresDeflection) {
@@ -450,14 +421,11 @@ export async function POST(req: NextRequest) {
       response.choices[0]?.message?.content ||
       "Something went wrong. Try again.";
 
-    // Detect pipeline stage from full conversation + new reply
     const allMessages = [...chatMessages, { role: "assistant", content: reply }];
     const pipelineStage = detectPipelineStage(allMessages);
 
-    // If BOOK stage: append the actual Calendly link into Scout's reply so it shows in chat
     let finalReply = reply;
     if (pipelineStage === "BOOK") {
-      // Strip any vague "system will send" language and replace with real link
       finalReply = reply
         .replace(/the system will send you a calendly link[^.]*\./gi, "")
         .replace(/i'?ll send you a calendly link[^.]*\./gi, "")
@@ -468,15 +436,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Extract lead fields from conversation to save to Supabase
     const extractedFields = extractLeadFieldsFromConversation(allMessages);
-    // Use email from conversation extraction as fallback
     const finalEmail = resolvedEmail || (extractedFields as Record<string, unknown>).email as string | undefined;
     if (finalEmail && declaredContext === "public") {
       const savePayload = { email: finalEmail, ...extractedFields };
       await upsertLead(savePayload);
-      // Fire Tom alert when email is captured + at least name OR phone
-      // At BOOK stage, send alert even if only email is available - lead is ready
       const hasEnoughForAlert = finalEmail && (
         extractedFields.name || extractedFields.phone || pipelineStage === "BOOK"
       );
@@ -521,7 +485,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-
-
-
