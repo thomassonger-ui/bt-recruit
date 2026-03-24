@@ -380,10 +380,34 @@ export async function POST(req: NextRequest) {
     // Build Scout system prompt for this mode (web channel)
     let systemPrompt = getScoutPrompt(mode, "web");
 
-    // ── FIX 3 — INJECT KNOWN DATA INTO SYSTEM PROMPT (now includes preferred_time) ──
-    if (mode === "recruit" && (existingLead.name || existingLead.phone || existingLead.email || existingLead.preferred_time)) {
+    // ── INTAKE-FIRST RULE + KNOWN DATA INJECTION ─────────────────────────────
+    // Always inject intake priority rule in recruit mode.
+    // Then layer in known data so Scout never re-asks for fields already collected.
+    if (mode === "recruit") {
       systemPrompt += `
 
+=======================================================
+INTAKE PRIORITY RULE (enforced by system — always active)
+=======================================================
+You are an intake-first assistant.
+Before ANY other discussion, you must collect ALL of the following:
+1. Full name (first and last)
+2. Phone number
+3. Email address
+4. Preferred day and time for a call
+
+RULES:
+- If a user expresses any interest → immediately begin intake. Do NOT ask about brokerage, experience, or pain points first.
+- Ask ONLY ONE question at a time.
+- Ask ONLY for fields that are MISSING.
+- Do NOT ask about brokerage, deals, or motivations until all four fields are collected.
+- Only after all four fields are collected → proceed to booking.
+- No exceptions.
+=======================================================
+`;
+
+      // Layer in known data on top of intake rule
+      systemPrompt += `
 KNOWN USER DATA (DO NOT ASK AGAIN):
 Name: ${existingLead.name || "MISSING"}
 Phone: ${existingLead.phone || "MISSING"}
@@ -397,7 +421,7 @@ CRITICAL RULE:
 - If all four fields exist, move directly to booking
 `;
     }
-    // ── END KNOWN DATA INJECTION ──────────────────────────────────────────────
+    // ── END INTAKE-FIRST + KNOWN DATA INJECTION ───────────────────────────────
 
     // Inject returning lead memory block - recruit mode only
     if (returningLeadBlock && mode === "recruit") {
