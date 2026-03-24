@@ -45,6 +45,7 @@ export const runtime = "nodejs";
 
 function getOpenAI() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
 
+// Lazy init - avoids build-time crash
 function getSupabase() {
   return createClient(
     (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
@@ -74,18 +75,21 @@ interface LeadRecord {
   call_outcome?: string;
   top_objection?: string;
   follow_up_date?: string;
+  preferred_time?: string; // FIX 1 — added to type
 }
 
 // --- SUPABASE MEMORY HELPERS --------------------------------------------------
 
 async function getReturningLead(email: string): Promise<LeadRecord | null> {
   if (!email || !email.includes("@")) return null;
+
   try {
     const { data, error } = await getSupabase()
       .from("leads")
       .select("*")
       .eq("email", email.toLowerCase().trim())
       .single();
+
     if (error || !data) return null;
     return data as LeadRecord;
   } catch {
@@ -95,6 +99,7 @@ async function getReturningLead(email: string): Promise<LeadRecord | null> {
 
 async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
   if (!lead.email) return;
+
   try {
     const supabase = getSupabase();
     const emailKey = lead.email.toLowerCase().trim();
@@ -103,11 +108,13 @@ async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
       .select("id")
       .eq("email", emailKey)
       .maybeSingle();
+
     const payload = {
       ...lead,
       email: emailKey,
       updated_at: new Date().toISOString(),
     };
+
     if (existing) {
       await supabase.from("leads").update(payload).eq("id", existing.id);
     } else {
@@ -127,8 +134,6 @@ function extractPhone(text: string): string | null {
   const match = text.match(/(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}/);
   return match ? match[0].replace(/\D/g, "").slice(-10) : null;
 }
-
-const CALENDLY_URL = "https://calendly.com/thomas-songer/bear-team-meet";
 
 function detectPipelineStage(messages: { role: string; content: string }[]): string | null {
   const assistantMessages = messages.filter(m => m.role === "assistant").map(m => m.content.toLowerCase());
@@ -158,8 +163,8 @@ function detectPipelineStage(messages: { role: string; content: string }[]): str
 
 function extractLeadFieldsFromConversation(
   messages: { role: string; content: string }[]
-): { name?: string; phone?: string; brokerage?: string; deal_count?: number } {
-  const result: { name?: string; phone?: string; brokerage?: string; deal_count?: number } = {};
+): { name?: string; phone?: string; brokerage?: string; deal_count?: number; preferred_time?: string } {
+  const result: { name?: string; phone?: string; brokerage?: string; deal_count?: number; preferred_time?: string } = {};
 
   for (let i = 0; i < messages.length - 1; i++) {
     const msg = messages[i];
@@ -173,20 +178,36 @@ function extractLeadFieldsFromConversation(
     if (asksForName && answer.length > 0 && answer.length < 60 && !answer.includes("@") && !answer.match(/\d{7,}/)) {
       result.name = answer;
     }
+
     if (question.includes("best number") || question.includes("reach you")) {
       const phone = extractPhone(answer);
       if (phone) result.phone = phone;
     }
+
     if (question.includes("best email") || question.includes("calendar invite")) {
       const email = extractEmail(answer);
       if (email) (result as Record<string, unknown>).email = email;
     }
+
     if (question.includes("hanging your license") || question.includes("current brokerage") || question.includes("currently with")) {
       if (answer.length < 80) result.brokerage = answer;
     }
+
     if (question.includes("how many deals") || question.includes("close per year") || question.includes("transactions")) {
       const num = parseInt(answer.replace(/[^0-9]/g, ""), 10);
       if (!isNaN(num) && num >= 0 && num < 500) result.deal_count = num;
+    }
+
+    // FIX 4 — Capture preferred_time from conversation when Scout asks for availability
+    if (
+      question.includes("days and times") ||
+      question.includes("days/times") ||
+      question.includes("works for you this week") ||
+      question.includes("mornings and early")
+    ) {
+      if (answer.length > 2 && answer.length < 200) {
+        result.preferred_time = answer.trim();
+      }
     }
   }
 
@@ -237,6 +258,9 @@ function inferMode(context: string, pathname?: string): ScoutMode {
   return "recruit";
 }
 
+// --- CALENDLY URL -------------------------------------------------------------
+const CALENDLY_URL = "https://calendly.com/thomas-songer/bear-team-meet";
+
 // --- ROUTE HANDLER ------------------------------------------------------------
 
 export async function POST(req: NextRequest) {
@@ -252,6 +276,7 @@ export async function POST(req: NextRequest) {
     const chatMessages: { role: "user" | "assistant"; content: string }[] =
       messages || [{ role: "user", content: message || "" }];
 
+    // --- MEMORY LAYER - Returning Recruit Lookup -------------------------------
     let returningLeadBlock = "";
     const firstUserMessage = chatMessages.find((m) => m.role === "user")?.content || "";
     const lastUserMessage = [...chatMessages]
@@ -316,25 +341,28 @@ export async function POST(req: NextRequest) {
     // ── SUPABASE STAGE GUARD ──────────────────────────────────────────────────
     // Hydrate lead from Supabase so Scout never re-asks for data it already has.
     const sessionId = body.session_id || body.sessionId || null;
-    let existingLead: { name?: string; phone?: string; email?: string } = {};
+    let existingLead: { name?: string; phone?: string; email?: string; preferred_time?: string } = {};
     if (sessionId) {
       const { data: sessionLead } = await getSupabase()
         .from("leads")
-        .select("name, phone, email")
+        // FIX 1 — preferred_time added to select
+        .select("name, phone, email, preferred_time")
         .eq("session_id", sessionId)
         .maybeSingle();
       existingLead = sessionLead ?? {};
     } else if (resolvedEmail) {
       const { data: emailLead } = await getSupabase()
         .from("leads")
-        .select("name, phone, email")
+        // FIX 1 — preferred_time added to select
+        .select("name, phone, email, preferred_time")
         .eq("email", resolvedEmail.toLowerCase().trim())
         .maybeSingle();
       existingLead = emailLead ?? {};
     }
 
-    // Hard stop — if all three fields exist, skip collection entirely
-    if (existingLead.name && existingLead.phone && existingLead.email) {
+    // Hard stop — all four fields must exist before booking is allowed
+    // FIX 1 — preferred_time added to guard (was 3 fields, now 4)
+    if (existingLead.name && existingLead.phone && existingLead.email && existingLead.preferred_time) {
       const bookingReply = `Welcome back, ${existingLead.name}! I have everything I need. Here's your link to book a quick call with Tom: ${CALENDLY_URL} — takes 30 seconds.`;
       return NextResponse.json({
         reply: bookingReply,
@@ -352,20 +380,21 @@ export async function POST(req: NextRequest) {
     // Build Scout system prompt for this mode (web channel)
     let systemPrompt = getScoutPrompt(mode, "web");
 
-    // ── INJECT KNOWN DATA INTO SYSTEM PROMPT ─────────────────────────────────
-    // Tells the LLM exactly what it already has — prevents re-asking at the model level
-    if (mode === "recruit" && (existingLead.name || existingLead.phone || existingLead.email)) {
+    // ── FIX 3 — INJECT KNOWN DATA INTO SYSTEM PROMPT (now includes preferred_time) ──
+    if (mode === "recruit" && (existingLead.name || existingLead.phone || existingLead.email || existingLead.preferred_time)) {
       systemPrompt += `
 
 KNOWN USER DATA (DO NOT ASK AGAIN):
 Name: ${existingLead.name || "MISSING"}
 Phone: ${existingLead.phone || "MISSING"}
 Email: ${existingLead.email || "MISSING"}
+Preferred Time: ${existingLead.preferred_time || "MISSING"}
 
 CRITICAL RULE:
 - Never ask for any field that is not marked MISSING
 - Only collect fields marked MISSING
-- If all three fields exist, move directly to booking
+- You must collect ALL four fields (Name, Phone, Email, Preferred Time) before showing the Calendly link
+- If all four fields exist, move directly to booking
 `;
     }
     // ── END KNOWN DATA INJECTION ──────────────────────────────────────────────
@@ -424,8 +453,19 @@ CRITICAL RULE:
     const allMessages = [...chatMessages, { role: "assistant", content: reply }];
     const pipelineStage = detectPipelineStage(allMessages);
 
+    // FIX 4 — Extract preferred_time from conversation and include in save payload
+    const extractedFields = extractLeadFieldsFromConversation(allMessages);
+
+    // FIX 2 — Gate Calendly append: all 4 fields must be present before link is shown
+    const allFieldsCollected = !!(
+      (existingLead.name || extractedFields.name) &&
+      (existingLead.phone || extractedFields.phone) &&
+      (existingLead.email || resolvedEmail) &&
+      (existingLead.preferred_time || extractedFields.preferred_time)
+    );
+
     let finalReply = reply;
-    if (pipelineStage === "BOOK") {
+    if (pipelineStage === "BOOK" && allFieldsCollected) {
       finalReply = reply
         .replace(/the system will send you a calendly link[^.]*\./gi, "")
         .replace(/i'?ll send you a calendly link[^.]*\./gi, "")
@@ -436,7 +476,6 @@ CRITICAL RULE:
       }
     }
 
-    const extractedFields = extractLeadFieldsFromConversation(allMessages);
     const finalEmail = resolvedEmail || (extractedFields as Record<string, unknown>).email as string | undefined;
     if (finalEmail && declaredContext === "public") {
       const savePayload = { email: finalEmail, ...extractedFields };
@@ -458,6 +497,7 @@ CRITICAL RULE:
                 <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Email</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${finalEmail}</td></tr>
                 ${extractedFields.brokerage ? `<tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;color:#6b7280;">Brokerage</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;color:#1a1a1a;">${extractedFields.brokerage}</td></tr>` : ""}
                 ${extractedFields.deal_count !== undefined ? `<tr><td style="padding:10px 16px;font-size:0.85rem;color:#6b7280;">Deals/year</td><td style="padding:10px 16px;font-size:0.9rem;color:#1a1a1a;">${extractedFields.deal_count}</td></tr>` : ""}
+                ${extractedFields.preferred_time ? `<tr><td style="padding:10px 16px;font-size:0.85rem;color:#6b7280;">Preferred Time</td><td style="padding:10px 16px;font-size:0.9rem;color:#1a1a1a;">${extractedFields.preferred_time}</td></tr>` : ""}
               </table>
               <div style="margin-top:20px;">
                 <a href="https://joinbearteam.com/dashboard" style="display:inline-block;padding:10px 22px;background:#1b365d;color:#fff;border-radius:8px;text-decoration:none;font-size:0.88rem;font-weight:600;">View in Dashboard →</a>
@@ -475,7 +515,7 @@ CRITICAL RULE:
       mode,
       returning: !!returningLeadBlock,
       pipeline_stage: pipelineStage,
-      calendly_url: pipelineStage === "BOOK" ? CALENDLY_URL : null,
+      calendly_url: (pipelineStage === "BOOK" && allFieldsCollected) ? CALENDLY_URL : null,
     });
   } catch (error) {
     console.error("Scout API error:", error);
