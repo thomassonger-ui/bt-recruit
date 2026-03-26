@@ -50,7 +50,7 @@ const REPLY_TO = "tom@bearteam.com";
 // - Sends welcome email to new agent with first steps + Academy link
 // - Sends Tom a new agent alert with full profile
 // - Updates lead stage to 'Onboarding' in Supabase
-// - Stops the nurture drip (sets drip_unsubscribed = true)
+// - Stops the nurture drip (sets drip_stopped = true)
 // - Creates agent record in agents table (if it exists)
 // - Writes an agent .txt file to BearTeamOS/_new-agents/ trigger folder
 //   (picked up by Cowork COWORK_INSTRUCTIONS.md workflow)
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
       .from("leads")
       .update({
         stage: "Onboarding",
-        drip_unsubscribed: true,
+        drip_stopped: true,
         onboarded_at: now.toISOString(),
         updated_at: now.toISOString(),
       })
