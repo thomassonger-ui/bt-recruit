@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { Resend } from "resend";
-
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -11,7 +9,22 @@ function getSupabase() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 }
-function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
+
+async function sendEmail(to: string, subject: string, html: string, replyTo?: string) {
+  const apiKey = process.env.SENDGRID_API_KEY
+  if (!apiKey) { console.error("[cold] SENDGRID_API_KEY not set"); return }
+  await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: to }] }],
+      from: { email: "tom@bearteam.com", name: "Tom Songer" },
+      reply_to: { email: replyTo || "tom@bearteam.com" },
+      subject,
+      content: [{ type: "text/html", value: html }],
+    }),
+  })
+}
 
 const TOM_EMAIL = "tom@bearteam.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
@@ -122,13 +135,7 @@ export async function GET(req: NextRequest) {
       : buildColdEmail(firstName);
 
     try {
-      await getResend().emails.send({
-        from: FROM_EMAIL,
-        replyTo: REPLY_TO,
-        to: lead.email,
-        subject,
-        html,
-      });
+      await sendEmail(lead.email, subject, html, REPLY_TO);
 
       // Segment C: final touch — move to dead stage, alert Tom to call manually
       const newStage = isRecovery ? "Closed Lost" : "cold_recovery";
@@ -142,24 +149,21 @@ export async function GET(req: NextRequest) {
         .eq("id", lead.id);
 
       if (isRecovery) {
-        await getResend().emails.send({
-          from: FROM_EMAIL,
-          replyTo: REPLY_TO,
-          to: TOM_EMAIL,
-          subject: `[Final Touch Sent] ${lead.name || lead.email} — no response after 2 emails`,
-          html: `
-            <div style="font-family:sans-serif;max-width:520px;">
-              <div style="background:#7f1d1d;padding:14px 20px;border-radius:6px 6px 0 0;">
-                <p style="color:#fca5a5;font-weight:700;margin:0;">📵 Final recovery email sent — no response</p>
-              </div>
-              <div style="background:#fff;border:1px solid #e5e7eb;padding:18px 20px;border-radius:0 0 6px 6px;">
-                <p style="margin:0 0 8px;font-size:14px;color:#374151;"><strong>${lead.name || "Unknown"}</strong>${(lead as { brokerage?: string }).brokerage ? ` · ${(lead as { brokerage?: string }).brokerage}` : ""}</p>
-                <p style="margin:0 0 8px;font-size:14px;color:#374151;">Email: ${lead.email}</p>
-                <p style="margin:0 0 16px;font-size:14px;color:#374151;">Phone: ${(lead as { phone?: string }).phone || "Not captured"}</p>
-                <p style="margin:0;font-size:13px;color:#6b7280;">Stage moved to <strong>Closed Lost</strong>. If worth a personal call, now is the time.</p>
-              </div>
-            </div>`,
-        }).catch(() => {});
+        await sendEmail(
+          TOM_EMAIL,
+          `[Final Touch Sent] ${lead.name || lead.email} — no response after 2 emails`,
+          `<div style="font-family:sans-serif;max-width:520px;">
+            <div style="background:#7f1d1d;padding:14px 20px;border-radius:6px 6px 0 0;">
+              <p style="color:#fca5a5;font-weight:700;margin:0;">📵 Final recovery email sent — no response</p>
+            </div>
+            <div style="background:#fff;border:1px solid #e5e7eb;padding:18px 20px;border-radius:0 0 6px 6px;">
+              <p style="margin:0 0 8px;font-size:14px;color:#374151;"><strong>${lead.name || "Unknown"}</strong>${(lead as { brokerage?: string }).brokerage ? ` · ${(lead as { brokerage?: string }).brokerage}` : ""}</p>
+              <p style="margin:0 0 8px;font-size:14px;color:#374151;">Email: ${lead.email}</p>
+              <p style="margin:0 0 16px;font-size:14px;color:#374151;">Phone: ${(lead as { phone?: string }).phone || "Not captured"}</p>
+              <p style="margin:0;font-size:13px;color:#6b7280;">Stage moved to <strong>Closed Lost</strong>. If worth a personal call, now is the time.</p>
+            </div>
+          </div>`,
+        ).catch(() => {});
       }
 
       sent++;
@@ -174,34 +178,30 @@ export async function GET(req: NextRequest) {
     const segBCount = recovered.filter(l => l.startsWith("[B]")).length;
     const segCCount = recovered.filter(l => l.startsWith("[C]")).length;
     const leadRows = recovered.map(l => `<li style="margin-bottom:4px;">${l}</li>`).join("");
-    await getResend().emails.send({
-      from: FROM_EMAIL,
-      replyTo: REPLY_TO,
-      to: TOM_EMAIL,
-      subject: `🧊 ${sent} cold recovery email${sent > 1 ? "s" : ""} sent`,
-      html: `
-        <div style="font-family:sans-serif;max-width:520px;">
-          <p><strong>${sent} re-engagement email${sent > 1 ? "s" : ""} sent automatically.</strong></p>
-          <table style="border-collapse:collapse;margin-bottom:16px;">
-            <tr>
-              <td style="padding:4px 16px 4px 0;color:#6B7280;">Segment A (never booked):</td>
-              <td style="font-weight:600;">${segACount}</td>
-            </tr>
-            <tr>
-              <td style="padding:4px 16px 4px 0;color:#6B7280;">Segment B (stalled pipeline):</td>
-              <td style="font-weight:600;">${segBCount}</td>
-            </tr>
-            <tr>
-              <td style="padding:4px 16px 4px 0;color:#6B7280;">Segment C (final touch → Closed Lost):</td>
-              <td style="font-weight:600;">${segCCount}</td>
-            </tr>
-          </table>
-          <ul style="font-size:13px;color:#374151;">${leadRows}</ul>
-          <p>Stages updated automatically. View in your <a href="https://joinbearteam.com/dashboard">dashboard</a>.</p>
-          <p style="color:#888;font-size:12px;">— Scout Automation | Bear Team Real Estate</p>
-        </div>
-      `,
-    }).catch(() => {});
+    await sendEmail(
+      TOM_EMAIL,
+      `🧊 ${sent} cold recovery email${sent > 1 ? "s" : ""} sent`,
+      `<div style="font-family:sans-serif;max-width:520px;">
+        <p><strong>${sent} re-engagement email${sent > 1 ? "s" : ""} sent automatically.</strong></p>
+        <table style="border-collapse:collapse;margin-bottom:16px;">
+          <tr>
+            <td style="padding:4px 16px 4px 0;color:#6B7280;">Segment A (never booked):</td>
+            <td style="font-weight:600;">${segACount}</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 16px 4px 0;color:#6B7280;">Segment B (stalled pipeline):</td>
+            <td style="font-weight:600;">${segBCount}</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 16px 4px 0;color:#6B7280;">Segment C (final touch → Closed Lost):</td>
+            <td style="font-weight:600;">${segCCount}</td>
+          </tr>
+        </table>
+        <ul style="font-size:13px;color:#374151;">${leadRows}</ul>
+        <p>Stages updated automatically. View in your <a href="https://joinbearteam.com/dashboard">dashboard</a>.</p>
+        <p style="color:#888;font-size:12px;">— Scout Automation | Bear Team Real Estate</p>
+      </div>`,
+    ).catch(() => {});
   }
 
   return NextResponse.json({
