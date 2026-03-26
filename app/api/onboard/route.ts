@@ -91,6 +91,12 @@ export async function POST(req: NextRequest) {
       agentData = data;
     }
 
+    // ── Idempotency guard — bail if already onboarded ──────────────────────────
+    if (agentData.stage === 'Onboarding' || agentData.drip_stopped === true) {
+      console.log(`[onboard] Skipping — already onboarded: ${agentData.email}`);
+      return NextResponse.json({ success: true, skipped: true, reason: 'already_onboarded' });
+    }
+
     const firstName = agentData.name?.split(" ")[0] || "there";
     const fullName = agentData.name || email;
     const phone = agentData.phone || "Not provided";
