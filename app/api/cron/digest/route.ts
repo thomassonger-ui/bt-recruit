@@ -4,39 +4,23 @@ import { createClient } from "@supabase/supabase-js"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-// ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
-async function sendEmail({
-  to, from: fromAddr, replyTo, subject, html
-}: {
-  to: string
-  from: string
-  replyTo?: string
-  subject: string
-  html: string
-}): Promise<void> {
+async function sendEmail(to: string, subject: string, html: string) {
   const apiKey = process.env.SENDGRID_API_KEY
-  if (!apiKey) { console.error("[sendEmail] SENDGRID_API_KEY not set"); return }
-  const body: Record<string, unknown> = {
-    personalizations: [{ to: [{ email: to }] }],
-    from: { email: fromAddr },
-    subject,
-    content: [{ type: "text/html", value: html }],
-  }
-  if (replyTo) body.reply_to = { email: replyTo }
-  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+  if (!apiKey) { console.error("[digest] SENDGRID_API_KEY not set"); return }
+  await fetch("https://api.sendgrid.com/v3/mail/send", {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: to }] }],
+      from: { email: "tom@bearteam.com", name: "Scout" },
+      subject,
+      content: [{ type: "text/html", value: html }],
+    }),
   })
-  if (!res.ok) {
-    const errText = await res.text()
-    console.error(`[sendEmail] SendGrid error ${res.status}:`, errText)
-  } else {
-    console.log(`[sendEmail] Sent OK to ${to}`)
-  }
 }
-// ─────────────────────────────────────────────────────────────────────────────
-
 
 export async function GET(req: Request) {
   // Verify this is a legitimate Vercel cron call
@@ -46,7 +30,7 @@ export async function GET(req: Request) {
   }
 
   const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!)
-  
+
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const { data: leads } = await supabase
     .from("leads")
@@ -98,12 +82,11 @@ export async function GET(req: Request) {
   </div>
 </div>`
 
-  await sendEmail({
-    from: "Scout <tom@bearteam.com>",
-    to: process.env.NOTIFY_EMAIL!,
-    subject: `Bear Team Weekly Leads — ${count} new lead${count !== 1 ? "s" : ""} | ${dateRange}`,
+  await sendEmail(
+    process.env.NOTIFY_EMAIL!,
+    `Bear Team Weekly Leads — ${count} new lead${count !== 1 ? "s" : ""} | ${dateRange}`,
     html,
-  })
+  )
 
   return NextResponse.json({ ok: true, leads: count })
 }
