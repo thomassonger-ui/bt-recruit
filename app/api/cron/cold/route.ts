@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { verifyWrite } from "@/lib/db/verifyWrite";
+import { Resend } from "resend";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,66 +11,25 @@ function getSupabase() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 }
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
 const TOM_EMAIL = "tom@bearteam.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
 const FROM_EMAIL = "Tom Songer <tom@bearteam.com>";
 const REPLY_TO = "tom@bearteam.com";
 
-// ─── COLD CRON — THREE SEGMENTS ───────────────────────────────────────────────
+// ─── COLD CRON — TWO SEGMENTS ─────────────────────────────────────────────────
 //
-// Segment A — Scout-captured leads who never booked (72h+ since chat, no call)
-//   stage = 'scout_captured', created_at > 72h ago
+// Segment A — Scout-captured leads who never booked (48h+ since chat, no call)
+//   stage = 'scout_captured', created_at > 48h ago
 //   Email: "Still open to a quick conversation?"
 //
-// Segment B — Stalled pipeline leads (had a call, no movement in 14+ days)
-//   stage IN ('Follow-Up Queue', 'booked') AND last_contact < 14 days ago
-//   Fix 3-B: Added event_end IS NULL filter — no-shows have event_end set and
-//   are eligible for drip. Segment B should only catch leads who stalled
-//   WITHOUT a completed call (e.g., booked but then lost track of).
-//   Leads with event_end are managed by the drip cron, not this one.
+// Segment B — Stalled pipeline leads (had a call, no movement in 30+ days)
+//   stage IN ('Follow-Up Queue', 'booked') AND last_contact < 30 days ago
+//   Higher-value targets — they engaged but stalled post-call
+//   Email: "Checking back in — still exploring options?"
 //
-// Segment C — cold_recovery second touch (7–14 days after first email)
-//   Got one cold email, went silent. Final touch → Closed Lost + Tom alert.
-//
-// TICKET-04: write-verify-send pattern enforced.
-//   Stage is written first (SW-3/CB-4 pattern preserved). verifyWrite confirms
-//   both the new stage and drip_unsubscribed=false before any Resend call.
-//   If verification fails, send is skipped and error is logged.
-// ─────────────────────────────────────────────────────────────────────────────
-
-
-// ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
-async function sendEmail({
-  to, from: fromAddr, replyTo, subject, html
-}: {
-  to: string
-  from: string
-  replyTo?: string
-  subject: string
-  html: string
-}): Promise<void> {
-  const apiKey = process.env.SENDGRID_API_KEY
-  if (!apiKey) { console.error("[sendEmail] SENDGRID_API_KEY not set"); return }
-  const body: Record<string, unknown> = {
-    personalizations: [{ to: [{ email: to }] }],
-    from: { email: fromAddr },
-    subject,
-    content: [{ type: "text/html", value: html }],
-  }
-  if (replyTo) body.reply_to = { email: replyTo }
-  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) {
-    const errText = await res.text()
-    console.error(`[sendEmail] SendGrid error ${res.status}:`, errText)
-  } else {
-    console.log(`[sendEmail] Sent OK to ${to}`)
-  }
-}
+// Both segments update stage to 'cold_recovery' and set last_contact.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
@@ -80,23 +39,17 @@ export async function GET(req: NextRequest) {
   }
 
   const now = new Date();
-  // TA-2: 48h → 72h — Scout-captured leads need more consideration time before cold outreach
-  // TA-3: 30d → 14d — Stalled pipeline leads go cold faster; 30 days is too long to wait
-  const cutoff72h = new Date(now.getTime() - 72 * 60 * 60 * 1000).toISOString();
-  const cutoff14d_stalled = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+  const cutoff48h = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
+  const cutoff30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const cutoff7d  = new Date(now.getTime() - 7  * 24 * 60 * 60 * 1000).toISOString();
   const cutoff14d = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
   // ── Segment A: Scout-captured, never booked ──────────────────────────────
-  // SW-4/CR-2 fix: added drip_unsubscribed = false filter. Previously missing —
-  // a Scout lead who opted out but stayed in scout_captured stage would receive
-  // this cold email. drip_unsubscribed is the system-wide opt-out flag.
   const { data: coldLeads, error: errorA } = await getSupabase()
     .from("leads")
     .select("id, name, email, phone, brokerage, created_at, stage")
     .eq("stage", "scout_captured")
-    .lt("created_at", cutoff72h)  // TA-2: was 48h, now 72h
-    .eq("drip_unsubscribed", false)  // SW-4/CR-2 fix: honor system-wide opt-out
+    .lt("created_at", cutoff48h)
     .not("email", "is", null)
     .neq("email", "");
 
@@ -105,17 +58,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: errorA.message }, { status: 500 });
   }
 
-  // ── Segment B: Stalled pipeline — booked/follow-up queue, silent 14d ────
-  // Fix 3-B: event_end must be null — leads with event_end had an actual call
-  // and are owned by the drip cron. This prevents double-sequencing no-shows
-  // who land in Follow-Up Queue but still have event_end set from their booking.
-  // TA-3: was 30d — reduced to 14d. A stalled lead at 30 days is nearly cold.
+  // ── Segment B: Stalled pipeline — booked/follow-up queue, silent 30d ────
   const { data: stalledLeads, error: errorB } = await getSupabase()
     .from("leads")
     .select("id, name, email, phone, brokerage, last_contact, stage")
     .in("stage", ["Follow-Up Queue", "booked"])
-    .or(`last_contact.is.null,last_contact.lt.${cutoff14d_stalled}`)  // TA-3: was cutoff30d
-    .is("event_end", null)  // Fix 3-B: exclude leads who had a real call (drip owns them)
+    .or(`last_contact.is.null,last_contact.lt.${cutoff30d}`)
     .not("email", "is", null)
     .neq("email", "");
 
@@ -125,6 +73,7 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Segment C: cold_recovery second touch — 7–14 days after first email ──
+  // Got one cold email, went silent. One final touch then Tom alert to call manually.
   const { data: recoveryLeads, error: errorC } = await getSupabase()
     .from("leads")
     .select("id, name, email, phone, brokerage, last_contact, stage")
@@ -163,24 +112,24 @@ export async function GET(req: NextRequest) {
       ? `Checking back in — still exploring options?`
       : `Still open to a quick conversation?`;
 
-    const leadId = (lead as { id?: string }).id;
     const html = isRecovery
-      ? buildFinalRecoveryEmail(firstName, (lead as { brokerage?: string }).brokerage, leadId)
+      ? buildFinalRecoveryEmail(firstName, (lead as { brokerage?: string }).brokerage)
       : isStalled
-      ? buildStalledEmail(firstName, (lead as { brokerage?: string }).brokerage, leadId as string | undefined)
-      : buildColdEmail(firstName, leadId);
+      ? buildStalledEmail(firstName, (lead as { brokerage?: string }).brokerage)
+      : buildColdEmail(firstName);
 
     try {
-      // SW-3/CB-4 fix: stage update BEFORE email send.
-      // Previously: email sent first, then stage updated. If Resend threw a transient
-      // error, the catch block ran, the update was skipped, and the lead remained in
-      // scout_captured (Seg A) or cold_recovery indefinitely — receiving another cold
-      // email the next day the cron ran.
-      // Now: stage is updated first. Worst case (email fails): lead is marked but
-      // doesn't receive the email — recoverable. Tom alert still fires if isRecovery.
-      // Best case: both succeed normally. This mirrors the noshow cron's Fix 3-A pattern.
+      await getResend().emails.send({
+        from: FROM_EMAIL,
+        replyTo: REPLY_TO,
+        to: lead.email,
+        subject,
+        html,
+      });
+
+      // Segment C: final touch — move to dead stage, alert Tom to call manually
       const newStage = isRecovery ? "Closed Lost" : "cold_recovery";
-      const { error: writeError } = await getSupabase()
+      await getSupabase()
         .from("leads")
         .update({
           stage: newStage,
@@ -189,44 +138,8 @@ export async function GET(req: NextRequest) {
         })
         .eq("id", lead.id);
 
-      if (writeError) {
-        console.error(`Cold cron stage write failed for ${lead.email}:`, writeError);
-        continue; // do not send if we can't record the state change
-      }
-
-      // ── TICKET-04: Verify write before sending ────────────────────────────
-      // Confirms the new stage is persisted and drip_unsubscribed is still false
-      // before any Resend call is made. Guards against RLS blocks and silent failures.
-      const isVerified = await verifyWrite({
-        supabase: getSupabase(),
-        table: "leads",
-        match: { id: lead.id },
-        expected: {
-          stage: newStage,
-          drip_unsubscribed: false,
-        },
-      });
-
-      if (!isVerified) {
-        console.error("WRITE VERIFICATION FAILED", {
-          route: "cold",
-          leadId: lead.id,
-          expectedStage: newStage,
-        });
-        continue; // skip send — state not confirmed
-      }
-
-      // Verification passed — safe to send
-      await sendEmail({
-        from: FROM_EMAIL,
-        replyTo: REPLY_TO,
-        to: lead.email,
-        subject,
-        html,
-      });
-
       if (isRecovery) {
-        await sendEmail({
+        await getResend().emails.send({
           from: FROM_EMAIL,
           replyTo: REPLY_TO,
           to: TOM_EMAIL,
@@ -258,7 +171,7 @@ export async function GET(req: NextRequest) {
     const segBCount = recovered.filter(l => l.startsWith("[B]")).length;
     const segCCount = recovered.filter(l => l.startsWith("[C]")).length;
     const leadRows = recovered.map(l => `<li style="margin-bottom:4px;">${l}</li>`).join("");
-    await sendEmail({
+    await getResend().emails.send({
       from: FROM_EMAIL,
       replyTo: REPLY_TO,
       to: TOM_EMAIL,
@@ -298,11 +211,8 @@ export async function GET(req: NextRequest) {
   });
 }
 
-function buildFinalRecoveryEmail(firstName: string, brokerage?: string, leadId?: string): string {
+function buildFinalRecoveryEmail(firstName: string, brokerage?: string): string {
   const brokerageRef = brokerage ? ` at ${brokerage}` : "";
-  const unsubLink = leadId
-    ? `<a href="https://joinbearteam.com/api/unsubscribe?id=${leadId}" style="color:#aaa;font-size:11px;text-decoration:underline;">Unsubscribe</a>`
-    : `<span style="color:#aaa;font-size:11px;">Reply "stop" to opt out</span>`;
   return `
     <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
       <p>Hi ${firstName},</p>
@@ -313,42 +223,30 @@ function buildFinalRecoveryEmail(firstName: string, brokerage?: string, leadId?:
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes →</a></p>
       <p>Either way, good luck with your production. Orlando is a strong market right now.</p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
-      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;color:#aaa;font-size:11px;">Bear Team Real Estate · Licensed under Bethanne Baer, Broker/Owner</p>
-      <p style="margin-top:4px;padding-top:0;">${unsubLink}</p>
     </div>`;
 }
 
-function buildColdEmail(firstName: string, leadId?: string): string {
-  // Messaging fix: cut "I know you're busy" (generic recruiter opener).
-  // Opens with a specific fee number to surface the pain point immediately.
-  // C-3 compliance fix: "typically" added to fee range claim.
-  const unsubLink = leadId
-    ? `<a href="https://joinbearteam.com/api/unsubscribe?id=${leadId}" style="color:#aaa;font-size:11px;text-decoration:underline;">Unsubscribe</a>`
-    : `<span style="color:#aaa;font-size:11px;">Reply "stop" to opt out</span>`;
+function buildColdEmail(firstName: string): string {
   return `
     <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
       <p>Hi ${firstName},</p>
-      <p>One number most agents never calculate: what they're paying their brokerage before a single deal closes this year. Monthly fees, desk fees, tech fees, E&O — at most major brokerages that's typically $3,000–$6,000 out of pocket before your first commission check hits.</p>
-      <p>I'm Tom Songer, Team Lead at <strong>Bear Team Real Estate</strong> in Orlando. We're a boutique brokerage built for producing agents who are tired of being a revenue unit at a big box — agents who know what they're doing and want a platform that gets out of the way.</p>
+      <p>I know you're busy — just wanted to make sure my earlier message didn't get buried.</p>
+      <p>I'm Tom Songer, Team Lead at <strong>Bear Team Real Estate</strong> in Orlando.
+      We're a boutique brokerage built specifically for producing agents who are tired of
+      high fees and low support.</p>
       <ul>
         <li>Progressive tiers: 60/40 &rarr; 70/30 &rarr; 80/20 &rarr; 90/10</li>
         <li>$16,000 cap, then you advance automatically</li>
         <li>Zero monthly fees. Zero desk fees. Zero tech fees.</li>
         <li>E&amp;O fully covered. Only cost: $150 flat per closing.</li>
       </ul>
-      <p>If you want to run your numbers side by side — takes 10 minutes:</p>
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes</a></p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
-      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;color:#aaa;font-size:11px;">Bear Team Real Estate · Licensed under Bethanne Baer, Broker/Owner</p>
-      <p style="margin-top:4px;padding-top:0;">${unsubLink}</p>
     </div>`;
 }
 
-function buildStalledEmail(firstName: string, brokerage?: string, leadId?: string): string {
+function buildStalledEmail(firstName: string, brokerage?: string): string {
   const brokerageRef = brokerage ? ` at ${brokerage}` : "";
-  const unsubLink = leadId
-    ? `<a href="https://joinbearteam.com/api/unsubscribe?id=${leadId}" style="color:#aaa;font-size:11px;text-decoration:underline;">Unsubscribe</a>`
-    : `<span style="color:#aaa;font-size:11px;">Reply "stop" to opt out</span>`;
   return `
     <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
       <p>Hi ${firstName},</p>
@@ -364,7 +262,5 @@ function buildStalledEmail(firstName: string, brokerage?: string, leadId?: strin
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes</a></p>
       <p>If the timing still isn't right, just let me know — I'll follow up when it makes more sense.</p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
-      <p style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;color:#aaa;font-size:11px;">Bear Team Real Estate · Licensed under Bethanne Baer, Broker/Owner</p>
-      <p style="margin-top:4px;padding-top:0;">${unsubLink}</p>
     </div>`;
 }
