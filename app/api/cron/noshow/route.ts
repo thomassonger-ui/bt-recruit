@@ -121,6 +121,11 @@ export async function GET(req: NextRequest) {
           noshow_followup_at: now.toISOString(),
           stage: "Follow-Up Queue",
           updated_at: now.toISOString(),
+          // PRIORITY-1: Write call_outcome = "no_show" so the drip cron's
+          // call_outcome gate correctly excludes this lead. Only write when NULL —
+          // never overwrite a value the webhook already set (e.g. "cancelled").
+          ...(lead.call_outcome === null || lead.call_outcome === undefined
+            ? { call_outcome: "no_show" } : {}),
         })
         .eq("id", lead.id);
 
@@ -179,7 +184,59 @@ export async function GET(req: NextRequest) {
     }
 
     console.log(`No-show cron: processed ${results.length} leads`, results);
-    return NextResponse.json({ processed: results.length, results });
+
+    // ── PRIORITY-1: Completion inference pass ─────────────────────────────────
+    // After handling no-shows, identify leads whose call time passed more than
+    // 4 hours ago with no disconfirming signal (not cancelled, not rescheduled,
+    // not flagged as no-show). Infer call_outcome = "completed" so the drip
+    // cron can begin the post-call nurture sequence.
+    //
+    // Safety rules (all required):
+    //   1. event_end IS NOT NULL and is more than 4 hours in the past
+    //   2. call_outcome IS NULL — webhook hasn't written cancelled/rescheduled
+    //   3. noshow_followup_sent IS NULL or false — this cron didn't flag them
+    //   4. Stage is not Closed Won or Closed Lost
+    //
+    // Only writes when call_outcome IS NULL. Never overwrites a set value.
+    // ─────────────────────────────────────────────────────────────────────────
+    const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+
+    const { data: callCompletedLeads, error: inferenceError } = await getSupabase()
+      .from("leads")
+      .select("id, email, name")
+      .not("event_end", "is", null)
+      .lt("event_end", fourHoursAgo.toISOString())    // call ended 4+ hours ago
+      .is("call_outcome", null)                         // no signal from webhook
+      .or("noshow_followup_sent.is.null,noshow_followup_sent.eq.false") // not a no-show
+      .not("stage", "in", '("Closed Won","Closed Lost")');
+
+    if (inferenceError) {
+      console.error("Completion inference query error:", inferenceError);
+    } else if (callCompletedLeads && callCompletedLeads.length > 0) {
+      for (const lead of callCompletedLeads) {
+        const { error: inferWriteError } = await getSupabase()
+          .from("leads")
+          .update({
+            call_outcome: "completed",
+            updated_at: now.toISOString(),
+          })
+          .eq("id", lead.id)
+          .is("call_outcome", null); // double-guard: only write when still NULL
+
+        if (inferWriteError) {
+          console.error(`Completion inference write failed for ${lead.email}:`, inferWriteError);
+        } else {
+          console.log(`[noshow-cron] Completion inferred for ${lead.email} — call_outcome set to completed`);
+        }
+      }
+      console.log(`[noshow-cron] Completion inference: ${callCompletedLeads.length} lead(s) marked completed`);
+    }
+
+    return NextResponse.json({
+      processed: results.length,
+      results,
+      inferred_completed: callCompletedLeads?.length ?? 0,
+    });
 
   } catch (err) {
     console.error("No-show cron error:", err);
