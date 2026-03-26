@@ -49,6 +49,11 @@ const REPLY_TO = "tom@bearteam.com";
 //   fails, the send is skipped and an error is logged. This prevents duplicate
 //   sends even if the cron retries after a partial execution.
 //
+// NULL-UNSUB fix: drip_unsubscribed filter now handles NULL rows.
+//   Leads inserted before the drip_unsubscribed column was added have NULL (not false).
+//   The old .eq("drip_unsubscribed", false) silently excluded them from every drip step.
+//   Fixed to: .or("drip_unsubscribed.is.null,drip_unsubscribed.eq.false")
+//
 // Cron runs daily at 8 AM ET (noon UTC) via vercel.json.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -131,7 +136,10 @@ export async function GET(req: NextRequest) {
         .not("email", "is", null)
         .neq("email", "")
         .or(stepFilter)
-        .eq("drip_unsubscribed", false)
+        // NULL-UNSUB fix: leads created before drip_unsubscribed column existed
+        // have NULL in that field. .eq("drip_unsubscribed", false) silently excluded
+        // them. Treat NULL as "not unsubscribed" — same as false.
+        .or("drip_unsubscribed.is.null,drip_unsubscribed.eq.false")
         .or("noshow_followup_sent.is.null,noshow_followup_sent.eq.false"); // exclude no-shows
 
       if (error) {
@@ -478,4 +486,3 @@ function buildTomDripSummary(results: Array<{ email: string; name: string; drip_
 </body>
 </html>`.trim();
 }
-
