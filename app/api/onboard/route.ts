@@ -1,33 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 
 export const dynamic = "force-dynamic";
-export const runtime  = "nodejs";
+export const runtime = "nodejs";
 
-// ─── /api/onboard ─────────────────────────────────────────────────────────────
-//
-// Called when Tom marks a lead as Closed Won (converted to Bear Team agent).
-// Triggered from the dashboard via POST with the lead's ID.
-//
-// What it does:
-//   1. Reads lead record from Supabase
-//   2. Creates a row in the agents table
-//   3. Sets stage → Onboarding, onboarded_at → now, drip_unsubscribed → true
-//   4. Sends welcome email to the new agent
-//   5. Sends Tom a confirmation alert
-//
-// SA-2: Closes the gap where Closed Won was a dead end — no agent record,
-//        no welcome, no academy enrollment trigger.
-//
-// POST body: { leadId: string }
-// ─────────────────────────────────────────────────────────────────────────────
-
-const TOM_EMAIL    = "thomas.songer@gmail.com";
-const FROM_EMAIL   = "Tom Songer <tom@joinbearteam.com>";
-const REPLY_TO     = "thomas.songer@gmail.com";
-const ACADEMY_LINK = "https://academy.joinbearteam.com";
-const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
-
+// Lazy init — avoids build-time crash
 function getSupabase() {
   return createClient(
     (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
@@ -35,219 +13,325 @@ function getSupabase() {
   );
 }
 
-// ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
-async function sendEmail({
-  to, from: fromAddr, replyTo, subject, html
-}: {
-  to: string
-  from: string
-  replyTo?: string
-  subject: string
-  html: string
-}): Promise<void> {
-  const apiKey = process.env.SENDGRID_API_KEY
-  if (!apiKey) { console.error("[sendEmail] SENDGRID_API_KEY not set"); return }
-  const body: Record<string, unknown> = {
-    personalizations: [{ to: [{ email: to }] }],
-    from: { email: fromAddr },
-    subject,
-    content: [{ type: "text/html", value: html }],
-  }
-  if (replyTo) body.reply_to = { email: replyTo }
-  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) {
-    const errText = await res.text()
-    console.error(`[sendEmail] SendGrid error ${res.status}:`, errText)
-  } else {
-    console.log(`[sendEmail] Sent OK to ${to}`)
-  }
-}
-// ─────────────────────────────────────────────────────────────────────────────
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
+const TOM_EMAIL = "tom@bearteam.com";
+const TOM_PHONE = "407-758-8102";
+const ACADEMY_URL = "https://academy.joinbearteam.com";
+const BEARTEAMOS_URL = "https://www.joinbearteam.com";
+const FROM_EMAIL = "Tom Songer <tom@bearteam.com>";
+const REPLY_TO = "tom@bearteam.com";
+
+// ─── POST /api/onboard ────────────────────────────────────────────────────────
+//
+// Triggered two ways:
+//
+// 1. MANUALLY by Tom — POST with { email } when he marks an agent as Closed Won
+//    Example: curl -X POST /api/onboard -d '{"email":"agent@example.com"}'
+//
+// 2. AUTOMATICALLY via Supabase Database Webhook — when leads.stage = 'Closed Won'
+//    Supabase sends a POST to this endpoint with the full row as payload.
+//
+// What it does:
+// - Sends welcome email to new agent with first steps + Academy link
+// - Sends Tom a new agent alert with full profile
+// - Updates lead stage to 'Onboarding' in Supabase
+// - Stops the nurture drip (sets drip_unsubscribed = true)
+// - Creates agent record in agents table (if it exists)
+// - Writes an agent .txt file to BearTeamOS/_new-agents/ trigger folder
+//   (picked up by Cowork COWORK_INSTRUCTIONS.md workflow)
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { leadId } = body as { leadId?: string };
 
-    if (!leadId) {
-      return NextResponse.json({ error: "leadId required" }, { status: 400 });
+    // Password check when called from dashboard UI
+    if (body.pw && body.pw !== process.env.DASHBOARD_PASSWORD) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ── 1. Fetch the lead ────────────────────────────────────────────────────
-    const { data: lead, error: fetchError } = await getSupabase()
-      .from("leads")
-      .select("*")
-      .eq("id", leadId)
-      .maybeSingle();
+    // Support three call patterns:
+    // 1. Dashboard UI:        { leadId, pw }
+    // 2. Direct/curl:         { email }
+    // 3. Supabase webhook:    { record: { ...full row } }
+    const lead = body.record || body;
+    const leadId = body.leadId || lead.leadId;
+    const email = lead.email;
 
-    if (fetchError || !lead) {
-      return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+    if (!leadId && !email) {
+      return NextResponse.json({ error: "No leadId or email provided" }, { status: 400 });
     }
 
-    if (!lead.email) {
-      return NextResponse.json({ error: "Lead has no email" }, { status: 400 });
+    // Fetch the full lead record by leadId or email
+    let agentData = lead;
+    if (leadId || !lead.name) {
+      const query = getSupabase().from("leads").select("*");
+      const { data, error } = leadId
+        ? await query.eq("id", leadId).single()
+        : await query.eq("email", email.toLowerCase().trim()).single();
+
+      if (error || !data) {
+        return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+      }
+      agentData = data;
     }
 
-    const firstName = lead.name?.split(" ")[0] || "there";
-    const now       = new Date().toISOString();
+    const firstName = agentData.name?.split(" ")[0] || "there";
+    const fullName = agentData.name || email;
+    const phone = agentData.phone || "Not provided";
+    const brokerage = agentData.brokerage || "Not provided";
+    const dealCount = agentData.deal_count ?? "Unknown";
+    const now = new Date();
 
-    // ── 2. Create agents row ─────────────────────────────────────────────────
-    const { error: agentInsertError } = await getSupabase()
-      .from("agents")
-      .upsert(
-        {
-          name:                 lead.name,
-          email:                lead.email,
-          phone:                lead.phone || null,
-          brokerage_previous:   lead.brokerage || null,
-          deal_count_previous:  lead.deal_count || null,
-          start_date:           new Date().toISOString().split("T")[0],
-          tier:                 "tier_1",
-          deals_this_year:      0,
-          stage:                "Onboarding",
-          academy_started:      false,
-          academy_completed:    false,
-          notes:                lead.notes || null,
-        },
-        { onConflict: "email" }
-      );
-
-    if (agentInsertError) {
-      console.error("Agent insert error:", agentInsertError);
-      // Non-fatal — continue with lead update and emails
-    }
-
-    // ── 3. Update lead record ────────────────────────────────────────────────
-    const { error: leadUpdateError } = await getSupabase()
-      .from("leads")
-      .update({
-        stage:             "Onboarding",
-        onboarded_at:      now,
-        drip_unsubscribed: true,   // stop all future drip emails
-        updated_at:        now,
-      })
-      .eq("id", leadId);
-
-    if (leadUpdateError) {
-      console.error("Lead update error:", leadUpdateError);
-    }
-
-    // ── 4. Welcome email to new agent ────────────────────────────────────────
-    await sendEmail({
-      from:    FROM_EMAIL,
+    // ── 1. Send welcome email to new agent ───────────────────────────────────
+    const { error: welcomeEmailError } = await getResend().emails.send({
+      from: FROM_EMAIL,
       replyTo: REPLY_TO,
-      to:      lead.email,
-      subject: `Welcome to Bear Team, ${firstName} 🐻`,
-      html:    buildWelcomeEmail(firstName, lead),
+      to: email,
+      subject: `Welcome to Bear Team, ${firstName} — here's your first step`,
+      html: buildWelcomeEmail(firstName, fullName),
     });
 
-    // ── 5. Tom confirmation alert ────────────────────────────────────────────
-    const brokerage = lead.brokerage ? ` · from ${lead.brokerage}` : "";
-    const dealInfo  = lead.deal_count ? ` · ${lead.deal_count} deals/yr` : "";
-    await sendEmail({
-      from:    FROM_EMAIL,
-      to:      TOM_EMAIL,
-      subject: `✅ New agent onboarded — ${lead.name || lead.email}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:520px;">
-          <div style="background:#0B1D3A;padding:16px 24px;border-radius:8px 8px 0 0;">
-            <p style="color:#c9a84c;font-weight:700;margin:0;font-size:16px;">🎉 New Agent — Bear Team</p>
-          </div>
-          <div style="background:#fff;border:1px solid #e5e7eb;padding:20px 24px;border-radius:0 0 8px 8px;">
-            <p style="margin:0 0 10px;font-size:15px;color:#111;"><strong>${lead.name || "Unknown"}</strong>${brokerage}${dealInfo}</p>
-            <p style="margin:0 0 10px;font-size:14px;color:#374151;">Email: <a href="mailto:${lead.email}">${lead.email}</a></p>
-            <p style="margin:0 0 10px;font-size:14px;color:#374151;">Phone: ${lead.phone || "Not captured"}</p>
-            <p style="margin:0 0 16px;font-size:13px;color:#6b7280;">
-              Stage updated to <strong>Onboarding</strong>. Drip sequence stopped. Agent record created.<br>
-              Welcome email sent. BearTeam Academy link included.
-            </p>
-            <p style="margin:0;font-size:14px;color:#374151;font-weight:600;">Next step: Confirm license transfer and set their start date in the dashboard.</p>
-          </div>
-        </div>`,
-    }).catch(() => {});
+    if (welcomeEmailError) {
+      console.error("Welcome email error:", welcomeEmailError);
+      return NextResponse.json({ error: "Failed to send welcome email" }, { status: 500 });
+    }
+
+    // ── 2. Send Tom a new agent alert ─────────────────────────────────────────
+    await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: TOM_EMAIL,
+      subject: `🎉 New Agent — ${fullName} just joined Bear Team`,
+      html: buildTomAlert(agentData),
+    });
+
+    // ── 3. Update Supabase — stop drip, advance stage ─────────────────────────
+    await getSupabase()
+      .from("leads")
+      .update({
+        stage: "Onboarding",
+        drip_unsubscribed: true,
+        onboarded_at: now.toISOString(),
+        updated_at: now.toISOString(),
+      })
+      .eq("email", email.toLowerCase().trim());
+
+    // ── 4. Write agent trigger file for COWORK_INSTRUCTIONS.md ───────────────
+    // This file lands in BearTeamOS/_new-agents/ and triggers Cowork onboarding
+    const agentTxtContent = buildAgentTxt(agentData, now);
+    const fileName = `${fullName.replace(/\s+/g, "_")}_${now.toISOString().split("T")[0]}.txt`;
+
+    await getSupabase().storage
+      .from("onboarding")
+      .upload(`_new-agents/${fileName}`, new Blob([agentTxtContent], { type: "text/plain" }), {
+        upsert: true,
+      });
+
+    // ── 5. Log to Supabase agents table (create if not present) ───────────────
+    try {
+      await getSupabase()
+        .from("agents")
+        .upsert(
+          {
+            name: fullName,
+            email: email.toLowerCase().trim(),
+            phone: agentData.phone || null,
+            brokerage_previous: brokerage,
+            deal_count_previous: dealCount,
+            start_date: now.toISOString().split("T")[0],
+            stage: "Onboarding",
+            created_at: now.toISOString(),
+            updated_at: now.toISOString(),
+          },
+          { onConflict: "email" }
+        );
+    } catch (_) { /* agents table may not exist yet — non-fatal */ }
+
+    console.log(`Onboarding triggered for ${fullName} (${email})`);
 
     return NextResponse.json({
-      ok: true,
-      agentCreated: !agentInsertError,
-      leadUpdated:  !leadUpdateError,
-      welcomeSent:  true,
+      success: true,
+      agent: fullName,
+      email,
+      actions: [
+        "welcome_email_sent",
+        "tom_alerted",
+        "drip_stopped",
+        "stage_updated_to_onboarding",
+        "agent_txt_written",
+      ],
     });
 
   } catch (err) {
-    console.error("Onboard route error:", err);
+    console.error("Onboarding error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
 
-// ─── WELCOME EMAIL ────────────────────────────────────────────────────────────
+// ─── EMAIL TEMPLATES ──────────────────────────────────────────────────────────
 
-function buildWelcomeEmail(
-  firstName: string,
-  lead: Record<string, string | number | boolean | null>
-): string {
-  const dealCount       = lead.deal_count as number | null;
-  const previousBrokerage = (lead.brokerage as string) || "your previous brokerage";
-
-  const tierNote = dealCount && dealCount >= 10
-    ? `<p>At ${dealCount} deals a year, you'll move through the tier progression quickly. You start at 60/40 — the $16K company dollar cap is a milestone, not a ceiling. Keep closing and the split advances automatically.</p>`
-    : `<p>You're starting at Tier 1 (60/40) with zero monthly overhead. Every deal you close is yours minus $150 flat. As your volume grows, the tiers advance automatically — no conversations needed.</p>`;
-
-  return `<!DOCTYPE html>
+function buildWelcomeEmail(firstName: string, fullName: string): string {
+  return `
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
-    .container { max-width: 560px; margin: 40px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .container { max-width: 560px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
     .header { background: #1a1a1a; padding: 28px 36px; }
-    .header h1 { color: #fff; margin: 0; font-size: 20px; font-weight: 600; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; }
     .header span { color: #c9a84c; }
-    .body { padding: 32px 36px; color: #333; font-size: 15px; line-height: 1.7; }
+    .header p { color: #c9a84c; margin: 6px 0 0; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .body { padding: 36px; color: #333; font-size: 15px; line-height: 1.7; }
     .body p { margin: 0 0 16px; }
-    .cta { display:inline-block; background:#c9a84c; color:#1a1a1a; text-decoration:none; font-weight:700; font-size:15px; padding:13px 28px; border-radius:6px; margin: 8px 0; }
-    .box { background:#f8f4e8; border-left:4px solid #c9a84c; padding:16px 20px; margin:20px 0; border-radius:4px; }
-    .box p { margin: 0 0 6px; }
-    .box p:last-child { margin: 0; }
-    .footer { padding: 20px 36px; border-top: 1px solid #f0f0f0; }
-    .footer p { color: #888; font-size: 13px; margin: 0; }
+    .step { display: flex; gap: 16px; margin: 12px 0; align-items: flex-start; }
+    .step-num { background: #c9a84c; color: #1a1a1a; font-weight: 700; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .step-text { color: #333; font-size: 15px; }
+    .step-text strong { color: #1a1a1a; }
+    .cta { display: block; background: #c9a84c; color: #1a1a1a; text-decoration: none; font-weight: 700; font-size: 15px; text-align: center; padding: 14px 28px; border-radius: 6px; margin: 28px 0; }
     .sig { margin-top: 24px; padding-top: 16px; border-top: 1px solid #f0f0f0; }
     .sig p { color: #555; font-size: 14px; margin: 0 0 2px; }
+    .footer { padding: 20px 36px; border-top: 1px solid #f0f0f0; }
+    .footer p { color: #888; font-size: 13px; margin: 0; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header"><h1>Welcome to Bear <span>Team</span></h1></div>
+    <div class="header">
+      <h1>Bear <span>Team</span></h1>
+      <p>Real Estate · Orlando, FL</p>
+    </div>
     <div class="body">
       <p>Hey ${firstName},</p>
-      <p>You're in. Welcome to Bear Team Real Estate.</p>
-      <p>Leaving ${previousBrokerage} is a real decision and I want to make sure the transition is as clean as possible. Here's what happens next:</p>
-      <div class="box">
-        <p><strong>Your immediate next steps:</strong></p>
-        <p>1. Complete your license transfer to Bear Team (I'll walk you through it — just reply here)</p>
-        <p>2. Start BearTeam Academy — the fastest way to get oriented on our systems and workflows</p>
-        <p>3. Let me know your first deal in the pipeline so we can make sure everything's set up before you close</p>
+      <p>Welcome to Bear Team. I'm glad you made the call — and I'm glad you made the move.</p>
+      <p>Here's what happens next, in order:</p>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Check your email</strong> — your welcome packet and onboarding docs are on the way from our team within 24 hours.</div>
       </div>
-      ${tierNote}
-      <p>BearTeam Academy is available now. It covers everything from our transaction process to how to use the tools, at your own pace:</p>
-      <a href="${ACADEMY_LINK}" class="cta">Start BearTeam Academy →</a>
-      <p style="margin-top:20px;">Any questions before your license transfers — reply here or grab 15 minutes:</p>
-      <a href="${CALENDLY_LINK}" style="color:#c9a84c;font-weight:600;">Schedule a quick call →</a>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Start Bear Team Academy</strong> — Course 1 (Orientation) is your first required step. It covers culture, expectations, and how Bear Team actually works.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Your Week 1 check-in</strong> — I'll reach out in the next 48 hours to schedule your first check-in. Bring your questions.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text"><strong>Your first deal</strong> — once you're in the Academy and your license transfer is complete, you're ready to go. The $150 flat fee kicks in at closing — nothing before that.</div>
+      </div>
+
+      <a href="${ACADEMY_URL}" class="cta">Start Bear Team Academy →</a>
+
+      <p>If anything comes up before we talk — questions, paperwork, anything — just reply here or text me directly.</p>
+
       <div class="sig">
         <p><strong>Tom Songer</strong></p>
         <p>Team Lead | Bear Team Real Estate</p>
-        <p>407-758-8102 | joinbearteam.com</p>
+        <p>${TOM_PHONE} | ${BEARTEAMOS_URL}</p>
       </div>
     </div>
     <div class="footer">
-      <p>Bear Team Real Estate · Orlando, FL · You're receiving this because you joined the team.</p>
+      <p>Bear Team Real Estate · Orlando, FL · joinbearteam.com</p>
     </div>
   </div>
 </body>
 </html>`.trim();
+}
+
+function buildTomAlert(agent: Record<string, string | number | boolean | null>): string {
+  const name = agent.name || "Unknown";
+  const email = agent.email || "—";
+  const phone = agent.phone || "—";
+  const brokerage = agent.brokerage || "—";
+  const dealCount = agent.deal_count ?? "—";
+  const avgPrice = agent.avg_price ? `$${Number(agent.avg_price).toLocaleString()}` : "—";
+  const notes = agent.notes || "—";
+
+  return `
+<!DOCTYPE html>
+<html>
+<head><style>
+  body { font-family: -apple-system, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+  .container { max-width: 560px; margin: 32px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .header { background: #1a6b3c; padding: 20px 28px; }
+  .header h1 { color: #fff; margin: 0; font-size: 18px; font-weight: 700; }
+  .body { padding: 28px; }
+  .row { display: flex; margin-bottom: 12px; border-bottom: 1px solid #f5f5f5; padding-bottom: 12px; }
+  .label { color: #888; font-size: 13px; width: 140px; flex-shrink: 0; }
+  .value { color: #1a1a1a; font-size: 14px; font-weight: 500; }
+  .actions { background: #f8f8f8; border-radius: 6px; padding: 16px 20px; margin-top: 20px; }
+  .actions h3 { margin: 0 0 10px; font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .actions ul { margin: 0; padding-left: 20px; }
+  .actions li { color: #333; font-size: 14px; line-height: 2; }
+  .cta { display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 5px; margin-top: 20px; }
+</style></head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 New Agent — ${name} joined Bear Team</h1>
+    </div>
+    <div class="body">
+      <div class="row"><div class="label">Name</div><div class="value">${name}</div></div>
+      <div class="row"><div class="label">Email</div><div class="value">${email}</div></div>
+      <div class="row"><div class="label">Phone</div><div class="value">${phone}</div></div>
+      <div class="row"><div class="label">Previous Brokerage</div><div class="value">${brokerage}</div></div>
+      <div class="row"><div class="label">Deals Last Year</div><div class="value">${dealCount}</div></div>
+      <div class="row"><div class="label">Avg Sale Price</div><div class="value">${avgPrice}</div></div>
+      <div class="row"><div class="label">Notes</div><div class="value">${notes}</div></div>
+
+      <div class="actions">
+        <h3>Automated actions completed</h3>
+        <ul>
+          <li>✅ Welcome email sent to ${email}</li>
+          <li>✅ Drip sequence stopped</li>
+          <li>✅ Stage updated → Onboarding</li>
+          <li>✅ Agent .txt file written to _new-agents/</li>
+        </ul>
+      </div>
+
+      <div class="actions" style="margin-top:12px;">
+        <h3>Your next steps</h3>
+        <ul>
+          <li>Schedule Week 1 check-in (48 hrs)</li>
+          <li>Send welcome packet + onboarding docs</li>
+          <li>Confirm license transfer is in progress</li>
+          <li>Add to Bear Team Academy — Course 1</li>
+        </ul>
+      </div>
+
+      <a href="https://getSupabase().com/dashboard/project/bbithigafmsyzlmuaokw/editor" class="cta">View in Supabase →</a>
+    </div>
+  </div>
+</body>
+</html>`.trim();
+}
+
+function buildAgentTxt(
+  agent: Record<string, string | number | boolean | null>,
+  date: Date
+): string {
+  const name = agent.name || "Unknown Agent";
+  const email = agent.email || "";
+  const phone = agent.phone || "";
+  const startDate = date.toLocaleDateString("en-US", {
+    month: "long", day: "numeric", year: "numeric"
+  });
+
+  return `Name: ${name}
+License #: [PENDING — add before processing]
+Role: Buyer Agent
+Start Date: ${startDate}
+Email: ${email}
+Phone: ${phone}
+Referred by: Scout AI — joinbearteam.com/chat
+Previous Brokerage: ${agent.brokerage || "Unknown"}
+Deals Last Year: ${agent.deal_count ?? "Unknown"}
+Notes: ${agent.notes || "None"}
+`;
 }
