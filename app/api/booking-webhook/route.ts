@@ -152,24 +152,38 @@ export async function POST(req: NextRequest) {
     if (eventType === "invitee.canceled") {
       const cancelPayload = body.payload
       const cancelEmail   = cancelPayload?.invitee?.email || ""
+
+      // Calendly sets rescheduled=true on the cancellation payload when the agent
+      // is rescheduling rather than outright cancelling. These are different states:
+      // "rescheduled" = still engaged, new invitee.created will fire shortly.
+      // "cancelled"   = no longer intending to meet, drip must be blocked.
+      const isRescheduled = !!(cancelPayload?.rescheduled === true || cancelPayload?.new_invitee)
+      const newCallOutcome = isRescheduled ? "rescheduled" : "cancelled"
+
       if (cancelEmail && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
-        const { data: lead } = await supabase.from("leads").select("id, stage, drip_step")
+        const { data: lead } = await supabase.from("leads").select("id, stage, drip_step, call_outcome")
           .eq("email", cancelEmail.toLowerCase().trim()).maybeSingle()
         if (lead) {
           await supabase.from("leads").update({
-            event_end:   null,              // clear so drip cron doesn't fire on the slot
-            event_start: null,
-            status:      "cancelled",
+            event_end:    null,              // clear so drip cron cannot fire on the old slot
+            event_start:  null,
+            status:       isRescheduled ? "rescheduled" : "cancelled",
+            // call_outcome is the authoritative drip gate — ONLY write when NULL.
+            // If call_outcome is already set (e.g. completed from a prior call),
+            // never overwrite it. A rescheduled lead who completed a prior call
+            // should not have their completion state erased.
+            ...(lead.call_outcome === null || lead.call_outcome === undefined
+              ? { call_outcome: newCallOutcome } : {}),
             // Only reset stage if still pre-call — don't overwrite mid-drip state
             ...(lead.drip_step === 0 || lead.drip_step === null
               ? { stage: "Follow-Up Queue" } : {}),
             updated_at: new Date().toISOString(),
           }).eq("id", lead.id)
-          console.log(`Cancellation handled for ${cancelEmail} — event_end cleared`)
+          console.log(`[booking-webhook] ${newCallOutcome} handled for ${cancelEmail} — event_end cleared, call_outcome=${newCallOutcome}`)
         }
       }
-      return NextResponse.json({ ok: true, handled: "cancellation" })
+      return NextResponse.json({ ok: true, handled: newCallOutcome })
     }
 
     if (eventType !== "invitee.created") {
@@ -489,3 +503,4 @@ function wrapEmailBooking(body: string, leadId?: string): string {
 </body>
 </html>`.trim()
 }
+
