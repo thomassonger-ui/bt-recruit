@@ -51,7 +51,8 @@ export async function GET(req: NextRequest) {
     .eq("stage", "scout_captured")
     .lt("created_at", cutoff48h)
     .not("email", "is", null)
-    .neq("email", "");
+    .neq("email", "")
+    .neq("drip_unsubscribed", true);
 
   if (errorA) {
     console.error("Cold cron Segment A error:", errorA);
@@ -65,7 +66,8 @@ export async function GET(req: NextRequest) {
     .in("stage", ["Follow-Up Queue", "booked"])
     .or(`last_contact.is.null,last_contact.lt.${cutoff30d}`)
     .not("email", "is", null)
-    .neq("email", "");
+    .neq("email", "")
+    .neq("drip_unsubscribed", true);
 
   if (errorB) {
     console.error("Cold cron Segment B error:", errorB);
@@ -81,7 +83,8 @@ export async function GET(req: NextRequest) {
     .lt("last_contact", cutoff7d)
     .gt("last_contact", cutoff14d)
     .not("email", "is", null)
-    .neq("email", "");
+    .neq("email", "")
+    .neq("drip_unsubscribed", true);
 
   if (errorC) {
     console.error("Cold cron Segment C error:", errorC);
