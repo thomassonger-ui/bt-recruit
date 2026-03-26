@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { Resend } from "resend";
-
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -13,7 +11,23 @@ function getSupabase() {
   );
 }
 
-function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
+async function sendEmail(to: string, subject: string, html: string, replyTo?: string): Promise<{ error?: string }> {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  if (!apiKey) { console.error("[onboard] SENDGRID_API_KEY not set"); return { error: "SENDGRID_API_KEY not set" }; }
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: to }] }],
+      from: { email: "tom@bearteam.com", name: "Tom Songer" },
+      ...(replyTo ? { reply_to: { email: replyTo } } : {}),
+      subject,
+      content: [{ type: "text/html", value: html }],
+    }),
+  });
+  if (!res.ok) { return { error: `SendGrid error ${res.status}` }; }
+  return {};
+}
 
 const TOM_EMAIL = "tom@bearteam.com";
 const TOM_PHONE = "407-758-8102";
@@ -85,13 +99,12 @@ export async function POST(req: NextRequest) {
     const now = new Date();
 
     // ── 1. Send welcome email to new agent ───────────────────────────────────
-    const { error: welcomeEmailError } = await getResend().emails.send({
-      from: FROM_EMAIL,
-      replyTo: REPLY_TO,
-      to: email,
-      subject: `Welcome to Bear Team, ${firstName} — here's your first step`,
-      html: buildWelcomeEmail(firstName, fullName),
-    });
+    const { error: welcomeEmailError } = await sendEmail(
+      email,
+      `Welcome to Bear Team, ${firstName} — here's your first step`,
+      buildWelcomeEmail(firstName, fullName),
+      REPLY_TO,
+    );
 
     if (welcomeEmailError) {
       console.error("Welcome email error:", welcomeEmailError);
@@ -99,12 +112,11 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 2. Send Tom a new agent alert ─────────────────────────────────────────
-    await getResend().emails.send({
-      from: FROM_EMAIL,
-      to: TOM_EMAIL,
-      subject: `🎉 New Agent — ${fullName} just joined Bear Team`,
-      html: buildTomAlert(agentData),
-    });
+    await sendEmail(
+      TOM_EMAIL,
+      `🎉 New Agent — ${fullName} just joined Bear Team`,
+      buildTomAlert(agentData),
+    );
 
     // ── 3. Update Supabase — stop drip, advance stage ─────────────────────────
     await getSupabase()
