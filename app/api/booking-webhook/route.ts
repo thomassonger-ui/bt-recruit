@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
     // with Scout) or Follow-Up Queue if they were further in pipeline.
     if (eventType === "invitee.canceled") {
       const cancelPayload = body.payload
-      const cancelEmail   = cancelPayload?.invitee?.email || ""
+      const cancelEmail   = cancelPayload?.email || cancelPayload?.invitee?.email || ""
 
       // Calendly sets rescheduled=true on the cancellation payload when the agent
       // is rescheduling rather than outright cancelling. These are different states:
