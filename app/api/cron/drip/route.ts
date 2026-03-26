@@ -109,6 +109,53 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const results = [];
 
+    // ── PRIORITY-1: Drip cron fallback inference pass ─────────────────────────
+    // The no-show cron (13:00 UTC) is the primary writer of call_outcome.
+    // This pass runs FIRST at noon UTC as a fallback — it catches any leads
+    // whose call completed but whose call_outcome was not yet written by the
+    // no-show cron (cron failure, timing gap, leads outside the 2-hour window).
+    //
+    // Eligibility (all required, same logic as no-show cron inference):
+    //   1. event_end is NOT NULL and is more than 4 hours in the past
+    //   2. call_outcome IS NULL — no webhook signal (not cancelled/rescheduled)
+    //   3. noshow_followup_sent IS NULL or false — not a confirmed no-show
+    //   4. Stage is not Closed Won or Closed Lost
+    //
+    // Safety: only writes when call_outcome IS NULL. The .is("call_outcome", null)
+    // in both the SELECT and UPDATE ensures idempotency. If the no-show cron
+    // already wrote "no_show" or "cancelled", this pass will never touch that lead.
+    // ─────────────────────────────────────────────────────────────────────────
+    const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+
+    const { data: inferenceLeads, error: inferenceError } = await getSupabase()
+      .from("leads")
+      .select("id, email, name")
+      .not("event_end", "is", null)
+      .lt("event_end", fourHoursAgo.toISOString())
+      .is("call_outcome", null)
+      .or("noshow_followup_sent.is.null,noshow_followup_sent.eq.false")
+      .not("stage", "in", '("Closed Won","Closed Lost")');
+
+    if (inferenceError) {
+      console.error("[drip-cron] Completion inference query error:", inferenceError);
+    } else if (inferenceLeads && inferenceLeads.length > 0) {
+      for (const inferLead of inferenceLeads) {
+        const { error: inferWriteErr } = await getSupabase()
+          .from("leads")
+          .update({ call_outcome: "completed", updated_at: now.toISOString() })
+          .eq("id", inferLead.id)
+          .is("call_outcome", null); // double-guard: only write when still NULL
+
+        if (inferWriteErr) {
+          console.error(`[drip-cron] Inference write failed for ${inferLead.email}:`, inferWriteErr);
+        } else {
+          console.log(`[drip-cron] Completion inferred for ${inferLead.email}`);
+        }
+      }
+      console.log(`[drip-cron] Inference pass: ${inferenceLeads.length} lead(s) marked completed`);
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     for (const step of DRIP_SCHEDULE) {
       // CB-5 fix: anchor window to anchorField (event_end for Email 1, drip_last_sent_at
       // for Emails 2-5). This prevents out-of-order delivery when a lead books far
@@ -127,7 +174,10 @@ export async function GET(req: NextRequest) {
         ? `drip_step.is.null,drip_step.eq.0`
         : `drip_step.eq.${step.emailIndex}`;
 
-      const { data: leads, error } = await getSupabase()
+      // PRIORITY-1: Build query with call_outcome gate for Email 1.
+      // For emailIndex 0 (entry point), require call_outcome = "completed".
+      // For emailIndex 1-4, call_outcome gate is implied by drip_step chain.
+      let query = getSupabase()
         .from("leads")
         .select("*")
         .lt(anchor, windowEnd.toISOString())
@@ -141,6 +191,16 @@ export async function GET(req: NextRequest) {
         // them. Treat NULL as "not unsubscribed" — same as false.
         .or("drip_unsubscribed.is.null,drip_unsubscribed.eq.false")
         .or("noshow_followup_sent.is.null,noshow_followup_sent.eq.false"); // exclude no-shows
+
+      // PRIORITY-1: call_outcome gate — applied to Email 1 entry point only.
+      // A lead must have call_outcome = "completed" before entering the post-call
+      // drip sequence. This is the single authoritative signal that the call occurred.
+      // Emails 2-5 are already protected by the sequential drip_step chain.
+      if (step.emailIndex === 0) {
+        query = query.eq("call_outcome", "completed");
+      }
+
+      const { data: leads, error } = await query;
 
       if (error) {
         console.error(`Drip step ${step.day} query error:`, error);
