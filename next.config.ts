@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/bearteamos',
-        destination: 'https://bearteam-os-dashboard.vercel.app',
+        destination: 'https://bearteam-os-dashboard.vercel.app/login',
         permanent: false,
       },
     ];
