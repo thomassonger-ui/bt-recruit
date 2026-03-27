@@ -1,11 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
+  async redirects() {
     return [
       {
-        source: '/bearteamos/:path*',
-        destination: 'https://bearteam-os-dashboard.vercel.app/:path*',
+        source: '/bearteamos',
+        destination: 'https://bearteam-os-dashboard.vercel.app',
+        permanent: false,
       },
     ];
   },
