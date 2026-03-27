@@ -3,7 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// Lazy init — avoids build-time crash
 function getSupabase() {
   return createClient(
     (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
@@ -29,46 +28,126 @@ async function sendEmail(to: string, subject: string, html: string, replyTo?: st
   return {};
 }
 
+// ─── Generate BearTeamOS credentials ─────────────────────────────────────────
+function generateUsername(fullName: string): string {
+  const parts = fullName.trim().toLowerCase().split(/\s+/);
+  return parts.length >= 2
+    ? `${parts[0]}.${parts[parts.length - 1]}`
+    : parts[0];
+}
+
+function generatePassword(): string {
+  const words = ["Bear", "Team", "Agent", "Orlando", "Realty", "Hustle", "Closer"];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const num = Math.floor(1000 + Math.random() * 9000);
+  return `${word}${num}`;
+}
+
+// ─── Update AGENTS env var on BearTeamOS Vercel project ──────────────────────
+async function provisionBearTeamOSCredentials(
+  username: string,
+  password: string
+): Promise<{ success: boolean; error?: string }> {
+  const vercelToken = process.env.VERCEL_TOKEN;
+  const projectId = process.env.BEARTEAMOS_PROJECT_ID;
+  const teamId = process.env.VERCEL_TEAM_ID;
+
+  if (!vercelToken || !projectId || !teamId) {
+    console.error("[onboard] Missing VERCEL_TOKEN, BEARTEAMOS_PROJECT_ID, or VERCEL_TEAM_ID");
+    return { success: false, error: "missing_vercel_config" };
+  }
+
+  // 1. Fetch current AGENTS env var value + its ID
+  const listRes = await fetch(
+    `https://api.vercel.com/v9/projects/${projectId}/env?teamId=${teamId}`,
+    { headers: { Authorization: `Bearer ${vercelToken}` } }
+  );
+  if (!listRes.ok) return { success: false, error: `vercel_list_error_${listRes.status}` };
+
+  const listData = await listRes.json();
+  const agentsEnv = listData.envs?.find((e: { key: string }) => e.key === "AGENTS");
+
+  // 2. Decrypt current value
+  let currentAgents: { username: string; password: string }[] = [];
+  let envId: string | null = agentsEnv?.id ?? null;
+
+  if (agentsEnv?.id) {
+    const decryptRes = await fetch(
+      `https://api.vercel.com/v9/projects/${projectId}/env/${agentsEnv.id}?teamId=${teamId}`,
+      { headers: { Authorization: `Bearer ${vercelToken}` } }
+    );
+    if (decryptRes.ok) {
+      const decryptData = await decryptRes.json();
+      try { currentAgents = JSON.parse(decryptData.value || "[]"); } catch { currentAgents = []; }
+    }
+  }
+
+  // 3. Add new agent (skip if already exists)
+  const exists = currentAgents.some((a) => a.username === username);
+  if (!exists) currentAgents.push({ username, password });
+
+  const newValue = JSON.stringify(currentAgents);
+
+  // 4. Update or create the env var
+  if (envId) {
+    const updateRes = await fetch(
+      `https://api.vercel.com/v9/projects/${projectId}/env/${envId}?teamId=${teamId}`,
+      {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${vercelToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ value: newValue }),
+      }
+    );
+    if (!updateRes.ok) return { success: false, error: `vercel_update_error_${updateRes.status}` };
+  } else {
+    const createRes = await fetch(
+      `https://api.vercel.com/v9/projects/${projectId}/env?teamId=${teamId}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${vercelToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: "AGENTS",
+          value: newValue,
+          type: "encrypted",
+          target: ["production", "preview", "development"],
+        }),
+      }
+    );
+    if (!createRes.ok) return { success: false, error: `vercel_create_error_${createRes.status}` };
+  }
+
+  // 5. Redeploy BearTeamOS so new credentials take effect
+  await fetch(
+    `https://api.vercel.com/v13/deployments?teamId=${teamId}`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${vercelToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "bearteam-os-dashboard",
+        projectId,
+        target: "production",
+        source: "api",
+      }),
+    }
+  );
+
+  return { success: true };
+}
+
 const TOM_EMAIL = "tom@bearteam.com";
 const TOM_PHONE = "407-758-8102";
 const ACADEMY_URL = "https://academy.joinbearteam.com";
-const BEARTEAMOS_URL = "https://www.joinbearteam.com";
-const FROM_EMAIL = "Tom Songer <tom@bearteam.com>";
+const BEARTEAMOS_URL = "https://bearteam-os-dashboard.vercel.app";
 const REPLY_TO = "tom@bearteam.com";
-
-// ─── POST /api/onboard ────────────────────────────────────────────────────────
-//
-// Triggered two ways:
-//
-// 1. MANUALLY by Tom — POST with { email } when he marks an agent as Closed Won
-//    Example: curl -X POST /api/onboard -d '{"email":"agent@example.com"}'
-//
-// 2. AUTOMATICALLY via Supabase Database Webhook — when leads.stage = 'Closed Won'
-//    Supabase sends a POST to this endpoint with the full row as payload.
-//
-// What it does:
-// - Sends welcome email to new agent with first steps + Academy link
-// - Sends Tom a new agent alert with full profile
-// - Updates lead stage to 'Onboarding' in Supabase
-// - Stops the nurture drip (sets drip_stopped = true)
-// - Creates agent record in agents table (if it exists)
-// - Writes an agent .txt file to BearTeamOS/_new-agents/ trigger folder
-//   (picked up by Cowork COWORK_INSTRUCTIONS.md workflow)
-// ─────────────────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Password check when called from dashboard UI
     if (body.pw && body.pw !== process.env.DASHBOARD_PASSWORD) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Support three call patterns:
-    // 1. Dashboard UI:        { leadId, pw }
-    // 2. Direct/curl:         { email }
-    // 3. Supabase webhook:    { record: { ...full row } }
     const lead = body.record || body;
     const leadId = body.leadId || lead.leadId;
     const email = lead.email;
@@ -77,7 +156,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No leadId or email provided" }, { status: 400 });
     }
 
-    // Fetch the full lead record by leadId or email
     let agentData = lead;
     if (leadId || !lead.name) {
       const query = getSupabase().from("leads").select("*");
@@ -91,7 +169,6 @@ export async function POST(req: NextRequest) {
       agentData = data;
     }
 
-    // ── Idempotency guard — bail if already onboarded ──────────────────────────
     if (agentData.stage === 'Onboarding' || agentData.drip_stopped === true) {
       console.log(`[onboard] Skipping — already onboarded: ${agentData.email}`);
       return NextResponse.json({ success: true, skipped: true, reason: 'already_onboarded' });
@@ -99,16 +176,26 @@ export async function POST(req: NextRequest) {
 
     const firstName = agentData.name?.split(" ")[0] || "there";
     const fullName = agentData.name || email;
-    const phone = agentData.phone || "Not provided";
     const brokerage = agentData.brokerage || "Not provided";
     const dealCount = agentData.deal_count ?? "Unknown";
     const now = new Date();
 
-    // ── 1. Send welcome email to new agent ───────────────────────────────────
+    // ── Generate BearTeamOS credentials ───────────────────────────────────────
+    const btUsername = generateUsername(fullName);
+    const btPassword = generatePassword();
+
+    // ── Provision credentials on BearTeamOS ───────────────────────────────────
+    const provision = await provisionBearTeamOSCredentials(btUsername, btPassword);
+    if (!provision.success) {
+      console.error("[onboard] Failed to provision BearTeamOS credentials:", provision.error);
+      // Non-fatal — continue with onboarding, log the issue
+    }
+
+    // ── 1. Send welcome email with BearTeamOS credentials ────────────────────
     const { error: welcomeEmailError } = await sendEmail(
       email,
-      `Welcome to Bear Team, ${firstName} — here's your first step`,
-      buildWelcomeEmail(firstName, fullName),
+      `Welcome to Bear Team, ${firstName} — your system access is ready`,
+      buildWelcomeEmail(firstName, fullName, btUsername, btPassword),
       REPLY_TO,
     );
 
@@ -117,14 +204,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to send welcome email" }, { status: 500 });
     }
 
-    // ── 2. Send Tom a new agent alert ─────────────────────────────────────────
+    // ── 2. Alert Tom ───────────────────────────────────────────────────────────
     await sendEmail(
       TOM_EMAIL,
       `🎉 New Agent — ${fullName} just joined Bear Team`,
-      buildTomAlert(agentData),
+      buildTomAlert(agentData, btUsername, btPassword),
     );
 
-    // ── 3. Update Supabase — stop drip, advance stage ─────────────────────────
+    // ── 3. Update Supabase lead ────────────────────────────────────────────────
     await getSupabase()
       .from("leads")
       .update({
@@ -135,18 +222,14 @@ export async function POST(req: NextRequest) {
       })
       .eq("email", email.toLowerCase().trim());
 
-    // ── 4. Write agent trigger file for COWORK_INSTRUCTIONS.md ───────────────
-    // This file lands in BearTeamOS/_new-agents/ and triggers Cowork onboarding
+    // ── 4. Write agent trigger file ────────────────────────────────────────────
     const agentTxtContent = buildAgentTxt(agentData, now);
     const fileName = `${fullName.replace(/\s+/g, "_")}_${now.toISOString().split("T")[0]}.txt`;
-
     await getSupabase().storage
       .from("onboarding")
-      .upload(`_new-agents/${fileName}`, new Blob([agentTxtContent], { type: "text/plain" }), {
-        upsert: true,
-      });
+      .upload(`_new-agents/${fileName}`, new Blob([agentTxtContent], { type: "text/plain" }), { upsert: true });
 
-    // ── 5. Log to Supabase agents table (create if not present) ───────────────
+    // ── 5. Create agent in BearTeamOS Supabase ────────────────────────────────
     try {
       await getSupabase()
         .from("agents")
@@ -155,29 +238,33 @@ export async function POST(req: NextRequest) {
             name: fullName,
             email: email.toLowerCase().trim(),
             phone: agentData.phone || null,
-            brokerage_previous: brokerage,
-            deal_count_previous: dealCount,
-            start_date: now.toISOString().split("T")[0],
             stage: "Onboarding",
+            onboarding_stage: 0,
+            inactivity_streak: 0,
+            missed_streak: 0,
+            performance_score: 0,
+            start_date: now.toISOString().split("T")[0],
             created_at: now.toISOString(),
             updated_at: now.toISOString(),
           },
           { onConflict: "email" }
         );
-    } catch (_) { /* agents table may not exist yet — non-fatal */ }
+    } catch (_) { /* non-fatal */ }
 
-    console.log(`Onboarding triggered for ${fullName} (${email})`);
+    console.log(`Onboarding complete for ${fullName} (${email}) — BearTeamOS: ${btUsername}`);
 
     return NextResponse.json({
       success: true,
       agent: fullName,
       email,
+      bearteamos: { username: btUsername, provisioned: provision.success },
       actions: [
-        "welcome_email_sent",
+        "welcome_email_sent_with_credentials",
         "tom_alerted",
         "drip_stopped",
         "stage_updated_to_onboarding",
         "agent_txt_written",
+        provision.success ? "bearteamos_credentials_provisioned" : "bearteamos_provision_failed",
       ],
     });
 
@@ -189,7 +276,7 @@ export async function POST(req: NextRequest) {
 
 // ─── EMAIL TEMPLATES ──────────────────────────────────────────────────────────
 
-function buildWelcomeEmail(firstName: string, fullName: string): string {
+function buildWelcomeEmail(firstName: string, fullName: string, username: string, password: string): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -205,6 +292,12 @@ function buildWelcomeEmail(firstName: string, fullName: string): string {
     .header p { color: #c9a84c; margin: 6px 0 0; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase; }
     .body { padding: 36px; color: #333; font-size: 15px; line-height: 1.7; }
     .body p { margin: 0 0 16px; }
+    .credentials { background: #1a1a1a; border-radius: 8px; padding: 20px 24px; margin: 24px 0; }
+    .credentials h3 { color: #c9a84c; margin: 0 0 14px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .cred-row { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; }
+    .cred-label { color: #888; font-size: 13px; }
+    .cred-value { color: #ffffff; font-size: 15px; font-weight: 700; font-family: monospace; letter-spacing: 0.05em; }
+    .cred-url { color: #c9a84c; font-size: 13px; margin-top: 12px; word-break: break-all; }
     .step { display: flex; gap: 16px; margin: 12px 0; align-items: flex-start; }
     .step-num { background: #c9a84c; color: #1a1a1a; font-weight: 700; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
     .step-text { color: #333; font-size: 15px; }
@@ -224,34 +317,50 @@ function buildWelcomeEmail(firstName: string, fullName: string): string {
     </div>
     <div class="body">
       <p>Hey ${firstName},</p>
-      <p>Welcome to Bear Team. I'm glad you made the call — and I'm glad you made the move.</p>
-      <p>Here's what happens next, in order:</p>
+      <p>Welcome to Bear Team. Your agent account is active and your system access is ready.</p>
+
+      <div class="credentials">
+        <h3>Your BearTeamOS Login</h3>
+        <div class="cred-row">
+          <span class="cred-label">Username</span>
+          <span class="cred-value">${username}</span>
+        </div>
+        <div class="cred-row">
+          <span class="cred-label">Password</span>
+          <span class="cred-value">${password}</span>
+        </div>
+        <div class="cred-url">🔗 bearteam-os-dashboard.vercel.app/login</div>
+      </div>
+
+      <p>BearTeamOS is your daily operating system — it tracks your tasks, pipeline, compliance, and performance. Log in every morning before you do anything else.</p>
+
+      <p>Here's your first week, in order:</p>
 
       <div class="step">
         <div class="step-num">1</div>
-        <div class="step-text"><strong>Check your email</strong> — your welcome packet and onboarding docs are on the way from our team within 24 hours.</div>
+        <div class="step-text"><strong>Log into BearTeamOS</strong> — your onboarding tasks are already waiting. Complete them in order.</div>
       </div>
       <div class="step">
         <div class="step-num">2</div>
-        <div class="step-text"><strong>Start Bear Team Academy</strong> — Course 1 (Orientation) is your first required step. It covers culture, expectations, and how Bear Team actually works.</div>
+        <div class="step-text"><strong>Start Bear Team Academy</strong> — Course 1 (Orientation) is your first required module.</div>
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <div class="step-text"><strong>Your Week 1 check-in</strong> — I'll reach out in the next 48 hours to schedule your first check-in. Bring your questions.</div>
+        <div class="step-text"><strong>Week 1 check-in</strong> — I'll reach out in 48 hours to schedule your first call. Bring questions.</div>
       </div>
       <div class="step">
         <div class="step-num">4</div>
-        <div class="step-text"><strong>Your first deal</strong> — once you're in the Academy and your license transfer is complete, you're ready to go. The $150 flat fee kicks in at closing — nothing before that.</div>
+        <div class="step-text"><strong>License transfer</strong> — once complete, you're cleared to work your first deal. $150 flat fee at closing — nothing before that.</div>
       </div>
 
-      <a href="${ACADEMY_URL}" class="cta">Start Bear Team Academy →</a>
+      <a href="${BEARTEAMOS_URL}/login" class="cta">Log Into BearTeamOS →</a>
 
-      <p>If anything comes up before we talk — questions, paperwork, anything — just reply here or text me directly.</p>
+      <p>If anything comes up before we talk, reply here or text me directly.</p>
 
       <div class="sig">
         <p><strong>Tom Songer</strong></p>
         <p>Team Lead | Bear Team Real Estate</p>
-        <p>${TOM_PHONE} | ${BEARTEAMOS_URL}</p>
+        <p>${TOM_PHONE}</p>
       </div>
     </div>
     <div class="footer">
@@ -262,7 +371,7 @@ function buildWelcomeEmail(firstName: string, fullName: string): string {
 </html>`.trim();
 }
 
-function buildTomAlert(agent: Record<string, string | number | boolean | null>): string {
+function buildTomAlert(agent: Record<string, string | number | boolean | null>, username: string, password: string): string {
   const name = agent.name || "Unknown";
   const email = agent.email || "—";
   const phone = agent.phone || "—";
@@ -281,13 +390,17 @@ function buildTomAlert(agent: Record<string, string | number | boolean | null>):
   .header h1 { color: #fff; margin: 0; font-size: 18px; font-weight: 700; }
   .body { padding: 28px; }
   .row { display: flex; margin-bottom: 12px; border-bottom: 1px solid #f5f5f5; padding-bottom: 12px; }
-  .label { color: #888; font-size: 13px; width: 140px; flex-shrink: 0; }
+  .label { color: #888; font-size: 13px; width: 160px; flex-shrink: 0; }
   .value { color: #1a1a1a; font-size: 14px; font-weight: 500; }
-  .actions { background: #f8f8f8; border-radius: 6px; padding: 16px 20px; margin-top: 20px; }
-  .actions h3 { margin: 0 0 10px; font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .creds { background: #1a1a1a; border-radius: 6px; padding: 16px 20px; margin: 16px 0; }
+  .creds h3 { color: #c9a84c; margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .creds .row { border-bottom: 1px solid #333; }
+  .creds .label { color: #888; }
+  .creds .value { color: #fff; font-family: monospace; }
+  .actions { background: #f8f8f8; border-radius: 6px; padding: 16px 20px; margin-top: 16px; }
+  .actions h3 { margin: 0 0 10px; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
   .actions ul { margin: 0; padding-left: 20px; }
   .actions li { color: #333; font-size: 14px; line-height: 2; }
-  .cta { display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 5px; margin-top: 20px; }
 </style></head>
 <body>
   <div class="container">
@@ -303,44 +416,42 @@ function buildTomAlert(agent: Record<string, string | number | boolean | null>):
       <div class="row"><div class="label">Avg Sale Price</div><div class="value">${avgPrice}</div></div>
       <div class="row"><div class="label">Notes</div><div class="value">${notes}</div></div>
 
+      <div class="creds">
+        <h3>BearTeamOS Credentials Issued</h3>
+        <div class="row"><div class="label">Username</div><div class="value">${username}</div></div>
+        <div class="row" style="border:none;margin:0;padding:0"><div class="label">Password</div><div class="value">${password}</div></div>
+      </div>
+
       <div class="actions">
         <h3>Automated actions completed</h3>
         <ul>
-          <li>✅ Welcome email sent to ${email}</li>
+          <li>✅ Welcome email + credentials sent to ${email}</li>
+          <li>✅ BearTeamOS account provisioned</li>
           <li>✅ Drip sequence stopped</li>
           <li>✅ Stage updated → Onboarding</li>
-          <li>✅ Agent .txt file written to _new-agents/</li>
+          <li>✅ Agent record created in BearTeamOS</li>
         </ul>
       </div>
 
       <div class="actions" style="margin-top:12px;">
         <h3>Your next steps</h3>
         <ul>
-          <li>Schedule Week 1 check-in (48 hrs)</li>
-          <li>Send welcome packet + onboarding docs</li>
+          <li>Schedule Week 1 check-in within 48 hrs</li>
           <li>Confirm license transfer is in progress</li>
           <li>Add to Bear Team Academy — Course 1</li>
         </ul>
       </div>
-
-      <a href="https://getSupabase().com/dashboard/project/bbithigafmsyzlmuaokw/editor" class="cta">View in Supabase →</a>
     </div>
   </div>
 </body>
 </html>`.trim();
 }
 
-function buildAgentTxt(
-  agent: Record<string, string | number | boolean | null>,
-  date: Date
-): string {
+function buildAgentTxt(agent: Record<string, string | number | boolean | null>, date: Date): string {
   const name = agent.name || "Unknown Agent";
   const email = agent.email || "";
   const phone = agent.phone || "";
-  const startDate = date.toLocaleDateString("en-US", {
-    month: "long", day: "numeric", year: "numeric"
-  });
-
+  const startDate = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   return `Name: ${name}
 License #: [PENDING — add before processing]
 Role: Buyer Agent
