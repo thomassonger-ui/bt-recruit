@@ -44,6 +44,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [joiningId, setJoiningId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [pausingDripId, setPausingDripId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "leads" | "stalled" | "drip">("overview")
 
@@ -81,6 +82,25 @@ export default function DashboardPage() {
       }
     } catch { alert("Failed.") }
     finally { setPausingDripId(null) }
+  }
+
+
+  const deleteLead = async (leadId: string, name: string) => {
+    if (!confirm(`Delete "${name || 'this lead'}"? This cannot be undone.`)) return
+    setDeletingId(leadId)
+    try {
+      const res = await fetch("/api/delete-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId, pw: password }),
+      })
+      if (res.ok) {
+        fetchData(password)
+      } else {
+        alert("Failed to delete. Try again.")
+      }
+    } catch { alert("Failed to delete.") }
+    finally { setDeletingId(null) }
   }
 
   const fetchData = useCallback(async (pw: string) => {
@@ -419,6 +439,10 @@ export default function DashboardPage() {
                                   {pausingDripId === lead.id ? "..." : "⏸ Pause"}
                                 </button>
                           ) : null}
+                          <button onClick={() => deleteLead(lead.id, lead.name)} disabled={deletingId === lead.id}
+                            style={{ background: deletingId === lead.id ? "#E5E7EB" : "#FEF2F2", color: deletingId === lead.id ? "#9CA3AF" : "#C62828", border: "1px solid #FECACA", borderRadius: 6, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: deletingId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
+                            {deletingId === lead.id ? "..." : "✕ Delete"}
+                          </button>
                         </div>
                       </td>
                     </tr>
