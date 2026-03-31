@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateContent } from "@/bearsignal/runtime/generator";
 import { queueContent, getPendingQueue, markSent, markError } from "@/bearsignal/runtime/queue";
-import { postToLinkedIn } from "@/bearsignal/runtime/linkedin";
+import { postToBuffer } from "@/bearsignal/runtime/buffer";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -37,7 +37,7 @@ const CHANNEL_BY_DOW: Record<number, Channel | null> = {
 
 const CHANNEL_SUBJECTS: Record<Channel, string> = {
   email:    "Bear Team — Agent Opportunity This Week",
-  linkedin: "[BearSignal] LinkedIn Posted — Review Live",
+  linkedin: "[BearSignal] Buffer Posted to LinkedIn — Review Live",
 };
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
     try {
       if (ch === "linkedin") {
         // Auto-post directly to LinkedIn
-        const result = await postToLinkedIn(row.content);
+        const result = await postToBuffer(row.content);
         if (result.success) {
           await markSent(row.id);
           results.push({ id: row.id, channel: ch, status: "posted", postId: result.postId });
@@ -129,7 +129,7 @@ export async function GET(req: NextRequest) {
           // Send confirmation email to tom
           const subject = CHANNEL_SUBJECTS[ch];
           const confirmHtml = contentToHtml(
-            "Your LinkedIn post went live.\n\nPost ID: " + (result.postId || "N/A") + "\n\nContent:\n\n" + row.content
+            "Your LinkedIn post went live (via Buffer).\n\nPost ID: " + (result.postId || "N/A") + "\n\nContent:\n\n" + row.content
           );
           await sendEmail(toEmail, subject, confirmHtml).catch((e) =>
             console.warn("[signal-cron] Confirmation email failed:", e)
