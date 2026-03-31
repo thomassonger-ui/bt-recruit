@@ -4,15 +4,14 @@
  * Posts text content + a rotating Bear Team image to the
  * Join Bear Team LinkedIn showcase page via Buffer API v1.
  *
- * Buffer handles LinkedIn organization posting through their
- * approved partnership — no direct LinkedIn org scope needed.
+ * Images served from Vercel CDN at joinbearteam.com/images/
+ * for fast, clean URLs with no third-party domain exposure.
  *
  * Image rotation: deterministic by week-of-year (week % 16 + 1)
- * Images hosted in Supabase Storage: bucket "bearsignal-images"
  *
  * Env vars required:
  *   BUFFER_ACCESS_TOKEN  — from publish.buffer.com/settings/api
- *   BUFFER_PROFILE_ID    — LinkedIn page profile ID in Buffer (69cb4be8af47dacb69712437)
+ *   BUFFER_PROFILE_ID    — LinkedIn page profile ID in Buffer
  */
 
 export interface BufferPostResult {
@@ -23,6 +22,7 @@ export interface BufferPostResult {
 
 // ── Image rotation ────────────────────────────────────────────────────────────
 const IMAGE_COUNT = 16;
+const BASE_URL = "https://www.joinbearteam.com";
 
 function getWeekOfYear(): number {
   const now = new Date();
@@ -31,17 +31,11 @@ function getWeekOfYear(): number {
   return Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
 }
 
-function getImageFilename(index: number): string {
-  if (index === 5) return "Bear Team Recruit 5..png";
-  return `Bear Team Recruit ${index}.png`;
-}
-
 function getCurrentImageUrl(): string {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
   const week = getWeekOfYear();
   const imageIndex = (week % IMAGE_COUNT) + 1;
-  const filename = encodeURIComponent(getImageFilename(imageIndex));
-  return `${supabaseUrl}/storage/v1/object/public/bearsignal-images/${filename}`;
+  const padded = String(imageIndex).padStart(2, "0");
+  return `${BASE_URL}/images/bear-team-recruit-${padded}.png`;
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
@@ -57,13 +51,14 @@ export async function postToBuffer(content: string): Promise<BufferPostResult> {
   console.log("[buffer] Posting to profile:", profileId);
   console.log("[buffer] Image:", imageUrl);
 
-  // Buffer v1 API — media[link] posts image as a LinkedIn image card
+  // Buffer v1 — media[photo] with a URL causes Buffer to fetch and upload
+  // the image as a native inline LinkedIn image (not a link preview card)
   const params = new URLSearchParams();
   params.append("access_token", accessToken);
   params.append("profile_ids[]", profileId);
   params.append("text", content);
   params.append("now", "true");
-  params.append("media[link]", imageUrl);
+  params.append("media[photo]", imageUrl);
   params.append("media[description]", "Bear Team Real Estate — Orlando, FL");
   params.append("media[title]", "Join Bear Team");
 
@@ -74,18 +69,9 @@ export async function postToBuffer(content: string): Promise<BufferPostResult> {
       body: params.toString(),
     });
 
-    // Buffer sometimes returns empty body on success — handle gracefully
     const text = await res.text();
     let data: Record<string, unknown> = {};
-    try {
-      data = JSON.parse(text);
-    } catch {
-      // Empty or non-JSON response — check status
-      if (res.ok) {
-        console.log("[buffer] Posted (non-JSON response). Status:", res.status);
-        return { success: true };
-      }
-    }
+    try { data = JSON.parse(text); } catch { /* empty body */ }
 
     if (!res.ok || data?.success === false) {
       const errMsg = String(data?.message || data?.error || text || res.status);
@@ -94,7 +80,7 @@ export async function postToBuffer(content: string): Promise<BufferPostResult> {
     }
 
     const updates = data?.updates as Array<{id?: string}> | undefined;
-    const postId = updates?.[0]?.id || String(data?.update && (data.update as {id?: string})?.id || "");
+    const postId = updates?.[0]?.id || "";
     console.log("[buffer] Posted successfully. ID:", postId);
     return { success: true, postId };
 
