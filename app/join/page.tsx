@@ -86,8 +86,7 @@ export default function JoinPage() {
           </div>
 
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.22)", textAlign: "center" }}>
-            © {new Date().getFullYear()} Bear Team Real Estate · Orlando, FL · Bethanne Baer, Broker/Owner ·{" "}
-            <a href="https://www.linkedin.com/showcase/join-bear-team" style={{ color: "rgba(255,255,255,0.28)", textDecoration: "none" }}>LinkedIn</a>
+            © 2026 WorldTeachPathways | Bear Real Estate Team
           </div>
         </div>
 
