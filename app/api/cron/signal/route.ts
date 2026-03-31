@@ -13,8 +13,8 @@
  * Channel rotation (day of week):
  *   Mon → email
  *   Tue → linkedin
- *   Wed → facebook
- *   Thu → twitter
+ *   Wed → linkedin
+ *   Thu → linkedin
  *   Fri → email
  *   Sat/Sun → skip
  */
@@ -29,14 +29,14 @@ export const runtime = "nodejs";
 const FROM_EMAIL = "Tom Songer <tom@bearteam.com>";
 const REPLY_TO   = "tom@bearteam.com";
 
-type Channel = "email" | "linkedin" | "facebook" | "twitter";
+type Channel = "email" | "linkedin";
 
 const CHANNEL_BY_DOW: Record<number, Channel | null> = {
   0: null,
   1: "email",
   2: "linkedin",
-  3: "facebook",
-  4: "twitter",
+  3: "linkedin",
+  4: "linkedin",
   5: "email",
   6: null,
 };
@@ -44,8 +44,6 @@ const CHANNEL_BY_DOW: Record<number, Channel | null> = {
 const CHANNEL_SUBJECTS: Record<Channel, string> = {
   email:    "Bear Team — Agent Opportunity This Week",
   linkedin: "[BearSignal] LinkedIn Draft — Review Ready",
-  facebook: "[BearSignal] Facebook Draft — Review Ready",
-  twitter:  "[BearSignal] X (Twitter) Draft — Review Ready",
 };
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
