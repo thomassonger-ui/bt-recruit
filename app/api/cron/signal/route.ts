@@ -3,25 +3,19 @@
  *
  * Runs weekdays at 9:00 AM ET (13:00 UTC) via vercel.json.
  *
- * Flow:
- *   1. Generate content for today's channel via Scout
- *   2. Write to signal_queue (status = pending)
- *   3. Pull all pending rows
- *   4. Send each via SendGrid
- *   5. Mark sent / error per row
- *
  * Channel rotation (day of week):
- *   Mon → email
- *   Tue → linkedin
- *   Wed → linkedin
- *   Thu → linkedin
- *   Fri → email
+ *   Mon → email (recruiting draft to tom)
+ *   Tue → linkedin (auto-post to Join Bear Team page)
+ *   Wed → linkedin (auto-post)
+ *   Thu → linkedin (auto-post)
+ *   Fri → email (recruiting draft to tom)
  *   Sat/Sun → skip
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { generateContent } from "@/bearsignal/runtime/generator";
 import { queueContent, getPendingQueue, markSent, markError } from "@/bearsignal/runtime/queue";
+import { postToLinkedIn } from "@/bearsignal/runtime/linkedin";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -43,7 +37,7 @@ const CHANNEL_BY_DOW: Record<number, Channel | null> = {
 
 const CHANNEL_SUBJECTS: Record<Channel, string> = {
   email:    "Bear Team — Agent Opportunity This Week",
-  linkedin: "[BearSignal] LinkedIn Draft — Review Ready",
+  linkedin: "[BearSignal] LinkedIn Posted — Review Live",
 };
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
@@ -71,7 +65,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
     const errText = await res.text();
     throw new Error("SendGrid " + res.status + ": " + errText);
   }
-  console.log("[signal-cron] Sent OK to " + to);
+  console.log("[signal-cron] Email sent OK to " + to);
 }
 
 function contentToHtml(content: string): string {
@@ -98,7 +92,7 @@ export async function GET(req: NextRequest) {
   const now     = new Date();
   const dow     = now.getDay();
   const channel = CHANNEL_BY_DOW[dow];
-  const results: { id: string; channel: string; status: string; error?: string }[] = [];
+  const results: { id?: string; channel: string; status: string; error?: string; postId?: string }[] = [];
 
   // Step 1: Generate + queue today's content (skip weekends)
   if (channel) {
@@ -120,20 +114,42 @@ export async function GET(req: NextRequest) {
 
   // Step 2: Drain all pending rows
   const pending = await getPendingQueue();
-  console.log("[signal-cron] " + pending.length + " pending row(s) to send");
+  console.log("[signal-cron] " + pending.length + " pending row(s)");
 
   for (const row of pending) {
     const ch = row.channel as Channel;
-    const subject = CHANNEL_SUBJECTS[ch] || "[BearSignal] Content Ready";
+
     try {
-      await sendEmail(toEmail, subject, contentToHtml(row.content));
-      await markSent(row.id);
-      results.push({ id: row.id, channel: row.channel, status: "sent" });
+      if (ch === "linkedin") {
+        // Auto-post directly to LinkedIn
+        const result = await postToLinkedIn(row.content);
+        if (result.success) {
+          await markSent(row.id);
+          results.push({ id: row.id, channel: ch, status: "posted", postId: result.postId });
+          console.log("[signal-cron] LinkedIn posted — " + result.postId);
+          // Send confirmation email to tom
+          const subject = CHANNEL_SUBJECTS[ch];
+          const confirmHtml = contentToHtml(
+            "Your LinkedIn post went live.\n\nPost ID: " + (result.postId || "N/A") + "\n\nContent:\n\n" + row.content
+          );
+          await sendEmail(toEmail, subject, confirmHtml).catch((e) =>
+            console.warn("[signal-cron] Confirmation email failed:", e)
+          );
+        } else {
+          throw new Error(result.error || "LinkedIn post failed");
+        }
+      } else {
+        // Email channel — send recruiting draft
+        const subject = CHANNEL_SUBJECTS[ch];
+        await sendEmail(toEmail, subject, contentToHtml(row.content));
+        await markSent(row.id);
+        results.push({ id: row.id, channel: ch, status: "sent" });
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[signal-cron] Send failed for " + row.id + ":", msg);
+      console.error("[signal-cron] Failed for " + row.id + ":", msg);
       await markError(row.id, msg);
-      results.push({ id: row.id, channel: row.channel, status: "error", error: msg });
+      results.push({ id: row.id, channel: ch, status: "error", error: msg });
     }
   }
 
