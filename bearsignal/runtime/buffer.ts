@@ -4,21 +4,20 @@
  * Posts text content + a rotating Bear Team image to the
  * Join Bear Team LinkedIn showcase page via Buffer API v1.
  *
- * Buffer handles the LinkedIn organization posting (Community Management API)
- * through their approved partnership — no direct LinkedIn org scope needed.
+ * Buffer handles LinkedIn organization posting through their
+ * approved partnership — no direct LinkedIn org scope needed.
  *
  * Image rotation: deterministic by week-of-year (week % 16 + 1)
  * Images hosted in Supabase Storage: bucket "bearsignal-images"
  *
  * Env vars required:
- *   BUFFER_ACCESS_TOKEN   — from buffer.com/settings/api
- *   BUFFER_PROFILE_ID     — LinkedIn page profile ID in Buffer
+ *   BUFFER_ACCESS_TOKEN  — from publish.buffer.com/settings/api
+ *   BUFFER_PROFILE_ID    — LinkedIn page profile ID in Buffer (69cb4be8af47dacb69712437)
  */
 
 export interface BufferPostResult {
   success: boolean;
   postId?: string;
-  imageMediaId?: string;
   error?: string;
 }
 
@@ -45,53 +44,6 @@ function getCurrentImageUrl(): string {
   return `${supabaseUrl}/storage/v1/object/public/bearsignal-images/${filename}`;
 }
 
-// ── Buffer API helpers ────────────────────────────────────────────────────────
-const BUFFER_API = "https://api.bufferapp.com/1";
-
-async function uploadImageToBuffer(
-  accessToken: string,
-  profileId: string,
-  imageUrl: string
-): Promise<string | undefined> {
-  try {
-    // Fetch image from Supabase
-    const imgRes = await fetch(imageUrl);
-    if (!imgRes.ok) throw new Error("Image fetch failed: " + imgRes.status);
-    const imageBuffer = await imgRes.arrayBuffer();
-    const imageBytes = new Uint8Array(imageBuffer);
-
-    // Build multipart form data
-    const boundary = "----BearSignalBoundary" + Date.now();
-    const CRLF = "\r\n";
-
-    // Encode image as base64 for the Buffer media upload endpoint
-    // Buffer v1 media upload accepts image URL directly
-    const uploadBody = new URLSearchParams({
-      access_token: accessToken,
-      profile_id: profileId,
-      photo: imageUrl,
-    });
-
-    const uploadRes = await fetch(BUFFER_API + "/media/upload.json", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: uploadBody.toString(),
-    });
-
-    if (!uploadRes.ok) {
-      const err = await uploadRes.text();
-      console.warn("[buffer] Media upload failed " + uploadRes.status + ": " + err);
-      return undefined;
-    }
-
-    const uploadData = await uploadRes.json();
-    return uploadData?.id || uploadData?.media_id || undefined;
-  } catch (err) {
-    console.warn("[buffer] Image upload error (text-only fallback):", err);
-    return undefined;
-  }
-}
-
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export async function postToBuffer(content: string): Promise<BufferPostResult> {
@@ -102,37 +54,47 @@ export async function postToBuffer(content: string): Promise<BufferPostResult> {
   if (!profileId) return { success: false, error: "BUFFER_PROFILE_ID not set" };
 
   const imageUrl = getCurrentImageUrl();
-  console.log("[buffer] Image URL:", imageUrl);
-  console.log("[buffer] Profile ID:", profileId);
+  console.log("[buffer] Posting to profile:", profileId);
+  console.log("[buffer] Image:", imageUrl);
 
-  // Build post body — include image as media photo URL
-  // Buffer v1 /updates/create supports photo[] array with URL + description
-  const params = new URLSearchParams({
-    access_token: accessToken,
-    "profile_ids[]": profileId,
-    text: content,
-    now: "true",  // post immediately (not queued)
-    "media[photo]": imageUrl,
-    "media[description]": "Bear Team Real Estate — Orlando, FL",
-    "media[title]": "Join Bear Team",
-  });
+  // Buffer v1 API — media[link] posts image as a LinkedIn image card
+  const params = new URLSearchParams();
+  params.append("access_token", accessToken);
+  params.append("profile_ids[]", profileId);
+  params.append("text", content);
+  params.append("now", "true");
+  params.append("media[link]", imageUrl);
+  params.append("media[description]", "Bear Team Real Estate — Orlando, FL");
+  params.append("media[title]", "Join Bear Team");
 
   try {
-    const res = await fetch(BUFFER_API + "/updates/create.json", {
+    const res = await fetch("https://api.bufferapp.com/1/updates/create.json", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: params.toString(),
     });
 
-    const data = await res.json();
-
-    if (!res.ok || !data?.success) {
-      const errMsg = data?.message || data?.error || JSON.stringify(data);
-      console.error("[buffer] Post failed " + res.status + ": " + errMsg);
-      return { success: false, error: "Buffer API " + res.status + ": " + errMsg };
+    // Buffer sometimes returns empty body on success — handle gracefully
+    const text = await res.text();
+    let data: Record<string, unknown> = {};
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // Empty or non-JSON response — check status
+      if (res.ok) {
+        console.log("[buffer] Posted (non-JSON response). Status:", res.status);
+        return { success: true };
+      }
     }
 
-    const postId = data?.updates?.[0]?.id || data?.update?.id || undefined;
+    if (!res.ok || data?.success === false) {
+      const errMsg = String(data?.message || data?.error || text || res.status);
+      console.error("[buffer] Post failed:", errMsg);
+      return { success: false, error: "Buffer " + res.status + ": " + errMsg };
+    }
+
+    const updates = data?.updates as Array<{id?: string}> | undefined;
+    const postId = updates?.[0]?.id || String(data?.update && (data.update as {id?: string})?.id || "");
     console.log("[buffer] Posted successfully. ID:", postId);
     return { success: true, postId };
 
