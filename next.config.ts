@@ -4,8 +4,13 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/bearteamos',
-        destination: 'https://bearteam-os-dashboard.vercel.app/login',
+        source: "/bearteamos",
+        destination: "https://bearteam-os-dashboard.vercel.app/login",
+        permanent: false,
+      },
+      {
+        source: "/crm",
+        destination: "https://bearteam-os-dashboard.vercel.app/pipeline",
         permanent: false,
       },
     ];
@@ -13,8 +18,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/join',
-        destination: '/join.html',
+        source: "/join",
+        destination: "/join.html",
       },
     ];
   },
