@@ -96,8 +96,7 @@ export async function GET(req: NextRequest) {
 
   // Step 1: Generate + queue today's content (skip weekends)
   if (channel) {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ("https://" + process.env.VERCEL_URL);
-    const generated = await generateContent(channel, baseUrl);
+    const generated = await generateContent(channel);
     if (generated) {
       try {
         await queueContent(generated);
