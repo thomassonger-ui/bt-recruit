@@ -165,3 +165,26 @@ drop trigger if exists agents_updated_at on agents;
 create trigger agents_updated_at
   before update on agents
   for each row execute function set_updated_at();
+
+-- ─── BEARSIGNAL — SIGNAL QUEUE TABLE ─────────────────────────────────────────
+-- Stores AI-generated marketing content before and after sending.
+-- Written by bearsignal/runtime/queue.ts
+-- Read and drained by /api/cron/signal (weekdays, 9 AM ET)
+--
+-- channel: email | linkedin | facebook | twitter
+-- status:  pending → sent | error
+-- Run this in your Supabase SQL editor.
+
+create table if not exists signal_queue (
+  id         uuid        primary key default gen_random_uuid(),
+  content    text        not null,
+  channel    text        not null,
+  status     text        not null default 'pending',
+  created_at timestamptz default now(),
+  sent_at    timestamptz,
+  error      text
+);
+
+create index if not exists signal_queue_status_idx    on signal_queue(status);
+create index if not exists signal_queue_channel_idx   on signal_queue(channel);
+create index if not exists signal_queue_created_idx   on signal_queue(created_at desc);
