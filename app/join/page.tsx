@@ -1,11 +1,12 @@
 /**
  * /join — Bear Team Agent Landing Page
- * Single viewport, no scroll. CTA → /chat
+ * Single viewport, no scroll.
+ * Uses the real Navbar component — matches all other pages.
  */
 
 "use client";
 
-import BearTeamLogo from "@/components/ui/BearTeamLogo";
+import Navbar from "@/components/layout/Navbar";
 
 const PAIN_POINTS = [
   "Pipeline runs dry between deals",
@@ -32,18 +33,15 @@ export default function JoinPage() {
       {/* Blue glow */}
       <div aria-hidden style={{ position: "absolute", top: "-20%", left: "-5%", width: "55%", height: "70%", background: "radial-gradient(ellipse, rgba(59,130,246,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-      {/* ── Navbar ── */}
-      <nav style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", height: "58px", background: "rgba(255,255,255,0.97)", borderBottom: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 1px 3px rgba(0,0,0,0.1)", flexShrink: 0 }}>
-        <a href="/" style={{ textDecoration: "none" }}>
-          <BearTeamLogo size="sm" variant="light" />
-        </a>
+      {/* ── Real site Navbar ── */}
+      <Navbar variant="light">
         <a
           href="sms:+14075551234?body=Hi%20Scout%2C%20tell%20me%20about%20Bear%20Team"
-          style={{ background: "#1e3a5f", color: "#fff", padding: "9px 18px", borderRadius: "6px", fontWeight: "600", fontSize: "13px", textDecoration: "none" }}
+          className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
         >
           Text Me Scout
         </a>
-      </nav>
+      </Navbar>
 
       {/* ── Main ── */}
       <main style={{ position: "relative", zIndex: 2, flex: 1, display: "flex", minHeight: 0, padding: "20px 28px 16px", gap: "24px", alignItems: "center" }}>
