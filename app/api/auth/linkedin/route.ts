@@ -10,7 +10,7 @@ export async function GET() {
     return NextResponse.json({ error: "Missing LINKEDIN_CLIENT_ID or LINKEDIN_REDIRECT_URI env vars" }, { status: 500 });
   }
 
-  const scope = "w_member_social openid profile";
+  const scope = "w_member_social";
   const state = "bearsignal_" + Date.now();
 
   const authUrl = "https://www.linkedin.com/oauth/v2/authorization" +
