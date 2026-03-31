@@ -151,7 +151,8 @@ function buildLinkedInPrompt(): string {
     "Structure: " +
     "1) A bold opening hook (1-2 sentences that stop the scroll). " +
     "2) Body — 3 to 4 short paragraphs expanding on the topic with specific Bear Team details, real numbers, and agent-focused insights. " +
-    "3) A soft CTA closing paragraph inviting agents to learn more or reach out. " +
+    "3) A soft CTA closing paragraph. End it with this exact line on its own: " +
+    "\"Start with Scout™ | AI Powered → https://www.joinbearteam.com/scout\" " +
     "4) End with exactly 3 relevant hashtags on their own line (e.g. #RealEstate #OrlandoRealEstate #BearTeam). " +
     "Tone: authoritative, financially sharp, warm — like a team lead who knows the numbers. " +
     "Total length: 300-400 words. No generic fluff. Write for producing agents thinking about making a move."
