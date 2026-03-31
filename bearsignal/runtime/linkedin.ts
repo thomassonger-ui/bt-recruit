@@ -1,31 +1,24 @@
 /**
  * BearSignal — LinkedIn Poster
  *
- * Posts text content + a rotating Bear Team image to the
- * "Join Bear Team" LinkedIn Showcase page (org 112582896).
+ * Posts text content + a rotating Bear Team image.
+ * Author priority:
+ *   1. Organization (showcase page) if LINKEDIN_ORG_ID set AND org posting succeeds
+ *   2. Personal profile fallback if org posting returns 403 (scope not yet granted)
  *
- * Image rotation: deterministic by week-of-year so every post in
- * the same week shares the same image, and it advances each week.
- *
- * Images are hosted in Supabase Storage:
- *   {SUPABASE_URL}/storage/v1/object/public/bearsignal-images/Bear Team Recruit {N}.png
- *
- * LinkedIn image upload flow (UGC Posts with inline image):
- *   1. Register upload → get uploadUrl + asset URN
- *   2. PUT binary to uploadUrl
- *   3. Create ugcPost with media[].media = asset URN
+ * Image rotation: deterministic by week-of-year (week % 16 + 1)
+ * Images hosted in Supabase Storage: bucket "bearsignal-images"
  */
 
 export interface LinkedInPostResult {
   success: boolean;
   postId?: string;
   imageAsset?: string;
+  postedAs?: "org" | "personal";
   error?: string;
 }
 
 // ── Image rotation ────────────────────────────────────────────────────────────
-// 16 images named "Bear Team Recruit 1.png" through "Bear Team Recruit 16.png"
-// Exception: image 5 has a trailing dot: "Bear Team Recruit 5..png"
 const IMAGE_COUNT = 16;
 
 function getWeekOfYear(): number {
@@ -36,8 +29,6 @@ function getWeekOfYear(): number {
 }
 
 function getImageFilename(index: number): string {
-  // index is 1-based (1–16)
-  // Image 5 has an extra dot in the filename
   if (index === 5) return "Bear Team Recruit 5..png";
   return `Bear Team Recruit ${index}.png`;
 }
@@ -45,7 +36,7 @@ function getImageFilename(index: number): string {
 function getCurrentImageUrl(): string {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
   const week = getWeekOfYear();
-  const imageIndex = (week % IMAGE_COUNT) + 1; // 1–16
+  const imageIndex = (week % IMAGE_COUNT) + 1;
   const filename = encodeURIComponent(getImageFilename(imageIndex));
   return `${supabaseUrl}/storage/v1/object/public/bearsignal-images/${filename}`;
 }
@@ -53,14 +44,21 @@ function getCurrentImageUrl(): string {
 // ── LinkedIn API helpers ──────────────────────────────────────────────────────
 
 async function getMemberUrn(accessToken: string): Promise<string> {
-  const res = await fetch("https://api.linkedin.com/v2/me", {
+  // Try v2/userinfo first (OpenID), fall back to v2/me
+  const res = await fetch("https://api.linkedin.com/v2/userinfo", {
     headers: { Authorization: "Bearer " + accessToken },
   });
-  if (!res.ok) {
-    throw new Error("LinkedIn /v2/me failed: " + res.status);
+  if (res.ok) {
+    const data = await res.json();
+    if (data.sub) return "urn:li:person:" + data.sub;
   }
-  const data = await res.json();
-  return "urn:li:person:" + data.id;
+  // Fallback: v2/me
+  const res2 = await fetch("https://api.linkedin.com/v2/me", {
+    headers: { Authorization: "Bearer " + accessToken },
+  });
+  if (!res2.ok) throw new Error("Could not get member URN: " + res2.status);
+  const data2 = await res2.json();
+  return "urn:li:person:" + data2.id;
 }
 
 async function registerImageUpload(
@@ -72,30 +70,24 @@ async function registerImageUpload(
       recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
       owner: authorUrn,
       serviceRelationships: [
-        {
-          relationshipType: "OWNER",
-          identifier: "urn:li:userGeneratedContent",
-        },
+        { relationshipType: "OWNER", identifier: "urn:li:userGeneratedContent" },
       ],
     },
   };
 
-  const res = await fetch(
-    "https://api.linkedin.com/v2/assets?action=registerUpload",
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + accessToken,
-        "Content-Type": "application/json",
-        "X-Restli-Protocol-Version": "2.0.0",
-      },
-      body: JSON.stringify(body),
-    }
-  );
+  const res = await fetch("https://api.linkedin.com/v2/assets?action=registerUpload", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + accessToken,
+      "Content-Type": "application/json",
+      "X-Restli-Protocol-Version": "2.0.0",
+    },
+    body: JSON.stringify(body),
+  });
 
   if (!res.ok) {
-    const errText = await res.text();
-    throw new Error("LinkedIn registerUpload failed " + res.status + ": " + errText);
+    const err = await res.text();
+    throw new Error("registerUpload " + res.status + ": " + err);
   }
 
   const data = await res.json();
@@ -104,13 +96,7 @@ async function registerImageUpload(
       "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
     ]?.uploadUrl;
   const asset = data?.value?.asset;
-
-  if (!uploadUrl || !asset) {
-    throw new Error(
-      "LinkedIn registerUpload: missing uploadUrl or asset in response"
-    );
-  }
-
+  if (!uploadUrl || !asset) throw new Error("Missing uploadUrl/asset in registerUpload response");
   return { uploadUrl, asset };
 }
 
@@ -119,16 +105,10 @@ async function uploadImageBinary(
   accessToken: string,
   imageUrl: string
 ): Promise<void> {
-  // Fetch the image from Supabase Storage
   const imgRes = await fetch(imageUrl);
-  if (!imgRes.ok) {
-    throw new Error(
-      "Failed to fetch image from storage: " + imgRes.status + " " + imageUrl
-    );
-  }
+  if (!imgRes.ok) throw new Error("Image fetch failed: " + imgRes.status + " " + imageUrl);
   const imageBuffer = await imgRes.arrayBuffer();
 
-  // Upload to LinkedIn
   const uploadRes = await fetch(uploadUrl, {
     method: "PUT",
     headers: {
@@ -137,60 +117,18 @@ async function uploadImageBinary(
     },
     body: imageBuffer,
   });
-
   if (!uploadRes.ok) {
-    const errText = await uploadRes.text();
-    throw new Error(
-      "LinkedIn image binary upload failed " + uploadRes.status + ": " + errText
-    );
+    const err = await uploadRes.text();
+    throw new Error("Image upload failed " + uploadRes.status + ": " + err);
   }
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
-
-export async function postToLinkedIn(
-  content: string
-): Promise<LinkedInPostResult> {
-  const accessToken = process.env.LINKEDIN_ACCESS_TOKEN;
-  if (!accessToken) {
-    return { success: false, error: "LINKEDIN_ACCESS_TOKEN not set" };
-  }
-
-  let authorUrn: string;
-  const orgId = process.env.LINKEDIN_ORG_ID;
-  if (orgId) {
-    authorUrn = "urn:li:organization:" + orgId;
-  } else {
-    try {
-      authorUrn = await getMemberUrn(accessToken);
-    } catch (err) {
-      return {
-        success: false,
-        error: "Could not resolve author URN: " + String(err),
-      };
-    }
-  }
-
-  // ── Step 1: Upload rotating image ─────────────────────────────────────────
-  let imageAsset: string | undefined;
-
-  try {
-    const imageUrl = getCurrentImageUrl();
-    console.log("[linkedin] Uploading image:", imageUrl);
-
-    const { uploadUrl, asset } = await registerImageUpload(
-      accessToken,
-      authorUrn
-    );
-    await uploadImageBinary(uploadUrl, accessToken, imageUrl);
-    imageAsset = asset;
-    console.log("[linkedin] Image asset registered:", imageAsset);
-  } catch (err) {
-    // Non-fatal: post text-only if image upload fails
-    console.error("[linkedin] Image upload failed (posting text-only):", err);
-  }
-
-  // ── Step 2: Create UGC post ────────────────────────────────────────────────
+async function createUgcPost(
+  accessToken: string,
+  authorUrn: string,
+  content: string,
+  imageAsset?: string
+): Promise<{ ok: boolean; postId?: string; status?: number; body?: string }> {
   const media = imageAsset
     ? [
         {
@@ -202,7 +140,7 @@ export async function postToLinkedIn(
       ]
     : undefined;
 
-  const ugcPost: Record<string, unknown> = {
+  const ugcPost = {
     author: authorUrn,
     lifecycleState: "PUBLISHED",
     specificContent: {
@@ -217,29 +155,74 @@ export async function postToLinkedIn(
     },
   };
 
+  const res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + accessToken,
+      "Content-Type": "application/json",
+      "X-Restli-Protocol-Version": "2.0.0",
+    },
+    body: JSON.stringify(ugcPost),
+  });
+
+  const body = await res.text();
+  if (!res.ok) return { ok: false, status: res.status, body };
+  const postId = res.headers.get("x-restli-id") || undefined;
+  return { ok: true, postId };
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+
+export async function postToLinkedIn(content: string): Promise<LinkedInPostResult> {
+  const accessToken = process.env.LINKEDIN_ACCESS_TOKEN;
+  if (!accessToken) return { success: false, error: "LINKEDIN_ACCESS_TOKEN not set" };
+
+  const orgId = process.env.LINKEDIN_ORG_ID;
+  const orgUrn = orgId ? "urn:li:organization:" + orgId : null;
+
+  // Get personal URN (needed for image upload owner regardless)
+  let personalUrn: string;
   try {
-    const res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + accessToken,
-        "Content-Type": "application/json",
-        "X-Restli-Protocol-Version": "2.0.0",
-      },
-      body: JSON.stringify(ugcPost),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      return {
-        success: false,
-        error: "LinkedIn ugcPosts failed " + res.status + ": " + errText,
-      };
-    }
-
-    const postId = res.headers.get("x-restli-id") || undefined;
-    console.log("[linkedin] Posted successfully. ID:", postId);
-    return { success: true, postId, imageAsset };
+    personalUrn = await getMemberUrn(accessToken);
+    console.log("[linkedin] Personal URN:", personalUrn);
   } catch (err) {
-    return { success: false, error: "LinkedIn post error: " + String(err) };
+    return { success: false, error: "Could not resolve member URN: " + String(err) };
   }
+
+  // ── Upload rotating image (registered under personal URN — works with w_member_social) ──
+  let imageAsset: string | undefined;
+  try {
+    const imageUrl = getCurrentImageUrl();
+    console.log("[linkedin] Uploading image:", imageUrl);
+    const { uploadUrl, asset } = await registerImageUpload(accessToken, personalUrn);
+    await uploadImageBinary(uploadUrl, accessToken, imageUrl);
+    imageAsset = asset;
+    console.log("[linkedin] Image asset:", imageAsset);
+  } catch (err) {
+    console.error("[linkedin] Image upload failed (text-only fallback):", err);
+  }
+
+  // ── Try org URN first (showcase page), fall back to personal ──
+  if (orgUrn) {
+    console.log("[linkedin] Attempting org post as:", orgUrn);
+    const orgResult = await createUgcPost(accessToken, orgUrn, content, imageAsset);
+    if (orgResult.ok) {
+      console.log("[linkedin] Posted as org — id:", orgResult.postId);
+      return { success: true, postId: orgResult.postId, imageAsset, postedAs: "org" };
+    }
+    console.warn("[linkedin] Org post failed (" + orgResult.status + "), falling back to personal profile");
+  }
+
+  // ── Personal profile post ──
+  console.log("[linkedin] Posting as personal:", personalUrn);
+  const personalResult = await createUgcPost(accessToken, personalUrn, content, imageAsset);
+  if (personalResult.ok) {
+    console.log("[linkedin] Posted as personal — id:", personalResult.postId);
+    return { success: true, postId: personalResult.postId, imageAsset, postedAs: "personal" };
+  }
+
+  return {
+    success: false,
+    error: "ugcPosts failed " + personalResult.status + ": " + personalResult.body,
+  };
 }
