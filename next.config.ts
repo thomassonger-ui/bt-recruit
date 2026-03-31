@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/join',
+        destination: '/join.html',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
