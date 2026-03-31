@@ -3,20 +3,16 @@
  * Calls Scout (/api/scout) with mode: "signal" to produce
  * a channel-specific marketing post for Bear Team.
  *
- * Email topics rotate weekly so every draft covers a different
- * Bear Team value prop. Topic is selected by week-of-year so
- * the same week always produces the same topic (deterministic,
- * no DB needed).
+ * Email topics rotate weekly (deterministic by week-of-year).
+ * LinkedIn topics also rotate weekly for consistent variety.
  */
 
 export interface SignalContent {
-  channel: "email" | "linkedin" | "facebook" | "twitter";
+  channel: "email" | "linkedin";
   content: string;
 }
 
 // ── Bear Team value props — email topic rotation ──────────────────────────────
-// Each entry becomes the focus of that week's Monday + Friday email.
-// Add new topics here to expand the rotation.
 const EMAIL_TOPICS = [
   {
     topic: "commission structure",
@@ -105,7 +101,7 @@ const EMAIL_TOPICS = [
   },
 ];
 
-// ── LinkedIn post topics ──────────────────────────────────────────────────────
+// ── LinkedIn post topics — weekly rotation ────────────────────────────────────
 const LINKEDIN_TOPICS = [
   "why agents overpay at big brokerages and what they actually keep at Bear Team",
   "the difference between a brokerage with systems and one without",
@@ -115,26 +111,6 @@ const LINKEDIN_TOPICS = [
   "why Bear Team covers E&O insurance and what that means for your bottom line",
   "what Bear Team Academy gives agents that big box coaching programs charge for",
   "the commission path from 60/40 to 90/10 — and how fast you can get there",
-];
-
-// ── Facebook post topics ──────────────────────────────────────────────────────
-const FACEBOOK_TOPICS = [
-  "Orlando agents — are you keeping what you earn?",
-  "Bear Team is growing and we are looking for agents who are ready to level up",
-  "what does zero monthly fees actually mean for your business?",
-  "why agents leave big brokerages and what they find at Bear Team",
-  "Bear Team Academy: free training for every agent on our team",
-  "the Orlando market is moving — is your brokerage moving with it?",
-];
-
-// ── Twitter post topics ───────────────────────────────────────────────────────
-const TWITTER_TOPICS = [
-  "most agents are splitting 70/30 and paying monthly fees on top of it",
-  "Bear Team: 90/10 after cap, zero monthly fees, $150 flat per closing",
-  "your brokerage should be making you money, not costing you money",
-  "systems beat hustle every time in real estate",
-  "the agents winning in Orlando have one thing in common: the right infrastructure",
-  "if you do not know exactly what you net per closing, that is a problem",
 ];
 
 // ── Week-of-year helper ───────────────────────────────────────────────────────
@@ -149,10 +125,6 @@ function pickByWeek<T>(arr: T[]): T {
   return arr[getWeekOfYear() % arr.length];
 }
 
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
 // ── Channel prompt builders ───────────────────────────────────────────────────
 function buildEmailPrompt(): string {
   const topic = pickByWeek(EMAIL_TOPICS);
@@ -163,7 +135,7 @@ function buildEmailPrompt(): string {
 }
 
 function buildLinkedInPrompt(): string {
-  const topic = pickRandom(LINKEDIN_TOPICS);
+  const topic = pickByWeek(LINKEDIN_TOPICS);
   return (
     "Write a LinkedIn post for a real estate team lead recruiting agents. " +
     "Topic: " + topic + ". " +
@@ -172,30 +144,9 @@ function buildLinkedInPrompt(): string {
   );
 }
 
-function buildFacebookPrompt(): string {
-  const topic = pickRandom(FACEBOOK_TOPICS);
-  return (
-    "Write a Facebook post recruiting Orlando-area real estate agents to Bear Team. " +
-    "Angle: " + topic + ". " +
-    "Tone: warm, community-focused, conversational. One emoji max. Under 150 words. " +
-    "End with a CTA to DM or comment."
-  );
-}
-
-function buildTwitterPrompt(): string {
-  const topic = pickRandom(TWITTER_TOPICS);
-  return (
-    "Write a tweet for Bear Team Real Estate recruiting agents. " +
-    "Angle: " + topic + ". " +
-    "Bold, direct, one idea. Under 240 characters. No hashtags."
-  );
-}
-
 const PROMPT_BUILDERS: Record<SignalContent["channel"], () => string> = {
   email:    buildEmailPrompt,
   linkedin: buildLinkedInPrompt,
-  facebook: buildFacebookPrompt,
-  twitter:  buildTwitterPrompt,
 };
 
 // ── Main export ───────────────────────────────────────────────────────────────
