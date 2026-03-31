@@ -1,15 +1,24 @@
 /**
  * BearSignal — Content Generator
- * Calls Scout (/api/scout) with mode: "signal" to produce
- * a channel-specific marketing post for Bear Team.
+ * Calls OpenAI directly (gpt-4o) to produce channel-specific
+ * marketing content for Bear Team recruiting posts.
  *
  * Email topics rotate weekly (deterministic by week-of-year).
  * LinkedIn topics also rotate weekly for consistent variety.
  */
 
+import OpenAI from "openai";
+
 export interface SignalContent {
   channel: "email" | "linkedin";
   content: string;
+}
+
+// ── OpenAI client ─────────────────────────────────────────────────────────────
+let _openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+  return _openai;
 }
 
 // ── Bear Team value props — email topic rotation ──────────────────────────────
@@ -151,38 +160,38 @@ const PROMPT_BUILDERS: Record<SignalContent["channel"], () => string> = {
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export async function generateContent(
-  channel: SignalContent["channel"],
-  baseUrl: string
+  channel: SignalContent["channel"]
 ): Promise<SignalContent | null> {
   const prompt = PROMPT_BUILDERS[channel]();
 
   try {
-    const res = await fetch(baseUrl + "/api/scout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: [{ role: "user", content: prompt }],
-        mode: "signal",
-        channel,
-      }),
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      temperature: 0.7,
+      max_tokens: 400,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a real estate recruiting specialist for Bear Team Real Estate in Orlando, FL. " +
+            "You write compelling, financially-grounded content that helps agents understand the value of joining Bear Team. " +
+            "Always be warm, confident, and lead with real numbers when relevant.",
+        },
+        { role: "user", content: prompt },
+      ],
     });
 
-    if (!res.ok) {
-      console.error("[generator] Scout call failed: " + res.status);
-      return null;
-    }
-
-    const data = await res.json();
-    const content: string = data?.message ?? data?.reply ?? "";
-
+    const content = completion.choices[0]?.message?.content?.trim() ?? "";
     if (!content) {
-      console.error("[generator] Scout returned empty content");
+      console.error("[generator] OpenAI returned empty content");
       return null;
     }
 
+    console.log("[generator] Generated " + channel + " content (" + content.length + " chars)");
     return { channel, content };
   } catch (err) {
-    console.error("[generator] Error calling Scout:", err);
+    console.error("[generator] OpenAI call failed:", err);
     return null;
   }
 }
