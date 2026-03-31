@@ -146,10 +146,15 @@ function buildEmailPrompt(): string {
 function buildLinkedInPrompt(): string {
   const topic = pickByWeek(LINKEDIN_TOPICS);
   return (
-    "Write a LinkedIn post for a real estate team lead recruiting agents. " +
+    "Write a LinkedIn article post for a real estate recruiting page (Join Bear Team). " +
     "Topic: " + topic + ". " +
-    "Tone: authoritative, system-driven, no fluff. 150-250 words. " +
-    "Do not use hashtags. End with one soft CTA."
+    "Structure: " +
+    "1) A bold opening hook (1-2 sentences that stop the scroll). " +
+    "2) Body — 3 to 4 short paragraphs expanding on the topic with specific Bear Team details, real numbers, and agent-focused insights. " +
+    "3) A soft CTA closing paragraph inviting agents to learn more or reach out. " +
+    "4) End with exactly 3 relevant hashtags on their own line (e.g. #RealEstate #OrlandoRealEstate #BearTeam). " +
+    "Tone: authoritative, financially sharp, warm — like a team lead who knows the numbers. " +
+    "Total length: 300-400 words. No generic fluff. Write for producing agents thinking about making a move."
   );
 }
 
