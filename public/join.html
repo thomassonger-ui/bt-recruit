@@ -10,15 +10,13 @@
 
     :root {
       --bg: #0a0f1a;
-      --bg-section: #0f1520;
+      --bg2: #0f1520;
       --accent: #3E5F8A;
-      --accent-hover: #4d74a8;
+      --accentH: #4d74a8;
       --text: #f0f4f8;
       --muted: #8a9bb0;
       --border: rgba(62, 95, 138, 0.25);
     }
-
-    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
@@ -29,224 +27,126 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
+    .w { max-width: 780px; margin: 0 auto; padding: 0 24px; }
 
-    /* ── HEADER ── */
+    /* HEADER */
     header {
       border-bottom: 1px solid var(--border);
-      background: rgba(10, 15, 26, 0.95);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: rgba(10,15,26,0.96);
+      position: sticky; top: 0; z-index: 100;
       backdrop-filter: blur(8px);
     }
-
-    header .container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 60px;
-    }
-
-    .logo {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.01em;
-      text-decoration: none;
-    }
+    header .w { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+    .logo { font-size: 15px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
 
     .btn {
-      display: inline-block;
-      background: var(--accent);
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 9px 20px;
-      border-radius: 6px;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      transition: background 0.15s;
-      white-space: nowrap;
+      display: inline-block; background: var(--accent); color: #fff;
+      font-size: 14px; font-weight: 600; padding: 9px 20px;
+      border-radius: 6px; text-decoration: none; white-space: nowrap;
     }
-    .btn:hover { background: var(--accent-hover); }
+    .btn:hover { background: var(--accentH); }
+    .btn-lg { font-size: 16px; font-weight: 700; padding: 15px 36px; border-radius: 8px; }
 
-    .btn-lg {
-      font-size: 17px;
-      font-weight: 700;
-      padding: 18px 40px;
-      border-radius: 8px;
-      letter-spacing: -0.01em;
-    }
-
-    /* ── HERO ── */
-    .hero {
-      padding: 88px 0 80px;
-      text-align: center;
-    }
-
+    /* HERO */
+    .hero { padding: 72px 0 64px; text-align: center; }
     .hero h1 {
-      font-size: clamp(28px, 5vw, 46px);
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -0.03em;
-      margin-bottom: 20px;
-      color: #fff;
+      font-size: clamp(26px, 4.5vw, 42px); font-weight: 800;
+      line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px; color: #fff;
     }
-
     .hero .sub {
-      font-size: clamp(17px, 2.5vw, 20px);
-      font-weight: 500;
-      color: var(--muted);
-      margin-bottom: 20px;
+      font-size: clamp(16px, 2vw, 18px); font-weight: 500;
+      color: var(--muted); margin-bottom: 16px;
     }
-
     .hero p {
-      font-size: 15px;
-      color: var(--muted);
-      max-width: 560px;
-      margin: 0 auto 40px;
-      line-height: 1.7;
+      font-size: 15px; color: var(--muted); max-width: 520px;
+      margin: 0 auto 32px; line-height: 1.7;
     }
 
-    /* ── POSITIONING ── */
-    .positioning {
-      background: var(--accent);
-      padding: 48px 24px;
-      text-align: center;
+    /* POSITIONING */
+    .pos { background: var(--accent); padding: 36px 24px; text-align: center; }
+    .pos p {
+      font-size: clamp(17px, 2.5vw, 22px); font-weight: 700;
+      color: #fff; line-height: 1.5; letter-spacing: -0.01em;
     }
 
-    .positioning p {
-      font-size: clamp(18px, 3vw, 26px);
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.5;
-      letter-spacing: -0.01em;
-    }
-
-    /* ── SECTIONS ── */
-    section {
-      padding: 64px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .section-title {
-      font-size: clamp(20px, 3vw, 26px);
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: -0.02em;
-      margin-bottom: 28px;
-    }
-
-    ul.list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    ul.list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      font-size: 15px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    ul.list li::before {
-      content: '';
-      display: block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      flex-shrink: 0;
-      margin-top: 8px;
-    }
-
-    /* ── WHAT YOU GET GRID ── */
-    .get-grid {
+    /* TWO-COLUMN SECTION */
+    .two-col {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .col-block { padding: 40px 24px; }
+    .col-block:first-child { border-right: 1px solid var(--border); }
+
+    /* SINGLE SECTION */
+    .section { padding: 40px 0; border-bottom: 1px solid var(--border); }
+
+    .st {
+      font-size: 13px; font-weight: 700; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px;
     }
 
-    .get-card {
-      background: var(--bg-section);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
+    ul.l { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    ul.l li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 15px; color: var(--muted); line-height: 1.5;
+    }
+    ul.l li::before {
+      content: ''; display: block; width: 5px; height: 5px;
+      border-radius: 50%; background: var(--accent);
+      flex-shrink: 0; margin-top: 9px;
     }
 
-    .get-card h3 {
-      font-size: 13px;
-      font-weight: 700;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
+    /* WHAT YOU GET */
+    .get-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px;
+    }
+    .card h3 {
+      font-size: 12px; font-weight: 700; color: #fff;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 14px; padding-bottom: 10px;
       border-bottom: 1px solid var(--border);
     }
 
-    /* ── FINAL CTA ── */
-    .final-cta {
-      padding: 88px 0;
-      text-align: center;
-      border-bottom: none;
+    /* FINAL CTA */
+    .fcta { padding: 64px 0; text-align: center; }
+    .fcta h2 {
+      font-size: clamp(20px, 3vw, 28px); font-weight: 800; color: #fff;
+      letter-spacing: -0.025em; margin-bottom: 28px; line-height: 1.2;
+      max-width: 480px; margin-left: auto; margin-right: auto;
     }
 
-    .final-cta h2 {
-      font-size: clamp(22px, 3.5vw, 32px);
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: -0.025em;
-      margin-bottom: 36px;
-      line-height: 1.2;
-      max-width: 520px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    /* ── FOOTER ── */
+    /* FOOTER */
     footer {
-      border-top: 1px solid var(--border);
-      padding: 28px 24px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--muted);
+      border-top: 1px solid var(--border); padding: 24px;
+      text-align: center; font-size: 13px; color: var(--muted);
     }
 
-    /* ── MOBILE ── */
-    @media (max-width: 640px) {
-      .hero { padding: 60px 0 56px; }
+    @media (max-width: 600px) {
+      .two-col { grid-template-columns: 1fr; }
+      .col-block:first-child { border-right: none; border-bottom: 1px solid var(--border); }
       .get-grid { grid-template-columns: 1fr; }
-      section { padding: 48px 0; }
-      .final-cta { padding: 64px 0; }
-      .positioning { padding: 36px 24px; }
-      .btn-lg { width: 100%; text-align: center; }
+      .hero { padding: 52px 0 48px; }
+      .btn-lg { display: block; text-align: center; }
     }
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
   <header>
-    <div class="container">
+    <div class="w">
       <a href="#" class="logo">Join Bear Team</a>
       <a href="https://www.joinbearteam.com/chat" class="btn">Start with Scout</a>
     </div>
   </header>
 
-  <!-- HERO -->
   <div class="hero">
-    <div class="container">
+    <div class="w">
       <h1>Real Estate Without Fees.<br>Built on Systems. Powered by AI.</h1>
       <p class="sub">Most agents aren't failing—they're operating without systems.</p>
       <p>Bear Team provides a complete AI-powered operating system to help you generate leads, manage your pipeline, and close consistently—without monthly fees.</p>
@@ -254,62 +154,59 @@
     </div>
   </div>
 
-  <!-- POSITIONING -->
-  <div class="positioning">
+  <div class="pos">
     <p>This is not a recruiting model.<br>This is a production model.</p>
   </div>
 
-  <!-- WHO THIS IS FOR -->
-  <section>
-    <div class="container">
-      <h2 class="section-title">Who This Is For</h2>
-      <ul class="list">
-        <li>Agents producing 3–10 deals per year</li>
-        <li>Agents who feel stuck or inconsistent</li>
-        <li>Agents tired of paying fees without real support</li>
-        <li>Agents ready to operate with structure and clarity</li>
-      </ul>
+  <!-- WHO THIS IS FOR + WHAT YOU'LL DO side by side -->
+  <div class="w">
+    <div class="two-col">
+      <div class="col-block">
+        <p class="st">Who This Is For</p>
+        <ul class="l">
+          <li>Agents producing 3–10 deals per year</li>
+          <li>Agents who feel stuck or inconsistent</li>
+          <li>Agents tired of paying fees without real support</li>
+          <li>Agents ready to operate with structure and clarity</li>
+        </ul>
+      </div>
+      <div class="col-block">
+        <p class="st">What You'll Do</p>
+        <ul class="l">
+          <li>Build and manage your pipeline using BearTeamOS</li>
+          <li>Leverage AI tools to streamline follow-up</li>
+          <li>Execute consistent marketing using BearSignal</li>
+          <li>Focus on production and client service</li>
+        </ul>
+      </div>
     </div>
-  </section>
-
-  <!-- WHAT YOU'LL DO -->
-  <section>
-    <div class="container">
-      <h2 class="section-title">What You'll Do</h2>
-      <ul class="list">
-        <li>Build and manage your pipeline using BearTeamOS</li>
-        <li>Leverage AI tools to streamline communication and follow-up</li>
-        <li>Execute consistent marketing using BearSignal</li>
-        <li>Focus on production and client service</li>
-      </ul>
-    </div>
-  </section>
+  </div>
 
   <!-- WHAT YOU GET -->
-  <section>
-    <div class="container">
-      <h2 class="section-title">What You'll Get</h2>
+  <div class="section">
+    <div class="w">
+      <p class="st">What You'll Get</p>
       <div class="get-grid">
-        <div class="get-card">
+        <div class="card">
           <h3>No Monthly Fees</h3>
-          <ul class="list">
+          <ul class="l">
             <li>No desk fees</li>
             <li>No technology fees</li>
             <li>No hidden costs</li>
             <li>$150 per transaction</li>
           </ul>
         </div>
-        <div class="get-card">
+        <div class="card">
           <h3>AI-Powered Systems</h3>
-          <ul class="list">
-            <li>BearTeamOS — pipeline and execution system</li>
+          <ul class="l">
+            <li>BearTeamOS — pipeline system</li>
             <li>Scout — AI assistant</li>
-            <li>BearSignal — automated marketing engine</li>
+            <li>BearSignal — marketing engine</li>
           </ul>
         </div>
-        <div class="get-card">
+        <div class="card">
           <h3>Built for Production</h3>
-          <ul class="list">
+          <ul class="l">
             <li>Structured workflows</li>
             <li>Clear pipeline management</li>
             <li>Consistent execution</li>
@@ -317,20 +214,17 @@
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
   <!-- FINAL CTA -->
-  <section class="final-cta">
-    <div class="container">
+  <div class="fcta">
+    <div class="w">
       <h2>Start operating with a system built for production.</h2>
       <a href="https://www.joinbearteam.com/chat" class="btn btn-lg">Start with Scout</a>
     </div>
-  </section>
+  </div>
 
-  <!-- FOOTER -->
-  <footer>
-    © Bear Team Real Estate
-  </footer>
+  <footer>© Bear Team Real Estate</footer>
 
 </body>
 </html>
