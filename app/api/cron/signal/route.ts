@@ -10,11 +10,13 @@
  *   Thu → linkedin (auto-post)
  *   Fri → email (recruiting draft to tom)
  *   Sat/Sun → skip
+ *
+ * LinkedIn posts go directly to Buffer — no queue dependency.
+ * Queue writes are best-effort and won't block the post.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { generateContent } from "@/bearsignal/runtime/generator";
-import { queueContent, getPendingQueue, markSent, markError } from "@/bearsignal/runtime/queue";
 import { postToBuffer } from "@/bearsignal/runtime/buffer";
 
 export const dynamic = "force-dynamic";
@@ -81,6 +83,28 @@ function contentToHtml(content: string): string {
   );
 }
 
+/** Best-effort queue write — never throws, won't block the post */
+async function tryQueueLog(channel: string, content: string, status: string, postId?: string, error?: string): Promise<void> {
+  try {
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    await supabase.from("signal_queue").insert({
+      channel,
+      content,
+      status,
+      sent_at: status === "sent" ? new Date().toISOString() : null,
+      error: error ?? null,
+    });
+    console.log("[signal-cron] Queue log written — channel:", channel, "status:", status);
+  } catch (err) {
+    // Best-effort only — log but don't fail the cron
+    console.warn("[signal-cron] Queue log failed (non-blocking):", String(err));
+  }
+}
+
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const expected = "Bearer " + process.env.CRON_SECRET;
@@ -92,71 +116,59 @@ export async function GET(req: NextRequest) {
   const now     = new Date();
   const dow     = now.getDay();
   const channel = CHANNEL_BY_DOW[dow];
-  const results: { id?: string; channel: string; status: string; error?: string; postId?: string }[] = [];
 
-  // Step 1: Generate + queue today's content (skip weekends)
-  if (channel) {
-    const generated = await generateContent(channel);
-    if (generated) {
-      try {
-        await queueContent(generated);
-        console.log("[signal-cron] Queued " + channel + " content");
-      } catch (err) {
-        console.error("[signal-cron] Queue write failed:", err);
-      }
-    } else {
-      console.warn("[signal-cron] Generator returned null for channel: " + channel);
-    }
-  } else {
+  if (!channel) {
     console.log("[signal-cron] Weekend — skipping (dow=" + dow + ")");
+    return NextResponse.json({ ok: true, channel: "skipped", dow });
   }
 
-  // Step 2: Drain all pending rows
-  const pending = await getPendingQueue();
-  console.log("[signal-cron] " + pending.length + " pending row(s)");
+  console.log("[signal-cron] Running for channel:", channel, "dow:", dow, "time:", now.toISOString());
 
-  for (const row of pending) {
-    const ch = row.channel as Channel;
+  // ── Step 1: Generate content ──────────────────────────────────────────────
+  const generated = await generateContent(channel);
+  if (!generated) {
+    console.error("[signal-cron] Generator returned null for channel:", channel);
+    return NextResponse.json({ ok: false, error: "Generator returned null", channel });
+  }
+  console.log("[signal-cron] Generated", channel, "content —", generated.content.length, "chars");
 
+  // ── Step 2: Send / Post ───────────────────────────────────────────────────
+  if (channel === "linkedin") {
+    console.log("[signal-cron] Posting to LinkedIn via Buffer...");
+    const result = await postToBuffer(generated.content);
+
+    if (result.success) {
+      console.log("[signal-cron] LinkedIn posted OK — id:", result.postId);
+      // Best-effort queue log
+      await tryQueueLog(channel, generated.content, "sent", result.postId);
+      // Send confirmation email
+      const subject = CHANNEL_SUBJECTS[channel];
+      const confirmHtml = contentToHtml(
+        "Your LinkedIn post went live (via Buffer).\n\nPost ID: " + (result.postId || "N/A") + "\n\nContent:\n\n" + generated.content
+      );
+      await sendEmail(toEmail, subject, confirmHtml).catch((e) =>
+        console.warn("[signal-cron] Confirmation email failed:", e)
+      );
+      return NextResponse.json({ ok: true, channel, status: "posted", postId: result.postId });
+    } else {
+      console.error("[signal-cron] LinkedIn/Buffer failed:", result.error);
+      await tryQueueLog(channel, generated.content, "error", undefined, result.error);
+      return NextResponse.json({ ok: false, channel, error: result.error }, { status: 500 });
+    }
+
+  } else {
+    // Email channel — send recruiting draft to Tom
     try {
-      if (ch === "linkedin") {
-        // Auto-post directly to LinkedIn
-        const result = await postToBuffer(row.content);
-        if (result.success) {
-          await markSent(row.id);
-          results.push({ id: row.id, channel: ch, status: "posted", postId: result.postId });
-          console.log("[signal-cron] LinkedIn posted — " + result.postId);
-          // Send confirmation email to tom
-          const subject = CHANNEL_SUBJECTS[ch];
-          const confirmHtml = contentToHtml(
-            "Your LinkedIn post went live (via Buffer).\n\nPost ID: " + (result.postId || "N/A") + "\n\nContent:\n\n" + row.content
-          );
-          await sendEmail(toEmail, subject, confirmHtml).catch((e) =>
-            console.warn("[signal-cron] Confirmation email failed:", e)
-          );
-        } else {
-          throw new Error(result.error || "LinkedIn post failed");
-        }
-      } else {
-        // Email channel — send recruiting draft
-        const subject = CHANNEL_SUBJECTS[ch];
-        await sendEmail(toEmail, subject, contentToHtml(row.content));
-        await markSent(row.id);
-        results.push({ id: row.id, channel: ch, status: "sent" });
-      }
+      const subject = CHANNEL_SUBJECTS[channel];
+      await sendEmail(toEmail, subject, contentToHtml(generated.content));
+      console.log("[signal-cron] Email sent OK");
+      await tryQueueLog(channel, generated.content, "sent");
+      return NextResponse.json({ ok: true, channel, status: "sent" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[signal-cron] Failed for " + row.id + ":", msg);
-      await markError(row.id, msg);
-      results.push({ id: row.id, channel: ch, status: "error", error: msg });
+      console.error("[signal-cron] Email send failed:", msg);
+      await tryQueueLog(channel, generated.content, "error", undefined, msg);
+      return NextResponse.json({ ok: false, channel, error: msg }, { status: 500 });
     }
   }
-
-  return NextResponse.json({
-    ok: true,
-    date: now.toISOString(),
-    channel: channel || "skipped",
-    processed: results.length,
-    results,
-  });
 }
