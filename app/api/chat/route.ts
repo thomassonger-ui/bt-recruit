@@ -105,12 +105,110 @@ async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
 }
 
 /**
+ * Saves a partial session record keyed by sessionId.
+ * Used to persist brokerage/deal_count/objections captured mid-conversation
+ * before an email is provided, so the data is available for later upsert.
+ */
+async function saveSessionSnapshot(
+  sessionId: string,
+  data: {
+    brokerage?: string;
+    deal_count?: number;
+    objections?: string;
+    notes?: string;
+  }
+): Promise<void> {
+  if (!sessionId) return;
+  try {
+    await getSupabase()
+      .from("scout_sessions")
+      .upsert(
+        {
+          session_id: sessionId,
+          ...data,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "session_id" }
+      );
+  } catch {
+    // Non-blocking — session snapshot is best-effort
+  }
+}
+
+/**
+ * Retrieves a prior session snapshot by sessionId.
+ * Used to hydrate a lead record when an email is finally provided.
+ */
+async function getSessionSnapshot(sessionId: string): Promise<{
+  brokerage?: string;
+  deal_count?: number;
+  objections?: string;
+  notes?: string;
+} | null> {
+  if (!sessionId) return null;
+  try {
+    const { data, error } = await getSupabase()
+      .from("scout_sessions")
+      .select("brokerage, deal_count, objections, notes")
+      .eq("session_id", sessionId)
+      .single();
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Extracts an email address from a message string, if present.
  * Scout can use this to trigger memory lookup mid-conversation.
  */
 function extractEmail(text: string): string | null {
   const match = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   return match ? match[0] : null;
+}
+
+/**
+ * Extracts a brokerage name from the conversation messages.
+ * Scans all user messages for Q1-style answers.
+ */
+function extractBrokerage(messages: { role: string; content: string }[]): string | undefined {
+  const brokerageMap: Record<string, string> = {
+    kw: "Keller Williams", "keller williams": "Keller Williams",
+    exp: "eXp Realty", "exp realty": "eXp Realty",
+    remax: "RE/MAX", "re/max": "RE/MAX",
+    compass: "Compass",
+    "coldwell banker": "Coldwell Banker", cb: "Coldwell Banker",
+    "realty one": "Realty One Group", rog: "Realty One Group",
+    watson: "Watson Realty", "watson realty": "Watson Realty",
+    "charles rutenberg": "Charles Rutenberg Realty", crr: "Charles Rutenberg Realty",
+    bhhs: "Berkshire Hathaway HomeServices",
+    "century 21": "Century 21", c21: "Century 21",
+  };
+
+  for (const msg of messages) {
+    if (msg.role !== "user") continue;
+    const lower = msg.content.toLowerCase();
+    for (const [key, val] of Object.entries(brokerageMap)) {
+      if (lower.includes(key)) return val;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Extracts a deal count from the conversation (Q2 answer).
+ */
+function extractDealCount(messages: { role: string; content: string }[]): number | undefined {
+  for (const msg of messages) {
+    if (msg.role !== "user") continue;
+    const match = msg.content.match(/\b(\d{1,2})\s*(deals?|closings?|transactions?|homes?|sales?)\b/i);
+    if (match) {
+      const n = parseInt(match[1]);
+      if (n > 0 && n < 100) return n;
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -171,7 +269,15 @@ export async function POST(req: NextRequest) {
     const urlContext = searchParams.get("context");
 
     const body = await req.json();
-    const { messages, message, context: bodyContext, email: bodyEmail, name: bodyName, phone: bodyPhone } = body;
+    const {
+      messages,
+      message,
+      context: bodyContext,
+      email: bodyEmail,
+      name: bodyName,
+      phone: bodyPhone,
+      sessionId,
+    } = body;
 
     // Context priority: URL param → request body → default public
     const declaredContext = urlContext || bodyContext || "public";
@@ -182,9 +288,11 @@ export async function POST(req: NextRequest) {
 
     // ─── MEMORY LAYER — Returning Recruit Lookup ───────────────────────────────
     // 1. Check if email was passed explicitly in the request body
-    // 2. If not, scan the first user message for an email address
+    // 2. If not, scan all user messages for an email address
     // 3. If we have an email, query Supabase for a returning lead record
     // 4. If found, inject their prior context into the system prompt
+    // 5. On every request, extract brokerage/deal_count from messages and
+    //    save a session snapshot — so data is ready when email arrives
 
     let returningLeadBlock = "";
     const firstUserMessage = chatMessages.find((m) => m.role === "user")?.content || "";
@@ -194,7 +302,21 @@ export async function POST(req: NextRequest) {
 
     // Determine email — explicit body param takes priority over extracted
     const emailFromMessage = extractEmail(firstUserMessage) || extractEmail(lastUserMessage);
-    const resolvedEmail = bodyEmail || emailFromMessage;
+    // Also scan all messages for an email (catches COLLECT_EMAIL_EARLY response)
+    const emailFromHistory = chatMessages
+      .map((m) => extractEmail(m.content))
+      .find((e) => e !== null) ?? null;
+    const resolvedEmail = bodyEmail || emailFromMessage || emailFromHistory;
+
+    // ── Session snapshot — save whatever Scout has learned so far ───────────
+    // Runs on every request, best-effort, keyed by sessionId
+    if (sessionId && declaredContext === "public") {
+      const brokerage = extractBrokerage(chatMessages);
+      const deal_count = extractDealCount(chatMessages);
+      if (brokerage || deal_count) {
+        saveSessionSnapshot(sessionId, { brokerage, deal_count }).catch(() => {});
+      }
+    }
 
     if (resolvedEmail) {
       const returningLead = await getReturningLead(resolvedEmail);
@@ -202,12 +324,35 @@ export async function POST(req: NextRequest) {
         returningLeadBlock = "\n\n" + buildMemoryBlock(returningLead);
       }
 
-      // Save/update lead record whenever we have an email — captures name+phone if provided
+      // Save/update lead record whenever we have an email
       if (declaredContext === "public") {
-        const leadData: Partial<LeadRecord> = { email: resolvedEmail, stage: "scout_captured" };
+        const leadData: Partial<LeadRecord> = {
+          email: resolvedEmail,
+          stage: "scout_captured",
+          last_contact: new Date().toISOString().split("T")[0],
+        };
         if (bodyName) leadData.name = bodyName;
         if (bodyPhone) leadData.phone = bodyPhone;
+
+        // Hydrate from session snapshot if this is the first time we have their email
+        if (sessionId && !returningLeadBlock) {
+          const snapshot = await getSessionSnapshot(sessionId);
+          if (snapshot) {
+            if (snapshot.brokerage) leadData.brokerage = snapshot.brokerage;
+            if (snapshot.deal_count) leadData.deal_count = snapshot.deal_count;
+            if (snapshot.objections) leadData.objections = snapshot.objections;
+            if (snapshot.notes) leadData.notes = snapshot.notes;
+          }
+        }
+
+        // Also capture brokerage/deal_count directly from messages
+        const brokerage = extractBrokerage(chatMessages);
+        const deal_count = extractDealCount(chatMessages);
+        if (brokerage) leadData.brokerage = brokerage;
+        if (deal_count) leadData.deal_count = deal_count;
+
         await upsertLead(leadData);
+
         // Fire-and-forget Tom alert on full lead capture
         if (bodyName && bodyPhone) {
           sendEmail(
@@ -271,4 +416,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
