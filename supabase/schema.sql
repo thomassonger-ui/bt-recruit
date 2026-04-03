@@ -188,3 +188,33 @@ create table if not exists signal_queue (
 create index if not exists signal_queue_status_idx    on signal_queue(status);
 create index if not exists signal_queue_channel_idx   on signal_queue(channel);
 create index if not exists signal_queue_created_idx   on signal_queue(created_at desc);
+
+
+-- ─── SCOUT SESSIONS TABLE ─────────────────────────────────────────────────────
+-- Stores mid-conversation context keyed by browser sessionId.
+-- Written on every Scout message — captures brokerage/deal_count/objections
+-- before an email is provided. Hydrated into the leads table the moment
+-- an email is collected, so returning agents get full context immediately.
+--
+-- Safe to run multiple times — uses IF NOT EXISTS throughout.
+
+create table if not exists scout_sessions (
+  id           uuid        default gen_random_uuid() primary key,
+  created_at   timestamptz default now(),
+  updated_at   timestamptz default now(),
+
+  session_id   text        unique not null,   -- browser sessionStorage UUID
+  brokerage    text,                           -- extracted from Q1 answer
+  deal_count   int,                            -- extracted from Q2 answer
+  objections   text,                           -- captured during conversation
+  notes        text                            -- free-form Scout observations
+);
+
+create index if not exists scout_sessions_session_id_idx on scout_sessions(session_id);
+create index if not exists scout_sessions_updated_at_idx on scout_sessions(updated_at desc);
+
+-- Auto-update updated_at on change
+drop trigger if exists scout_sessions_updated_at on scout_sessions;
+create trigger scout_sessions_updated_at
+  before update on scout_sessions
+  for each row execute function set_updated_at();
