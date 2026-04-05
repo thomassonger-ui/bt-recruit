@@ -89,6 +89,24 @@ function EnvelopeScreen({ open }: { open: boolean }) {
    WELCOME SCREEN
    ════════════════════════════════════════ */
 function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
+  const [activeTab, setActiveTab] = useState(-1)
+
+  useEffect(() => {
+    // Cycle through tabs 0-3, twice (8 total highlights), then stop
+    const totalCycles = 8
+    let step = 0
+    const interval = setInterval(() => {
+      if (step >= totalCycles) {
+        setActiveTab(-1)
+        clearInterval(interval)
+        return
+      }
+      setActiveTab(step % 4)
+      step++
+    }, 600)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className="flex-1 flex items-center justify-center min-h-screen px-4">
       <div className="animate-fade-in max-w-md w-full flex flex-col items-center gap-6 py-12">
@@ -114,25 +132,25 @@ function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
         <div className="w-full flex flex-col gap-3 mt-4">
           <a
             href="https://www.joinbearteam.com/scout"
-            className="w-full py-4 rounded-xl bg-[#0F2747] text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#1a3a5c] transition-colors cursor-pointer no-underline"
+            className={`w-full py-4 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer no-underline ${activeTab === 0 ? 'bg-[#1a3a5c] text-white shadow-lg scale-[1.02]' : 'bg-[#0F2747] text-white'}`}
           >
             Meet Scout&#8482;
           </a>
           <a
             href="https://www.joinbearteam.com/chat"
-            className="w-full py-3 rounded-xl bg-white border border-gray-200 text-[#1a1a2e] font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer no-underline"
+            className={`w-full py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer no-underline ${activeTab === 1 ? 'bg-[#0F2747] text-white shadow-lg scale-[1.02] border border-[#0F2747]' : 'bg-white border border-gray-200 text-[#1a1a2e]'}`}
           >
             Find What&apos;s Missing
           </a>
           <a
             href="https://www.joinbearteam.com/"
-            className="w-full py-3 rounded-xl bg-white border border-gray-200 text-[#1a1a2e] font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer no-underline"
+            className={`w-full py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer no-underline ${activeTab === 2 ? 'bg-[#0F2747] text-white shadow-lg scale-[1.02] border border-[#0F2747]' : 'bg-white border border-gray-200 text-[#1a1a2e]'}`}
           >
             Explore BearTeamOS&#8482;
           </a>
           <button
             onClick={onContinue}
-            className="w-full py-3 rounded-xl bg-white border border-gray-200 text-[#6b7280] font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer"
+            className={`w-full py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${activeTab === 3 ? 'bg-[#0F2747] text-white shadow-lg scale-[1.02] border border-[#0F2747]' : 'bg-white border border-gray-200 text-[#6b7280]'}`}
           >
             Start the Presentation
           </button>
