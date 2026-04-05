@@ -369,7 +369,7 @@ function ChatPageInner() {
       </nav>
 
       {/* ── MAIN CONTENT — centers the card on desktop, full-width on mobile ── */}
-      <main className="relative z-10 flex flex-1 flex-col items-center px-0 py-0 sm:px-4 sm:py-3 md:py-4">
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-0 py-0 sm:px-4 sm:py-3 md:py-4">
         {/*
          * Chat card:
          * - Mobile: fills viewport edge-to-edge, no border-radius, no shadow
