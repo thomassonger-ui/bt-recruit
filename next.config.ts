@@ -1,25 +1,15 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  async redirects() {
-    return [
-      {
-        source: "/bearteamos",
-        destination: "https://bearteam-os-dashboard.vercel.app/login",
-        permanent: false,
-      },
-      {
-        source: "/crm",
-        destination: "https://bearteam-os-dashboard.vercel.app/pipeline",
-        permanent: false,
-      },
-    ];
+  turbopack: {
+    root: path.resolve("."),
   },
   async rewrites() {
     return [
       {
-        source: "/join",
-        destination: "/join.html",
+        source: '/bearteamos/:path*',
+        destination: 'https://bearteam-os-dashboard.vercel.app/:path*',
       },
     ];
   },
