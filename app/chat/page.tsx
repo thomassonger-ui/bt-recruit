@@ -396,7 +396,7 @@ function ChatPageInner() {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              <div className="h-2 w-2 rounded-full bg-green-500" />
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-xs" style={{ color: "#6B7280" }}>Online</span>
             </div>
           </div>
