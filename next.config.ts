@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/bearteamos/:path*',
-        destination: 'https://bearteam-os-dashboard.vercel.app/:path*',
+        destination: 'https://bearteam-os-dashboard.vercel.app/dashboard/:path*',
       },
     ];
   },
