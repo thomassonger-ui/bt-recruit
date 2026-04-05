@@ -15,7 +15,7 @@ interface DashboardData {
   summary: { totalLeads: number; weekLeads: number; monthLeads: number; uniqueSessions: number; convCount: number }
   funnel: { visitors: number; leads: number; booked: number; noShows: number; showed: number; joined: number; bookRate: number; showRate: number; joinRate: number }
   statusCounts: Record<string, number>
-  recentLeads: { id: string; created_at: string; name: string; email: string; phone: string; status: string; notes: string; event_start: string | null; drip_unsubscribed: boolean | null }[]
+  recentLeads: { id: string; created_at: string; name: string; email: string; phone: string; status: string; notes: string; event_start: string | null }[]
   pipeline: { totalValue: number; weightedValue: number; closedWonValue: number; byStage: Record<string, StageData>; activeCount: number }
   forecast: { d30: { agents: number; gci: number }; d60: { agents: number; gci: number }; d90: { agents: number; gci: number }; monthlyLeadRate: number; zeroRecruitingNote: string }
   funnelLeaks: { stages: FunnelStage[]; biggestLeak: string; biggestLeakDropoff: number; biggestLeakValue: number }
@@ -44,9 +44,71 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [joiningId, setJoiningId] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [pausingDripId, setPausingDripId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "leads" | "stalled" | "drip">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "leads" | "stalled" | "drip" | "prospects">("overview")
+
+  // Prospects state
+  const [prospects, setProspects] = useState<any[]>([])
+  const [prospectsLoading, setProspectsLoading] = useState(false)
+  const [prospectSearch, setProspectSearch] = useState("")
+  const [prospectBrokerage, setProspectBrokerage] = useState("")
+  const [prospectCounty, setProspectCounty] = useState("")
+  const [showImportProspects, setShowImportProspects] = useState(false)
+  const [importingProspects, setImportingProspects] = useState(false)
+  const [importProspectResult, setImportProspectResult] = useState("")
+  const [acceptingId, setAcceptingId] = useState<string | null>(null)
+  const [acceptPhone, setAcceptPhone] = useState("")
+  const [acceptEmail, setAcceptEmail] = useState("")
+  const [showAcceptForm, setShowAcceptForm] = useState<string | null>(null)
+
+  const fetchProspects = async () => {
+    setProspectsLoading(true)
+    try {
+      const params = new URLSearchParams({ pw: password })
+      if (prospectSearch) params.set("search", prospectSearch)
+      if (prospectBrokerage) params.set("brokerage", prospectBrokerage)
+      if (prospectCounty) params.set("county", prospectCounty)
+      const res = await fetch(`/api/prospects?${params}`)
+      const d = await res.json()
+      setProspects(d.prospects || [])
+    } catch { setProspects([]) }
+    finally { setProspectsLoading(false) }
+  }
+
+  const importDBPR = async (file: File) => {
+    setImportingProspects(true)
+    setImportProspectResult("")
+    try {
+      const csvText = await file.text()
+      const res = await fetch("/api/import-prospects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ csvText, pw: password }),
+      })
+      const d = await res.json()
+      setImportProspectResult(`Imported ${d.imported} agents. ${d.filtered} filtered out. ${d.skipped} skipped.`)
+      fetchProspects()
+    } catch { setImportProspectResult("Error importing CSV.") }
+    finally { setImportingProspects(false) }
+  }
+
+  const acceptProspect = async (prospectId: string) => {
+    setAcceptingId(prospectId)
+    try {
+      const res = await fetch("/api/prospects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prospectId, pw: password, phone: acceptPhone, email: acceptEmail }),
+      })
+      if (res.ok) {
+        setShowAcceptForm(null)
+        setAcceptPhone("")
+        setAcceptEmail("")
+        fetchProspects()
+      }
+    } catch {}
+    finally { setAcceptingId(null) }
+  }
 
   const markJoined = async (leadId: string) => {
     if (!confirm("Mark this agent as joined? This will send them a welcome email and alert Tom.")) return
@@ -82,25 +144,6 @@ export default function DashboardPage() {
       }
     } catch { alert("Failed.") }
     finally { setPausingDripId(null) }
-  }
-
-
-  const deleteLead = async (leadId: string, name: string) => {
-    if (!confirm(`Delete "${name || 'this lead'}"? This cannot be undone.`)) return
-    setDeletingId(leadId)
-    try {
-      const res = await fetch("/api/delete-lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId, pw: password }),
-      })
-      if (res.ok) {
-        fetchData(password)
-      } else {
-        alert("Failed to delete. Try again.")
-      }
-    } catch { alert("Failed to delete.") }
-    finally { setDeletingId(null) }
   }
 
   const fetchData = useCallback(async (pw: string) => {
@@ -160,13 +203,14 @@ export default function DashboardPage() {
           <div style={{ color: "#93C5FD", fontSize: 12, marginTop: 2 }}>Bear Team Real Estate · Live recruiting funnel · Auto-refreshes every 60s</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {(["overview", "pipeline", "leads", "stalled", "drip"] as const).map(tab => (
+          {(["overview", "pipeline", "leads", "stalled", "drip", "prospects"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={tabStyle(tab)}>
               {tab === "overview" ? "Overview"
                 : tab === "pipeline" ? `Pipeline ${fmt$(pipeline?.weightedValue || 0)}`
                 : tab === "leads" ? "All Leads"
                 : tab === "stalled" ? `Stalled (${stalledLeads?.totalCount || 0})`
-                : `Drip${drip?.dueToday?.length > 0 ? ` 🔔${drip.dueToday.length}` : ""}`}
+                : tab === "drip" ? `Drip${drip?.dueToday?.length > 0 ? ` 🔔${drip.dueToday.length}` : ""}`
+                : "Prospects"}
             </button>
           ))}
           <button onClick={() => fetchData(password)} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, padding: "8px 14px", fontSize: 12, cursor: "pointer", marginLeft: 8 }}>↺</button>
@@ -419,31 +463,14 @@ export default function DashboardPage() {
                       </td>
                       <td style={{ padding: "10px 14px", color: "#6B7280", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.notes || "—"}</td>
                       <td style={{ padding: "10px 14px" }}>
-                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                          {lead.status !== "joined" && lead.email ? (
-                            <button onClick={() => markJoined(lead.id)} disabled={joiningId === lead.id}
-                              style={{ background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A", color: joiningId === lead.id ? "#9CA3AF" : "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: joiningId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
-                              {joiningId === lead.id ? "Sending..." : "Mark Joined"}
-                            </button>
-                          ) : lead.status === "joined" ? (
-                            <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
-                          ) : null}
-                          {lead.status !== "joined" && lead.email ? (
-                            lead.drip_unsubscribed
-                              ? <button onClick={() => pauseDrip(lead.id, "resume")} disabled={pausingDripId === lead.id}
-                                  style={{ background: pausingDripId === lead.id ? "#E5E7EB" : "#F0FDF4", color: pausingDripId === lead.id ? "#9CA3AF" : "#166534", border: "1px solid #BBF7D0", borderRadius: 6, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: pausingDripId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
-                                  {pausingDripId === lead.id ? "..." : "▶ Resume"}
-                                </button>
-                              : <button onClick={() => pauseDrip(lead.id, "pause")} disabled={pausingDripId === lead.id}
-                                  style={{ background: pausingDripId === lead.id ? "#E5E7EB" : "#FEF2F2", color: pausingDripId === lead.id ? "#9CA3AF" : "#C62828", border: "1px solid #FECACA", borderRadius: 6, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: pausingDripId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
-                                  {pausingDripId === lead.id ? "..." : "⏸ Pause"}
-                                </button>
-                          ) : null}
-                          <button onClick={() => deleteLead(lead.id, lead.name)} disabled={deletingId === lead.id}
-                            style={{ background: deletingId === lead.id ? "#E5E7EB" : "#FEF2F2", color: deletingId === lead.id ? "#9CA3AF" : "#C62828", border: "1px solid #FECACA", borderRadius: 6, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: deletingId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
-                            {deletingId === lead.id ? "..." : "✕ Delete"}
+                        {lead.status !== "joined" && lead.email ? (
+                          <button onClick={() => markJoined(lead.id)} disabled={joiningId === lead.id}
+                            style={{ background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A", color: joiningId === lead.id ? "#9CA3AF" : "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: joiningId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
+                            {joiningId === lead.id ? "Sending..." : "Mark Joined"}
                           </button>
-                        </div>
+                        ) : lead.status === "joined" ? (
+                          <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
+                        ) : null}
                       </td>
                     </tr>
                   ))}
@@ -679,8 +706,129 @@ export default function DashboardPage() {
           </>
         )}
 
+        {activeTab === "prospects" && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>DBPR Agent Prospects</h2>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => setShowImportProspects(v => !v)} style={{ padding: "8px 14px", fontSize: 12, fontWeight: 600, background: showImportProspects ? "#1B8C3A" : "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, cursor: "pointer" }}>
+                  Import DBPR CSV
+                </button>
+                <button onClick={fetchProspects} style={{ padding: "8px 14px", fontSize: 12, background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, cursor: "pointer" }}>
+                  Load Prospects
+                </button>
+              </div>
+            </div>
+
+            {showImportProspects && (
+              <div style={{ marginBottom: 16, padding: 16, background: "rgba(27,140,58,0.1)", border: "1px solid rgba(27,140,58,0.3)", borderRadius: 8 }}>
+                <p style={{ fontSize: 13, marginBottom: 8 }}>
+                  <strong>How to import:</strong><br />
+                  1. Go to <a href="https://www2.myfloridalicense.com/real-estate-commission/public-records/" target="_blank" style={{ color: "#E6A817" }}>DBPR Public Records</a><br />
+                  2. Under &quot;Licensee Files&quot;, download the CSV for your region (Region 5 = Seminole, Osceola, Lake, Brevard, Volusia) or the Orange County file<br />
+                  3. Upload the CSV here — system auto-filters for active Sales Associates with 1-5 years experience in Orlando metro
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <label style={{ padding: "8px 16px", fontSize: 12, fontWeight: 600, background: "#1B8C3A", color: "#fff", borderRadius: 6, cursor: "pointer" }}>
+                    Choose DBPR CSV
+                    <input type="file" accept=".csv" onChange={e => { const f = e.target.files?.[0]; if (f) importDBPR(f); e.target.value = "" }} style={{ display: "none" }} />
+                  </label>
+                  {importingProspects && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Importing...</span>}
+                  {importProspectResult && <span style={{ fontSize: 12, color: importProspectResult.includes("Error") ? "#C62828" : "#1B8C3A" }}>{importProspectResult}</span>}
+                </div>
+              </div>
+            )}
+
+            {/* Filters */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+              <input
+                value={prospectSearch}
+                onChange={e => setProspectSearch(e.target.value)}
+                placeholder="Search by name..."
+                style={{ flex: 1, minWidth: 150, padding: "8px 12px", fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "#fff", outline: "none" }}
+              />
+              <input
+                value={prospectBrokerage}
+                onChange={e => setProspectBrokerage(e.target.value)}
+                placeholder="Filter by brokerage (KW, eXp, Compass...)"
+                style={{ flex: 1, minWidth: 150, padding: "8px 12px", fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "#fff", outline: "none" }}
+              />
+              <select
+                value={prospectCounty}
+                onChange={e => setProspectCounty(e.target.value)}
+                style={{ padding: "8px 12px", fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "#fff", outline: "none" }}
+              >
+                <option value="">All Counties</option>
+                <option value="Orange">Orange</option>
+                <option value="Seminole">Seminole</option>
+                <option value="Osceola">Osceola</option>
+                <option value="Lake">Lake</option>
+                <option value="Volusia">Volusia</option>
+              </select>
+              <button onClick={fetchProspects} style={{ padding: "8px 14px", fontSize: 12, fontWeight: 600, background: "#0B1D3A", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, cursor: "pointer" }}>
+                Search
+              </button>
+            </div>
+
+            {/* Disclaimer */}
+            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>
+              Agent data from Florida DBPR public records. Filtered: active Sales Associates, 1-5 years experience, Orlando metro counties. No email/phone from DBPR — add contact info when accepting.
+            </p>
+
+            {/* Prospects Table */}
+            {prospectsLoading ? (
+              <p style={{ color: "rgba(255,255,255,0.5)", textAlign: "center", padding: 30 }}>Loading...</p>
+            ) : prospects.length === 0 ? (
+              <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.4)" }}>
+                <p style={{ fontSize: 14, marginBottom: 8 }}>No prospects loaded</p>
+                <p style={{ fontSize: 12 }}>Click &quot;Import DBPR CSV&quot; to upload agent data, then &quot;Load Prospects&quot; to view.</p>
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                      {["Name", "Brokerage", "County", "Years", "License #", "City", "Actions"].map(h => (
+                        <th key={h} style={{ textAlign: "left", padding: "10px 8px", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {prospects.map((p: any) => (
+                      <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                        <td style={{ padding: "10px 8px", fontWeight: 500 }}>{p.name}</td>
+                        <td style={{ padding: "10px 8px", color: "rgba(255,255,255,0.7)" }}>{p.brokerage || "—"}</td>
+                        <td style={{ padding: "10px 8px", color: "rgba(255,255,255,0.7)" }}>{p.county || "—"}</td>
+                        <td style={{ padding: "10px 8px" }}>{p.years_experience || "—"}</td>
+                        <td style={{ padding: "10px 8px", color: "rgba(255,255,255,0.5)", fontSize: 11 }}>{p.license_number || "—"}</td>
+                        <td style={{ padding: "10px 8px", color: "rgba(255,255,255,0.5)" }}>{p.city || "—"}</td>
+                        <td style={{ padding: "10px 8px" }}>
+                          {showAcceptForm === p.id ? (
+                            <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
+                              <input value={acceptPhone} onChange={e => setAcceptPhone(e.target.value)} placeholder="Phone" style={{ width: 100, padding: "4px 6px", fontSize: 11, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 4, color: "#fff", outline: "none" }} />
+                              <input value={acceptEmail} onChange={e => setAcceptEmail(e.target.value)} placeholder="Email" style={{ width: 140, padding: "4px 6px", fontSize: 11, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 4, color: "#fff", outline: "none" }} />
+                              <button onClick={() => acceptProspect(p.id)} disabled={acceptingId === p.id} style={{ padding: "4px 10px", fontSize: 10, fontWeight: 600, background: "#1B8C3A", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>
+                                {acceptingId === p.id ? "..." : "Confirm"}
+                              </button>
+                              <button onClick={() => { setShowAcceptForm(null); setAcceptPhone(""); setAcceptEmail("") }} style={{ padding: "4px 8px", fontSize: 10, background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.5)", borderRadius: 4, cursor: "pointer" }}>✕</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setShowAcceptForm(p.id)} style={{ padding: "4px 10px", fontSize: 10, fontWeight: 600, background: "#E6A817", color: "#0B1D3A", border: "none", borderRadius: 4, cursor: "pointer" }}>
+                              Accept
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>Showing {prospects.length} prospects</p>
+              </div>
+            )}
+          </>
+        )}
+
       </div>
     </div>
   )
 }
-
