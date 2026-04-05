@@ -139,6 +139,18 @@ function ChatPageInner() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [typedPlaceholder, setTypedPlaceholder] = useState("")
+
+  useEffect(() => {
+    const full = "Ask Scout anything..."
+    let i = 0
+    const timer = setInterval(() => {
+      i++
+      setTypedPlaceholder(full.slice(0, i))
+      if (i >= full.length) clearInterval(timer)
+    }, 60)
+    return () => clearInterval(timer)
+  }, [])
   const [agentEmail, setAgentEmail] = useState<string | undefined>(undefined)
   const [calendlyUrl, setCalendlyUrl] = useState<string | null>(null)
 
@@ -587,7 +599,7 @@ function ChatPageInner() {
                   e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask Scout anything..."
+                placeholder={typedPlaceholder}
                 rows={1}
                 className="flex-1 resize-none bg-transparent text-sm outline-none"
                 style={{
