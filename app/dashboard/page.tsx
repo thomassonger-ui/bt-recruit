@@ -799,7 +799,7 @@ export default function DashboardPage() {
                         <td style={{ padding: "10px 8px", fontWeight: 500, color: "#1a1a1a" }}>{p.full_name}</td>
                         <td style={{ padding: "10px 8px", color: "#444" }}>{p.brokerage || "—"}</td>
                         <td style={{ padding: "10px 8px", color: "#444" }}>{p.county || "—"}</td>
-                        <td style={{ padding: "10px 8px", color: "#1a1a1a" }}>{p.license_date ? Math.floor((Date.now() - new Date(p.license_date).getTime()) / (365.25*24*60*60*1000)) : "?" || "—"}</td>
+                        <td style={{ padding: "10px 8px", color: "#1a1a1a" }}>{(p.license_date ? Math.floor((Date.now() - new Date(p.license_date).getTime()) / (365.25*24*60*60*1000)) : "—") || "—"}</td>
                         <td style={{ padding: "10px 8px", color: "#888", fontSize: 11 }}>{p.license_number || "—"}</td>
                         <td style={{ padding: "10px 8px", color: "#888" }}>{p.city || "—"}</td>
                         <td style={{ padding: "10px 8px" }}>
