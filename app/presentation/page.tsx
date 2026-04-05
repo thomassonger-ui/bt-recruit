@@ -111,9 +111,7 @@ function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
     <div className="flex-1 flex items-center justify-center min-h-screen px-4">
       <div className="animate-fade-in max-w-md w-full flex flex-col items-center gap-6 py-12">
         {/* Logo — dissolve fade-in */}
-        <div className="animate-logo-dissolve w-28 h-28 bg-[#2C2C2C] border-[4px] border-white flex items-center justify-center shadow-xl">
-          <span className="text-white text-4xl font-extrabold tracking-tight">BT</span>
-        </div>
+        <img src="/bt-logo.png" alt="BearTeam" className="animate-logo-dissolve w-28 h-28 object-contain shadow-xl" />
 
         <div className="text-center">
           <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-[#1a1a2e]" style={{ animationDelay: '0.4s' }}>
