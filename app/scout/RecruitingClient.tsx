@@ -427,12 +427,6 @@ function HeroParallaxContent() {
             Why Scout
           </a>
           <a
-            href="/chat"
-            className="text-sm text-white/70 transition-colors hover:text-white"
-          >
-            Try Scout
-          </a>
-          <a
             href={`sms:+18444072587?body=${SMS_BODY}`}
           >
             <Button variant="primary" className="!py-2 !px-4 !text-sm">
