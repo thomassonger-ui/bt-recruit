@@ -47,7 +47,7 @@ function parseDate(dateStr: string): Date | null {
 export async function POST(req: Request) {
   try {
     const { csvText, pw, minYears, maxYears, statusFilter } = await req.json()
-    if (pw !== process.env.DASH_PW) {
+    if (pw !== process.env.DASHBOARD_PASSWORD) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     if (!csvText) {
