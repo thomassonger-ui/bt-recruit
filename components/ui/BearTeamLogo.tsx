@@ -34,59 +34,14 @@ export default function BearTeamLogo({
       aria-label="Bear Real Estate Team"
     >
       {/* BT square mark */}
-      <svg
+      <img
+        src="/bt-logo.png"
+        alt="BT"
         width={iconSize}
         height={iconSize}
-        viewBox="0 0 48 48"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+        style={{ objectFit: 'contain' }}
         aria-hidden="true"
-      >
-        {/* Outer square */}
-        <rect
-          x="1"
-          y="1"
-          width="46"
-          height="46"
-          rx="3"
-          fill={markBg}
-        />
-        {/* Inner border */}
-        <rect
-          x="5"
-          y="5"
-          width="38"
-          height="38"
-          rx="1.5"
-          stroke={markFg}
-          strokeWidth="2.5"
-          fill="none"
-        />
-        {/* B letter */}
-        <text
-          x="13"
-          y="33"
-          fill={markFg}
-          fontFamily="Inter, Arial, sans-serif"
-          fontWeight="800"
-          fontSize="22"
-          letterSpacing="-0.5"
-        >
-          B
-        </text>
-        {/* T letter */}
-        <text
-          x="26"
-          y="33"
-          fill={markFg}
-          fontFamily="Inter, Arial, sans-serif"
-          fontWeight="800"
-          fontSize="22"
-          letterSpacing="-0.5"
-        >
-          T
-        </text>
-      </svg>
+      />
 
       {/* Wordmark */}
       <span
