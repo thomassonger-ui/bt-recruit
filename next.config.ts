@@ -5,11 +5,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve("."),
   },
-  async rewrites() {
+  async redirects() {
     return [
       {
-        source: '/bearteamos/:path*',
-        destination: 'https://bearteam-os-dashboard.vercel.app/dashboard/:path*',
+        source: '/bearteamos',
+        destination: 'https://bearteam-os-dashboard.vercel.app/dashboard',
+        permanent: false,
       },
     ];
   },
