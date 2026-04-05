@@ -98,8 +98,8 @@ function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
         </div>
 
         <div className="text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-[#1a1a2e]">
-            Meet Scout Live
+          <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-[#1a1a2e]" style={{ animationDelay: '0.4s' }}>
+            Welcome to Bear Team
           </h1>
           <p className="text-[#1a1a2e] font-semibold mt-3">
             Free Leads. No Fees. Built-In Coaching System.
