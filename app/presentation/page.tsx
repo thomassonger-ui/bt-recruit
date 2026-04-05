@@ -92,9 +92,9 @@ function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="flex-1 flex items-center justify-center min-h-screen px-4">
       <div className="animate-fade-in max-w-md w-full flex flex-col items-center gap-6 py-12">
-        {/* Logo */}
-        <div className="w-24 h-24 rounded-full bg-[#0F2747] flex items-center justify-center shadow-lg">
-          <span className="text-white text-3xl font-bold tracking-tight">BT</span>
+        {/* Logo — dissolve fade-in */}
+        <div className="animate-logo-dissolve w-28 h-28 bg-[#2C2C2C] border-[4px] border-white flex items-center justify-center shadow-xl">
+          <span className="text-white text-4xl font-extrabold tracking-tight">BT</span>
         </div>
 
         <div className="text-center">

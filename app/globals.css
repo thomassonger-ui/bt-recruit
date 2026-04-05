@@ -155,3 +155,14 @@ body {
   animation: fadeIn 0.5s ease-out forwards;
   opacity: 0;
 }
+
+@keyframes logoDissolve {
+  0% { opacity: 0; filter: blur(12px); transform: scale(0.85); }
+  50% { opacity: 0.6; filter: blur(4px); transform: scale(1.02); }
+  100% { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+
+.animate-logo-dissolve {
+  animation: logoDissolve 1.2s ease-out forwards;
+  opacity: 0;
+}
