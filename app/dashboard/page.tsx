@@ -709,32 +709,32 @@ export default function DashboardPage() {
         {activeTab === "prospects" && (
           <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700 }}>DBPR Agent Prospects</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: "#0B1D3A" }}>DBPR Agent Prospects</h2>
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => setShowImportProspects(v => !v)} style={{ padding: "8px 14px", fontSize: 12, fontWeight: 600, background: showImportProspects ? "#1B8C3A" : "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, cursor: "pointer" }}>
-                  Import DBPR CSV
+                <button onClick={() => setShowImportProspects(v => !v)} style={{ padding: "8px 14px", fontSize: 12, fontWeight: 600, background: showImportProspects ? "#1B8C3A" : "#0B1D3A", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}>
+                  {showImportProspects ? "Close Import" : "Import DBPR CSV"}
                 </button>
-                <button onClick={fetchProspects} style={{ padding: "8px 14px", fontSize: 12, background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, cursor: "pointer" }}>
+                <button onClick={fetchProspects} style={{ padding: "8px 14px", fontSize: 12, fontWeight: 600, background: "#0B1D3A", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}>
                   Load Prospects
                 </button>
               </div>
             </div>
 
             {showImportProspects && (
-              <div style={{ marginBottom: 16, padding: 16, background: "rgba(27,140,58,0.1)", border: "1px solid rgba(27,140,58,0.3)", borderRadius: 8 }}>
-                <p style={{ fontSize: 13, marginBottom: 8 }}>
+              <div style={{ marginBottom: 16, padding: 16, background: "#f0f9f1", border: "1px solid #1B8C3A", borderRadius: 8 }}>
+                <p style={{ fontSize: 13, marginBottom: 8, color: "#1a1a1a" }}>
                   <strong>How to import:</strong><br />
-                  1. Go to <a href="https://www2.myfloridalicense.com/real-estate-commission/public-records/" target="_blank" style={{ color: "#E6A817" }}>DBPR Public Records</a><br />
+                  1. Go to <a href="https://www2.myfloridalicense.com/real-estate-commission/public-records/" target="_blank" style={{ color: "#1B8C3A" }}>DBPR Public Records</a><br />
                   2. Under &quot;Licensee Files&quot;, download the CSV for your region (Region 5 = Seminole, Osceola, Lake, Brevard, Volusia) or the Orange County file<br />
                   3. Upload the CSV here — system auto-filters for active Sales Associates with 1-5 years experience in Orlando metro
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <label style={{ padding: "8px 16px", fontSize: 12, fontWeight: 600, background: "#1B8C3A", color: "#fff", borderRadius: 6, cursor: "pointer" }}>
+                  <label style={{ padding: "8px 16px", fontSize: 12, fontWeight: 600, background: "#E6A817", color: "#0B1D3A", borderRadius: 6, cursor: "pointer" }}>
                     Choose DBPR CSV
                     <input type="file" accept=".csv" onChange={e => { const f = e.target.files?.[0]; if (f) importDBPR(f); e.target.value = "" }} style={{ display: "none" }} />
                   </label>
-                  {importingProspects && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Importing...</span>}
-                  {importProspectResult && <span style={{ fontSize: 12, color: importProspectResult.includes("Error") ? "#C62828" : "#1B8C3A" }}>{importProspectResult}</span>}
+                  {importingProspects && <span style={{ fontSize: 12, color: "#666" }}>Importing...</span>}
+                  {importProspectResult && <span style={{ fontSize: 12, color: importProspectResult.includes("Error") ? "#C62828" : "#1B8C3A", fontWeight: 600 }}>{importProspectResult}</span>}
                 </div>
               </div>
             )}
@@ -745,18 +745,18 @@ export default function DashboardPage() {
                 value={prospectSearch}
                 onChange={e => setProspectSearch(e.target.value)}
                 placeholder="Search by name..."
-                style={{ flex: 1, minWidth: 150, padding: "8px 12px", fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "#fff", outline: "none" }}
+                style={{ flex: 1, minWidth: 150, padding: "8px 12px", fontSize: 12, background: "#fff", border: "1px solid #d1d5db", borderRadius: 6, color: "#1a1a1a", outline: "none" }}
               />
               <input
                 value={prospectBrokerage}
                 onChange={e => setProspectBrokerage(e.target.value)}
                 placeholder="Filter by brokerage (KW, eXp, Compass...)"
-                style={{ flex: 1, minWidth: 150, padding: "8px 12px", fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "#fff", outline: "none" }}
+                style={{ flex: 1, minWidth: 150, padding: "8px 12px", fontSize: 12, background: "#fff", border: "1px solid #d1d5db", borderRadius: 6, color: "#1a1a1a", outline: "none" }}
               />
               <select
                 value={prospectCounty}
                 onChange={e => setProspectCounty(e.target.value)}
-                style={{ padding: "8px 12px", fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "#fff", outline: "none" }}
+                style={{ padding: "8px 12px", fontSize: 12, background: "#fff", border: "1px solid #d1d5db", borderRadius: 6, color: "#1a1a1a", outline: "none" }}
               >
                 <option value="">All Counties</option>
                 <option value="Orange">Orange</option>
@@ -765,52 +765,52 @@ export default function DashboardPage() {
                 <option value="Lake">Lake</option>
                 <option value="Volusia">Volusia</option>
               </select>
-              <button onClick={fetchProspects} style={{ padding: "8px 14px", fontSize: 12, fontWeight: 600, background: "#0B1D3A", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, cursor: "pointer" }}>
+              <button onClick={fetchProspects} style={{ padding: "8px 14px", fontSize: 12, fontWeight: 600, background: "#0B1D3A", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}>
                 Search
               </button>
             </div>
 
             {/* Disclaimer */}
-            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>
+            <p style={{ fontSize: 10, color: "#999", marginBottom: 12 }}>
               Agent data from Florida DBPR public records. Filtered: active Sales Associates, 1-5 years experience, Orlando metro counties. No email/phone from DBPR — add contact info when accepting.
             </p>
 
             {/* Prospects Table */}
             {prospectsLoading ? (
-              <p style={{ color: "rgba(255,255,255,0.5)", textAlign: "center", padding: 30 }}>Loading...</p>
+              <p style={{ color: "#999", textAlign: "center", padding: 30 }}>Loading...</p>
             ) : prospects.length === 0 ? (
-              <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.4)" }}>
-                <p style={{ fontSize: 14, marginBottom: 8 }}>No prospects loaded</p>
+              <div style={{ textAlign: "center", padding: 40, color: "#999" }}>
+                <p style={{ fontSize: 14, marginBottom: 8, color: "#1a1a1a" }}>No prospects loaded</p>
                 <p style={{ fontSize: 12 }}>Click &quot;Import DBPR CSV&quot; to upload agent data, then &quot;Load Prospects&quot; to view.</p>
               </div>
             ) : (
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead>
-                    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                    <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
                       {["Name", "Brokerage", "County", "Years", "License #", "City", "Actions"].map(h => (
-                        <th key={h} style={{ textAlign: "left", padding: "10px 8px", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>{h}</th>
+                        <th key={h} style={{ textAlign: "left", padding: "10px 8px", fontSize: 10, fontWeight: 600, color: "#666", textTransform: "uppercase" }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {prospects.map((p: any) => (
-                      <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                        <td style={{ padding: "10px 8px", fontWeight: 500 }}>{p.name}</td>
-                        <td style={{ padding: "10px 8px", color: "rgba(255,255,255,0.7)" }}>{p.brokerage || "—"}</td>
-                        <td style={{ padding: "10px 8px", color: "rgba(255,255,255,0.7)" }}>{p.county || "—"}</td>
-                        <td style={{ padding: "10px 8px" }}>{p.years_experience || "—"}</td>
-                        <td style={{ padding: "10px 8px", color: "rgba(255,255,255,0.5)", fontSize: 11 }}>{p.license_number || "—"}</td>
-                        <td style={{ padding: "10px 8px", color: "rgba(255,255,255,0.5)" }}>{p.city || "—"}</td>
+                      <tr key={p.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                        <td style={{ padding: "10px 8px", fontWeight: 500, color: "#1a1a1a" }}>{p.name}</td>
+                        <td style={{ padding: "10px 8px", color: "#444" }}>{p.brokerage || "—"}</td>
+                        <td style={{ padding: "10px 8px", color: "#444" }}>{p.county || "—"}</td>
+                        <td style={{ padding: "10px 8px", color: "#1a1a1a" }}>{p.years_experience || "—"}</td>
+                        <td style={{ padding: "10px 8px", color: "#888", fontSize: 11 }}>{p.license_number || "—"}</td>
+                        <td style={{ padding: "10px 8px", color: "#888" }}>{p.city || "—"}</td>
                         <td style={{ padding: "10px 8px" }}>
                           {showAcceptForm === p.id ? (
                             <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
-                              <input value={acceptPhone} onChange={e => setAcceptPhone(e.target.value)} placeholder="Phone" style={{ width: 100, padding: "4px 6px", fontSize: 11, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 4, color: "#fff", outline: "none" }} />
-                              <input value={acceptEmail} onChange={e => setAcceptEmail(e.target.value)} placeholder="Email" style={{ width: 140, padding: "4px 6px", fontSize: 11, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 4, color: "#fff", outline: "none" }} />
+                              <input value={acceptPhone} onChange={e => setAcceptPhone(e.target.value)} placeholder="Phone" style={{ width: 100, padding: "4px 6px", fontSize: 11, background: "#fff", border: "1px solid #d1d5db", borderRadius: 4, color: "#1a1a1a", outline: "none" }} />
+                              <input value={acceptEmail} onChange={e => setAcceptEmail(e.target.value)} placeholder="Email" style={{ width: 140, padding: "4px 6px", fontSize: 11, background: "#fff", border: "1px solid #d1d5db", borderRadius: 4, color: "#1a1a1a", outline: "none" }} />
                               <button onClick={() => acceptProspect(p.id)} disabled={acceptingId === p.id} style={{ padding: "4px 10px", fontSize: 10, fontWeight: 600, background: "#1B8C3A", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>
                                 {acceptingId === p.id ? "..." : "Confirm"}
                               </button>
-                              <button onClick={() => { setShowAcceptForm(null); setAcceptPhone(""); setAcceptEmail("") }} style={{ padding: "4px 8px", fontSize: 10, background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.5)", borderRadius: 4, cursor: "pointer" }}>✕</button>
+                              <button onClick={() => { setShowAcceptForm(null); setAcceptPhone(""); setAcceptEmail("") }} style={{ padding: "4px 8px", fontSize: 10, background: "#fff", border: "1px solid #d1d5db", color: "#666", borderRadius: 4, cursor: "pointer" }}>✕</button>
                             </div>
                           ) : (
                             <button onClick={() => setShowAcceptForm(p.id)} style={{ padding: "4px 10px", fontSize: 10, fontWeight: 600, background: "#E6A817", color: "#0B1D3A", border: "none", borderRadius: 4, cursor: "pointer" }}>
@@ -822,7 +822,7 @@ export default function DashboardPage() {
                     ))}
                   </tbody>
                 </table>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>Showing {prospects.length} prospects</p>
+                <p style={{ fontSize: 11, color: "#999", marginTop: 8 }}>Showing {prospects.length} prospects</p>
               </div>
             )}
           </>
