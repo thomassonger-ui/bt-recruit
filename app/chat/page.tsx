@@ -117,7 +117,6 @@ function MobileNav() {
           onClick={() => setOpen(false)}
         >
           <a href="/scout" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Why Scout</a>
-          <a href="/chat" className="block py-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>Try Scout</a>
           <a
             href="sms:+14077588102"
             className="mt-1 block rounded-lg px-4 py-3 text-center text-sm font-semibold text-white"
@@ -333,7 +332,7 @@ function ChatPageInner() {
         <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
           {/* Logo */}
           <a href="/" className="flex shrink-0 items-center gap-2.5 no-underline">
-            <img src="/bt-logo.png" alt="BT" width={32} height={32} style={{ objectFit: 'contain' }} />
+            <img src="/bt-logo.png" alt="BT" width={32} height={32} style={{ objectFit: 'contain', filter: 'invert(1) brightness(2)' }} />
             <span className="hidden text-sm font-bold text-white sm:block" style={{ letterSpacing: "0.01em" }}>
               Bear Real Estate Team
             </span>
@@ -343,7 +342,6 @@ function ChatPageInner() {
           {/* Desktop links */}
           <div className="hidden items-center gap-6 md:flex">
             <a href="/scout" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Why Scout</a>
-            <a href="/chat" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>Try Scout</a>
             <a
               href="sms:+14077588102"
               className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
