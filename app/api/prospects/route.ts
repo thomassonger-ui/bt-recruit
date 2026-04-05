@@ -8,7 +8,7 @@ const supabase = createClient(
 
 export async function GET(req: NextRequest) {
   const pw = req.nextUrl.searchParams.get("pw")
-  if (pw !== process.env.DASH_PW) {
+  if (pw !== process.env.DASHBOARD_PASSWORD) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { prospectId, pw, phone, email } = await req.json()
-    if (pw !== process.env.DASH_PW) {
+    if (pw !== process.env.DASHBOARD_PASSWORD) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
