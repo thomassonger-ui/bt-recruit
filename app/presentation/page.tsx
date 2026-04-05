@@ -112,29 +112,29 @@ function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
 
         {/* Action buttons */}
         <div className="w-full flex flex-col gap-3 mt-4">
+          <a
+            href="https://www.joinbearteam.com/scout"
+            className="w-full py-4 rounded-xl bg-[#0F2747] text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#1a3a5c] transition-colors cursor-pointer no-underline"
+          >
+            Meet Scout&#8482;
+          </a>
+          <a
+            href="https://www.joinbearteam.com/chat"
+            className="w-full py-3 rounded-xl bg-white border border-gray-200 text-[#1a1a2e] font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer no-underline"
+          >
+            Find What&apos;s Missing
+          </a>
+          <a
+            href="https://www.joinbearteam.com/"
+            className="w-full py-3 rounded-xl bg-white border border-gray-200 text-[#1a1a2e] font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer no-underline"
+          >
+            Explore BearTeamOS&#8482;
+          </a>
           <button
             onClick={onContinue}
-            className="w-full py-4 rounded-xl bg-[#0F2747] text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#1a3a5c] transition-colors cursor-pointer"
-          >
-            Schedule a Time to Talk
-          </button>
-          <button
-            onClick={onContinue}
-            className="w-full py-3 rounded-xl bg-white border border-gray-200 text-[#1a1a2e] font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Go to My Resources
-          </button>
-          <button
-            onClick={onContinue}
-            className="w-full py-3 rounded-xl bg-white border border-gray-200 text-[#1a1a2e] font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Watch Overview Video
-          </button>
-          <button
-            onClick={() => window.location.reload()}
             className="w-full py-3 rounded-xl bg-white border border-gray-200 text-[#6b7280] font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer"
           >
-            Start Presentation Over
+            Start the Presentation
           </button>
         </div>
       </div>
