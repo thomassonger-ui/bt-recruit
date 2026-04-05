@@ -813,6 +813,9 @@ export default function DashboardPage() {
                               <button onClick={() => { setShowAcceptForm(null); setAcceptPhone(""); setAcceptEmail("") }} style={{ padding: "4px 8px", fontSize: 10, background: "#fff", border: "1px solid #d1d5db", color: "#666", borderRadius: 4, cursor: "pointer" }}>✕</button>
                             </div>
                           ) : (
+                            <button onClick={() => window.open(`https://app.apollo.io/#/people?qKeywords=${encodeURIComponent((p.full_name || "").replace(/,/g, " ") + " " + (p.brokerage || ""))}`, "_blank")} style={{ padding: "4px 10px", fontSize: 10, fontWeight: 600, background: "#4A90D9", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", marginRight: 4 }}>
+                              Enrich
+                            </button>
                             <button onClick={() => setShowAcceptForm(p.id)} style={{ padding: "4px 10px", fontSize: 10, fontWeight: 600, background: "#E6A817", color: "#0B1D3A", border: "none", borderRadius: 4, cursor: "pointer" }}>
                               Accept
                             </button>
