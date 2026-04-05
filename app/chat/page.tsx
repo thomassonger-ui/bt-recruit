@@ -333,10 +333,7 @@ function ChatPageInner() {
         <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
           {/* Logo */}
           <a href="/" className="flex shrink-0 items-center gap-2.5 no-underline">
-            <svg width="32" height="32" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="1" y="1" width="32" height="32" rx="2" stroke="white" strokeWidth="1.5" fill="none" opacity="0.6"/>
-              <text x="17" y="22.5" textAnchor="middle" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif" fontWeight="800" fontSize="12" fill="white" letterSpacing="0.5">BT</text>
-            </svg>
+            <img src="/bt-logo.png" alt="BT" width={32} height={32} style={{ objectFit: 'contain' }} />
             <span className="hidden text-sm font-bold text-white sm:block" style={{ letterSpacing: "0.01em" }}>
               Bear Real Estate Team
             </span>
