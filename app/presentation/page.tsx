@@ -92,18 +92,18 @@ function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
   const [activeTab, setActiveTab] = useState(-1)
 
   useEffect(() => {
-    // Cycle through tabs 0-3, twice (8 total highlights), then stop
-    const totalCycles = 8
+    // Alternate: highlight one tab, go dark, then next tab — twice through all 4
+    const sequence = [0, -1, 1, -1, 2, -1, 3, -1, 0, -1, 1, -1, 2, -1, 3, -1]
     let step = 0
     const interval = setInterval(() => {
-      if (step >= totalCycles) {
+      if (step >= sequence.length) {
         setActiveTab(-1)
         clearInterval(interval)
         return
       }
-      setActiveTab(step % 4)
+      setActiveTab(sequence[step])
       step++
-    }, 600)
+    }, 400)
     return () => clearInterval(interval)
   }, [])
 
