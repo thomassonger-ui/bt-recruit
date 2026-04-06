@@ -186,15 +186,18 @@ function PresentationScreen() {
       {/* Value Prop */}
       <section className="bg-white py-16 sm:py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="text-xs font-bold tracking-[0.2em] text-[#3B5A82] uppercase mb-4">
-            Not Another Lead Source.
+          <div className="text-xs font-bold tracking-[0.2em] uppercase mb-4">
+            <span className="text-[#1a1a2e]">Not a Lead Source.</span>{' '}
+            <span className="animate-gradient-fill" style={{ background: 'linear-gradient(90deg, #64b5f6 0%, #81c784 40%, #ffffff 40%, #ffffff 100%)', backgroundSize: '300% 100%', backgroundPosition: '100% 0', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              A Complete System.
+            </span>
           </div>
           <div className="w-12 h-0.5 bg-[#3B5A82] mx-auto mb-6" />
           <h2 className="text-2xl sm:text-4xl font-extrabold text-[#1a1a2e] mb-4">
-            A <span className="text-[#3B5A82]">Real Partnership</span> Built to Win
+            A Real Estate Business&mdash;Already Built for You
           </h2>
           <p className="text-[#6b7280] text-lg max-w-xl mx-auto">
-            For brokerages, teams, and agents done with generic lead gen.
+            No fees. No guesswork. Just execution, daily.
           </p>
         </div>
       </section>
