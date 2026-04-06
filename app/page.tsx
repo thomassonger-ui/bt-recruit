@@ -920,7 +920,7 @@ function AcademyVisual() {
       {/* Moodle top bar */}
       <div style={{ background: "#fff", borderBottom: "1px solid #e0e0e0", padding: "0 20px", height: "48px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #e96e3e, #f4b942, #4caf50, #2196f3, #9c27b0)", flexShrink: 0 }} />
+          <div style={{ background: "#16a34a", color: "#fff", fontSize: "0.55rem", fontWeight: 700, padding: "4px 12px", borderRadius: "9999px", letterSpacing: "0.06em", flexShrink: 0 }}>ONLINE</div>
           {["Home", "Dashboard", "My courses", "Site administration"].map((item, i) => (
             <span key={item} style={{ fontSize: "0.7rem", color: i === 2 ? "#1177d1" : "#555", fontWeight: i === 2 ? 700 : 400, borderBottom: i === 2 ? "2px solid #1177d1" : "none", paddingBottom: i === 2 ? "2px" : "0" }}>{item}</span>
           ))}
