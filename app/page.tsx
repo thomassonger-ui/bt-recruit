@@ -843,7 +843,10 @@ function BearTeamOSVisual() {
             <span key={item} style={{ fontSize: "0.75rem", color: item === "Dashboard" ? "#64b5f6" : "rgba(255,255,255,0.45)", cursor: "pointer", fontWeight: item === "Dashboard" ? 600 : 400 }}>{item}</span>
           ))}
         </div>
-        <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #3b5a82, #1a2a4a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.65rem", color: "#fff", fontWeight: 700 }}>BT</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(22,163,74,0.15)", padding: "4px 12px", borderRadius: "9999px" }}>
+          <div className="animate-pulse" style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e" }} />
+          <span style={{ fontSize: "0.55rem", fontWeight: 700, color: "#22c55e", letterSpacing: "0.06em" }}>ONLINE</span>
+        </div>
       </div>
       {/* Dashboard content */}
       <div style={{ flex: 1, padding: "20px 24px", display: "flex", flexDirection: "column", gap: "14px", overflowY: "hidden" }}>
