@@ -166,3 +166,19 @@ body {
   animation: logoDissolve 1.2s ease-out forwards;
   opacity: 0;
 }
+
+@keyframes gradientFill {
+  0% {
+    background-size: 0% 100%;
+  }
+  100% {
+    background-size: 100% 100%;
+  }
+}
+
+.animate-gradient-fill {
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  animation: gradientFill 1.5s ease-out forwards;
+  animation-delay: 0.3s;
+}

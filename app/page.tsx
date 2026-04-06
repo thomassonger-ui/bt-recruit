@@ -1289,6 +1289,7 @@ function SystemShowcase() {
             Three systems.
             <br />
             <span
+              className="animate-gradient-fill"
               style={{
                 background: "linear-gradient(90deg, #64b5f6, #81c784)",
                 WebkitBackgroundClip: "text",
