@@ -6,9 +6,10 @@ const AGENT_NAME = 'Bethanne'
 const AGENT_FULL = 'Bethanne Baer'
 
 const STATS = [
-  { value: '#1', label: 'Top Producing Team in Central FL' },
-  { value: '12+', label: 'Active Agents' },
-  { value: '10+', label: 'Years in Business' },
+  { value: '40+', label: 'Years' },
+  { value: '7,000', label: 'Sold' },
+  { value: '$4B', label: 'Volume' },
+  { value: '15+', label: 'Markets' },
 ]
 
 const RESOURCES = [
@@ -248,7 +249,7 @@ function PresentationScreen() {
 
       {/* Stats */}
       <section className="py-12 px-4">
-        <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4">
           {STATS.map((s, i) => (
             <div key={i} className="bg-white rounded-xl p-6 text-center border border-gray-100 shadow-sm">
               <div className="text-2xl font-extrabold text-[#1a1a2e]">{s.value}</div>
