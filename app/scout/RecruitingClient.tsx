@@ -419,7 +419,7 @@ function HeroParallaxContent() {
 
       {/* Navbar */}
       <div className="relative z-10">
-        <Navbar>
+        <Navbar variant="light">
           <a
             href="/scout"
             className="text-sm text-white/70 transition-colors hover:text-white"
