@@ -17,7 +17,7 @@ const RESOURCES = [
   { title: 'Inside Scout', desc: 'Meet the people and structure behind the system', href: 'https://www.joinbearteam.com/scout' },
   { title: 'Earnings Breakdown', desc: 'See what this model actually pays', href: 'https://www.joinbearteam.com/chat' },
   { title: 'System Walkthrough', desc: 'How Scout\u2122 + BearTeamOS\u2122 work together', href: 'https://www.joinbearteam.com/' },
-  { title: 'What Happens Next', desc: 'From onboarding \u2192 first deal closed', href: 'https://calendly.com/thomas-songer/bear-team-meet' },
+  { title: 'What Happens Next', desc: 'From onboarding \u2192 first deal closed', href: 'https://www.joinbearteam.com/academy' },
 ]
 
 export default function PresentationPage() {
