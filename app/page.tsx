@@ -24,6 +24,7 @@ interface HeroFadeProps {
 interface ScoutCTAProps {
   size?: "sm" | "lg";
   label?: string;
+  className?: string;
 }
 interface ScreenCardProps {
   children: React.ReactNode;
@@ -121,13 +122,13 @@ function HeroFade({ children, delay = 0 }: HeroFadeProps) {
 
 // ─── Scout CTA button ─────────────────────────────────────────────────────────
 
-function ScoutCTA({ size = "lg", label = "Start with Scout" }: ScoutCTAProps) {
+function ScoutCTA({ size = "lg", label = "Start with Scout", className }: ScoutCTAProps) {
   const pad = size === "lg" ? "14px 32px" : "10px 22px";
   const fontSize = size === "lg" ? "1rem" : "0.875rem";
   return (
     <Link href="https://www.joinbearteam.com/academy" style={{ display: "inline-block", maxWidth: "100%" }}>
       <button
-        className="scout-cta-btn"
+        className={`scout-cta-btn ${className || ""}`}
         style={{
           padding: pad,
           fontSize,
@@ -621,7 +622,7 @@ function HeroParallax() {
           </HeroFade>
           <HeroFade delay={300}>
             <div style={{ display: "flex", justifyContent: "center" }}>
-              <ScoutCTA size="lg" />
+              <ScoutCTA size="lg" label="Try Scout Live" className="animate-logo-dissolve" />
             </div>
           </HeroFade>
         </div>
