@@ -169,16 +169,14 @@ body {
 
 @keyframes gradientFill {
   0% {
-    background-size: 0% 100%;
+    background-position: 100% 0;
   }
   100% {
-    background-size: 100% 100%;
+    background-position: 0% 0;
   }
 }
 
 .animate-gradient-fill {
-  background-repeat: no-repeat;
-  background-size: 0% 100%;
-  animation: gradientFill 1.5s ease-out forwards;
-  animation-delay: 0.3s;
+  animation: gradientFill 3s ease-out forwards;
+  animation-delay: 0.5s;
 }

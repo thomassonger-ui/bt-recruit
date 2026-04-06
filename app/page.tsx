@@ -1291,7 +1291,9 @@ function SystemShowcase() {
             <span
               className="animate-gradient-fill"
               style={{
-                background: "linear-gradient(90deg, #64b5f6, #81c784)",
+                background: "linear-gradient(90deg, #64b5f6 0%, #81c784 40%, #ffffff 40%, #ffffff 100%)",
+                backgroundSize: "300% 100%",
+                backgroundPosition: "100% 0",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
