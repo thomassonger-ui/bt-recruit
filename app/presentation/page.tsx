@@ -12,12 +12,12 @@ const STATS = [
 ]
 
 const RESOURCES = [
-  { title: 'Real Agent Results', desc: 'See actual production, not promises' },
-  { title: 'Live Call Breakdown', desc: 'Hear how Scout\u2122 converts conversations' },
-  { title: 'Inside Bear Team', desc: 'Meet the people and structure behind the system' },
-  { title: 'Earnings Breakdown', desc: 'See what this model actually pays' },
-  { title: 'System Walkthrough', desc: 'How Scout\u2122 + BearTeamOS\u2122 work together' },
-  { title: 'What Happens Next', desc: 'From onboarding \u2192 first deal closed' },
+  { title: 'Real Agent Results', desc: 'See actual production, not promises', href: 'https://www.joinbearteam.com/' },
+  { title: 'Live Call Breakdown', desc: 'Hear how Scout\u2122 converts conversations', href: 'https://www.joinbearteam.com/chat' },
+  { title: 'Inside Scout', desc: 'Meet the people and structure behind the system', href: 'https://www.joinbearteam.com/scout' },
+  { title: 'Earnings Breakdown', desc: 'See what this model actually pays', href: 'https://www.joinbearteam.com/chat' },
+  { title: 'System Walkthrough', desc: 'How Scout\u2122 + BearTeamOS\u2122 work together', href: 'https://www.joinbearteam.com/' },
+  { title: 'What Happens Next', desc: 'From onboarding \u2192 first deal closed', href: 'https://calendly.com/thomas-songer/bear-team-meet' },
 ]
 
 export default function PresentationPage() {
@@ -228,7 +228,7 @@ function PresentationScreen() {
             <h3 className="text-lg font-bold text-[#1a1a2e] mb-4">Resources Unlocked</h3>
             <div className="flex flex-col gap-2">
               {RESOURCES.map((r, i) => (
-                <button key={i} className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 hover:border-[#3B5A82] hover:bg-blue-50/30 transition-colors text-left cursor-pointer w-full">
+                <a key={i} href={r.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 hover:border-[#3B5A82] hover:bg-blue-50/30 transition-colors text-left cursor-pointer w-full no-underline">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-lg shrink-0">
                     <span className="text-[#3B5A82] font-bold text-sm">{i + 1}</span>
                   </div>
@@ -236,12 +236,12 @@ function PresentationScreen() {
                     <div className="text-sm font-semibold text-[#1a1a2e]">{r.title}</div>
                     <div className="text-xs text-[#6b7280]">{r.desc}</div>
                   </div>
-                </button>
+                </a>
               ))}
             </div>
-            <button className="w-full mt-4 py-4 rounded-xl bg-[#3B5A82] text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#2F4768] transition-colors cursor-pointer">
+            <a href="https://calendly.com/thomas-songer/bear-team-meet" target="_blank" rel="noopener noreferrer" className="w-full mt-4 py-4 rounded-xl bg-[#3B5A82] text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#2F4768] transition-colors cursor-pointer no-underline">
               Unlock the System
-            </button>
+            </a>
           </div>
         </div>
       </section>
