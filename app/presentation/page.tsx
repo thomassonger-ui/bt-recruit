@@ -266,9 +266,9 @@ function PresentationScreen() {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1a1a2e] mb-8">What agents say after they make the move.</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              { quote: "In my first year at Coldwell Banker, I went from uncertainty to Rookie of the Year. The structure, systems, and support completely changed how I approached the business.", name: "Sally", detail: "Coldwell Banker → Bear Team", stat: "Rookie of the Year", initials: "S", color: "#1B8C3A" },
-              { quote: "I tripled my production in one year after plugging into the right system. It wasn't about working more — it was about finally having a clear process that actually worked.", name: "Tim", detail: "EXIT Realty → Bear Team", stat: "3× Production Growth", initials: "T", color: "#3b5a82" },
-              { quote: "Reaching the top 1% wasn't luck. It came from operating within a system that removed guesswork and allowed me to focus on high-value activities every day.", name: "Carrie", detail: "Coldwell Banker → Bear Team", stat: "Top 1% Producer", initials: "C", color: "#3b82f6" },
+              { quote: "I was hovering at 6 deals a year, doing a little of everything with no real direction. Once I followed the system, I hit 12 deals without working more hours.", name: "Lauren S.", detail: "RE/MAX \u2192 Bear Team", stat: "Stuck Mid-Level \u2014 Breakthrough", initials: "L", color: "#1B8C3A" },
+              { quote: "I was doing everything manually\u2014calls, follow-ups, tracking\u2014and it was exhausting. This system simplified everything. I\u2019m working less and closing more.", name: "Stephanie L.", detail: "eXp Realty \u2192 Bear Team", stat: "Burned-Out Agent \u2014 Reset", initials: "S", color: "#3b5a82" },
+              { quote: "I used to think I needed to work harder. Turns out I needed a system. The daily plan, follow-up, and scripts changed everything. I\u2019m doing fewer things\u2014but closing more deals.", name: "Chris D.", detail: "Coldwell Banker \u2192 Bear Team", stat: "System > Hustle", initials: "C", color: "#3b82f6" },
             ].map(({ quote, name, detail, stat, initials, color }, i) => (
               <div key={i} className="bg-[#f9fafb] rounded-2xl p-6 border border-gray-100 flex flex-col h-full">
                 <div className="text-xs font-bold tracking-wide uppercase px-3 py-1 rounded-full mb-4 self-start" style={{ background: color + '18', color }}>{stat}</div>
