@@ -39,7 +39,7 @@ export default function BearTeamLogo({
         alt="BT"
         width={iconSize}
         height={iconSize}
-        style={{ objectFit: 'contain', filter: isDark ? 'invert(1) brightness(2)' : 'none' }}
+        style={{ objectFit: 'contain' }}
         aria-hidden="true"
       />
 
