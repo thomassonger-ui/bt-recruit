@@ -1668,7 +1668,13 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={300}>
               <div style={{ display: "flex", justifyContent: "center" }}>
-                <ScoutCTA label="Talk to Scout" />
+                <Link href="https://www.joinbearteam.com/chat" style={{ display: "inline-block" }}>
+                  <button className="scout-cta-btn" style={{ padding: "14px 32px", fontSize: "1rem", fontWeight: 600, letterSpacing: "0.02em", background: "linear-gradient(135deg, #3b5a82 0%, #2c4a72 100%)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", boxShadow: "0 4px 20px rgba(59,90,130,0.45)", transition: "transform 0.2s ease, box-shadow 0.2s ease", minHeight: "44px" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 28px rgba(59,90,130,0.55)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 20px rgba(59,90,130,0.45)"; }}>
+                    Talk to Scout →
+                  </button>
+                </Link>
               </div>
             </Reveal>
           </div>
