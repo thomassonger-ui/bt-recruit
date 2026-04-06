@@ -1582,16 +1582,15 @@ export default function HomePage() {
       {/* ── WHAT SCOUT DOES FOR YOU ── */}
       <section style={{ background: "#ffffff", padding: "clamp(60px,8vw,96px) clamp(20px,5vw,40px)" }}>
         <style>{`
-          .home-flip-card { perspective: 1000px; cursor: default; }
-          .home-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
-          .home-flip-card:hover .home-flip-inner { transform: rotateY(180deg); }
-          .home-flip-front, .home-flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center; padding: 32px 28px; background: #1b365d; }
-          .home-flip-back { transform: rotateY(180deg); align-items: flex-start; }
+          .home-dissolve-card { position: relative; border-radius: 14px; background: #1b365d; overflow: hidden; cursor: default; min-height: 220px; }
+          .home-dissolve-front, .home-dissolve-back { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 32px 28px; transition: opacity 0.6s ease; }
+          .home-dissolve-front { opacity: 1; z-index: 2; }
+          .home-dissolve-back { opacity: 0; z-index: 1; align-items: flex-start; }
+          .home-dissolve-card:hover .home-dissolve-front { opacity: 0; }
+          .home-dissolve-card:hover .home-dissolve-back { opacity: 1; }
           @media (max-width: 640px) {
-            .home-flip-card:hover .home-flip-inner { transform: none; }
-            .home-flip-front { display: none; }
-            .home-flip-back { position: relative; inset: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; }
-            .home-flip-inner { transform: none !important; }
+            .home-dissolve-front { display: none; }
+            .home-dissolve-back { position: relative; opacity: 1; }
           }
         `}</style>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -1604,29 +1603,35 @@ export default function HomePage() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
             {[
-              { title: "Follow-Up Sequences", body: "Give Scout a lead's situation. Get a personalized 5-touch email and text sequence — ready to send in 60 seconds." },
-              { title: "Commission Calculator", body: "Input your current split and volume. Scout shows what you'd net at Bear Team vs. where you are now — exact math." },
-              { title: "Listing Presentation", body: "Input the address and seller objections. Scout builds a custom talking track — pricing rationale, proof points, closes." },
-              { title: "Geo Farm Scripts", body: "Input a neighborhood and price range. Scout writes the door-knock script, mailer copy, and follow-up text." },
-              { title: "Weekly Business Audit", body: "Tell Scout your calls, appointments, and closings. It diagnoses your bottleneck and tells you exactly what to fix." },
-              { title: "Sphere Reactivation", body: "Pick a contact type — past client, neighbor, referral. Scout writes the re-engagement message for the Orlando market." },
+              { title: "Lead Qualification", subtitle: "Real-Time Conversation", gains: ["Eliminates 70\u201380% of unqualified conversations", "Agents only speak to decision-ready prospects", "Reduces time wasted on low-intent leads"] },
+              { title: "Automated Follow-Up", subtitle: "Execution", gains: ["Removes manual follow-up workload", "Ensures zero lead decay (no one \u201cfalls through\u201d)", "Increases contact rate without increasing agent effort"] },
+              { title: "Appointment Setting", subtitle: "Calendar Sync", gains: ["Compresses time from lead \u2192 appointment", "Eliminates back-and-forth scheduling friction", "Keeps agent calendar consistently filled"] },
+              { title: "Conversation Memory", subtitle: "Context Retention", gains: ["Agent never \u201crestarts\u201d a conversation", "Increases trust and perceived professionalism", "Reduces cognitive load (no note-hunting)"] },
+              { title: "Pipeline Advancement", subtitle: "Behavior-Based", gains: ["Removes guesswork in pipeline management", "Keeps agents focused on next best action", "Standardizes conversion behavior across all agents"] },
+              { title: "Closing Prompts", subtitle: "Conversion-Oriented", gains: ["Increases appointment conversion rates", "Eliminates weak or passive communication", "Trains agents implicitly through modeled language"] },
             ].map((item, i) => (
-              <div key={i} className="home-flip-card" style={{ height: 200 }}>
-                <div className="home-flip-inner" style={{ height: "100%" }}>
-                  <div className="home-flip-front">
-                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.1rem", textAlign: "center", fontFamily: "Inter, -apple-system, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
+              <div key={i} className="home-dissolve-card">
+                <div className="home-dissolve-front">
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>{item.subtitle}</div>
+                    <span style={{ color: "#ffffff", fontWeight: 800, fontSize: "1.1rem", fontFamily: "Inter, -apple-system, sans-serif", letterSpacing: "-0.01em" }}>{item.title}</span>
                   </div>
-                  <div className="home-flip-back">
-                    <div>
-                      <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>{item.title}</div>
-                      <div style={{ color: "rgba(255,255,255,0.88)", fontSize: "0.88rem", lineHeight: 1.7, fontFamily: "Inter, -apple-system, sans-serif" }}>{item.body}</div>
-                    </div>
+                </div>
+                <div className="home-dissolve-back">
+                  <div>
+                    <div style={{ color: "#7eb8f7", fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>{item.title}</div>
+                    {item.gains.map((g, j) => (
+                      <div key={j} style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: 10 }}>
+                        <span style={{ color: "#81c784", fontSize: "0.75rem", marginTop: "2px", flexShrink: 0 }}>&#10003;</span>
+                        <span style={{ color: "rgba(255,255,255,0.88)", fontSize: "0.85rem", lineHeight: 1.6, fontFamily: "Inter, -apple-system, sans-serif" }}>{g}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             ))}
           </div>
-                    <div style={{ textAlign: "center", marginTop: 48 }}>
+          <div style={{ textAlign: "center", marginTop: 48 }}>
             <ScoutCTA label="Try Scout Now" />
           </div>
         </div>
