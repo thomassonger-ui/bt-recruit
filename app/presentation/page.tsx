@@ -289,13 +289,16 @@ function PresentationScreen() {
       {/* CTA */}
       <section className="py-16 sm:py-20 px-4 text-center">
         <div className="max-w-lg mx-auto">
-          <button className="w-full sm:w-auto px-12 py-5 rounded-2xl bg-[#3B5A82] text-white font-bold text-lg hover:bg-[#2F4768] transition-colors shadow-lg cursor-pointer">
-            Show Me How This Works
-          </button>
-          <p className="text-xs text-[#6b7280] mt-3">watch a 7 min video</p>
-          <button onClick={() => window.location.reload()} className="mt-6 text-sm text-[#6b7280] hover:text-[#1a1a2e] transition-colors cursor-pointer">
-            Replay
-          </button>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1a1a2e] mb-3">Schedule a Discovery Call</h2>
+          <p className="text-sm text-[#6b7280] mb-8">10 min intro or 60 min deep dive — your choice.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="https://calendly.com/thomas-songer/bear-team-meet" target="_blank" rel="noopener noreferrer" className="px-8 py-4 rounded-xl bg-[#3B5A82] text-white font-bold text-base hover:bg-[#2F4768] transition-colors shadow-lg cursor-pointer no-underline text-center">
+              10 Min Phone Call
+            </a>
+            <a href="https://calendly.com/thomas-songer/60min" target="_blank" rel="noopener noreferrer" className="px-8 py-4 rounded-xl bg-white text-[#3B5A82] font-bold text-base border-2 border-[#3B5A82] hover:bg-[#f0f3f8] transition-colors shadow-sm cursor-pointer no-underline text-center">
+              60 Min Zoom Call
+            </a>
+          </div>
         </div>
       </section>
 
