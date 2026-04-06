@@ -207,21 +207,18 @@ function PresentationScreen() {
       <section className="py-10 sm:py-14 px-4">
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-          {/* Video placeholder */}
-          <div className="bg-gray-300 rounded-2xl aspect-video flex items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-400 to-gray-300" />
-            <div className="relative flex flex-col items-center gap-3">
-              <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                <span className="text-[#3B5A82] text-2xl ml-1">&#9654;</span>
-              </div>
-              <div className="bg-white/90 rounded-full px-4 py-2 flex items-center gap-3 shadow">
-                <span className="text-sm font-semibold text-[#3B5A82]">How it works</span>
-                <span className="text-xs text-[#6b7280] border-l border-gray-300 pl-3">7 min video</span>
-              </div>
-              <div className="text-xs font-bold text-[#3B5A82] tracking-wide uppercase mt-1">
-                Click to Play, {AGENT_NAME}
-              </div>
-            </div>
+          {/* Video */}
+          <div className="rounded-2xl overflow-hidden aspect-video shadow-lg">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/SSc0eeBR4Zo?rel=0"
+              title="Welcome to Bear Team"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{ border: "none" }}
+            />
           </div>
 
           {/* Resources */}
