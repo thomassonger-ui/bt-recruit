@@ -1693,34 +1693,37 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={80}>
               <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
-                Simple. Systemized. Scalable.
+                Your day-to-day, simplified.
               </h2>
             </Reveal>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
-              {[
-                { tag: "Scout™", title: "Free Leads", desc: "Inbound. Ready. You Pick.", accent: "#64b5f6" },
-                { tag: "Scout™", title: "Pre-Screening", desc: "Only serious prospects.", accent: "#64b5f6" },
-                { tag: "Scout™", title: "Booking", desc: "Appointments, auto-filled.", accent: "#64b5f6" },
-                { tag: "BearTeamOS™", title: "Pipeline", desc: "Everything, organized. One place.", accent: "#81c784" },
-                { tag: "BearTeamOS™", title: "Daily Brief", desc: "What to do. Next. Drip campaigns.", accent: "#81c784" },
-                { tag: "Scout™", title: "Follow-Up", desc: "Runs in the background. While you sleep.", accent: "#64b5f6" },
-                { tag: "Scout™", title: "AI Scripts", desc: "What to say, now. Personalized coach.", accent: "#64b5f6" },
-                { tag: "Bear Academy™", title: "Training", desc: "Learn while you earn.", accent: "#ffb74d" },
-                { tag: "BearTeamOS™", title: "Compliance", desc: "Covered. Always.", accent: "#81c784" },
-                { tag: "BearTeamOS™", title: "Execution", desc: "You close. System runs.", accent: "#81c784" },
-              ].map(({ tag, title, desc, accent }, i) => (
-                <Reveal key={i} delay={100 + i * 80}>
-                  <div style={{ background: "#ffffff", borderRadius: "16px", padding: "32px 28px", position: "relative", overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "default" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-6px) scale(1.02)"; e.currentTarget.style.boxShadow = `0 16px 48px ${accent}25`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.06)"; }}>
-                    <div style={{ position: "absolute", top: 0, left: 0, width: "4px", height: "100%", background: accent }} />
-                    <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: accent, marginBottom: "10px" }}>{tag}</div>
-                    <div style={{ fontWeight: 800, fontSize: "1.35rem", color: "#0b1d3a", marginBottom: "10px", letterSpacing: "-0.02em", lineHeight: 1.2 }}>{title}</div>
-                    <div style={{ fontSize: "1rem", color: "#6b7280", lineHeight: 1.6 }}>{desc}</div>
+            {[
+              { num: "01", tag: "Scout™", title: "Free Leads", desc: "Inbound. Ready. You Pick.", bg: "#0b1d3a", accent: "#64b5f6" },
+              { num: "02", tag: "Scout™", title: "Pre-Screening", desc: "Only serious prospects.", bg: "#ffffff", accent: "#3b5a82" },
+              { num: "03", tag: "Scout™", title: "Booking", desc: "Appointments, auto-filled.", bg: "#0b1d3a", accent: "#81c784" },
+              { num: "04", tag: "BearTeamOS™", title: "Pipeline", desc: "Everything, organized. One place.", bg: "#ffffff", accent: "#3b5a82" },
+              { num: "05", tag: "BearTeamOS™", title: "Daily Brief", desc: "What to do. Next. Drip campaigns.", bg: "#0b1d3a", accent: "#64b5f6" },
+              { num: "06", tag: "Scout™", title: "Follow-Up", desc: "Runs in the background. While you sleep.", bg: "#ffffff", accent: "#3b5a82" },
+              { num: "07", tag: "Scout™", title: "AI Scripts", desc: "What to say, now. Personalized coach.", bg: "#0b1d3a", accent: "#81c784" },
+              { num: "08", tag: "Bear Academy™", title: "Training", desc: "Learn while you earn.", bg: "#ffffff", accent: "#ffb74d" },
+              { num: "09", tag: "BearTeamOS™", title: "Compliance", desc: "Covered. Always.", bg: "#0b1d3a", accent: "#64b5f6" },
+              { num: "10", tag: "BearTeamOS™", title: "Execution", desc: "You close. System runs.", bg: "#ffffff", accent: "#3b5a82" },
+            ].map(({ num, tag, title, desc, bg, accent }, i) => {
+              const isDark = bg === "#0b1d3a";
+              return (
+                <Reveal key={num} delay={100 + i * 80}>
+                  <div style={{ display: "flex", gap: "0", marginBottom: "12px", borderRadius: "14px", overflow: "hidden", border: isDark ? "none" : "1px solid #e5e7eb", boxShadow: isDark ? "0 4px 20px rgba(11,29,58,0.18)" : "0 1px 6px rgba(0,0,0,0.04)" }}>
+                    <div style={{ width: "72px", background: accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: "1rem", fontWeight: 800, color: isDark ? "#0b1d3a" : "#fff", letterSpacing: "0.04em" }}>{num}</span>
+                    </div>
+                    <div style={{ flex: 1, padding: "22px 28px", background: bg }}>
+                      <div style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: isDark ? accent : accent, marginBottom: "4px" }}>{tag}</div>
+                      <div style={{ fontWeight: 700, fontSize: "1.05rem", color: isDark ? "#ffffff" : "#0b1d3a", marginBottom: "6px" }}>{title}</div>
+                      <div style={{ fontSize: "0.9rem", color: isDark ? "rgba(255,255,255,0.55)" : "#6b7280", lineHeight: 1.65 }}>{desc}</div>
+                    </div>
                   </div>
                 </Reveal>
-              ))}
-            </div>
+              );
+            })}
             <Reveal delay={900}>
               <h3 style={{ textAlign: "center", marginTop: "48px", fontSize: "clamp(1.4rem, 2.5vw, 2rem)", fontWeight: 800, color: "#0b1d3a", letterSpacing: "-0.02em" }}>
                 Three Systems. One Brokerage.
