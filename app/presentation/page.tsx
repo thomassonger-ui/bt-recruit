@@ -168,14 +168,8 @@ function PresentationScreen() {
       {/* Hero */}
       <section className="py-16 sm:py-24 px-4 text-center">
         <div className="animate-fade-in max-w-3xl mx-auto">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-14 h-14 rounded-full bg-gray-200 border-2 border-white shadow flex items-center justify-center text-lg font-bold text-[#3B5A82]">
-              {AGENT_FULL.split(' ').map(n => n[0]).join('')}
-            </div>
-            <span className="text-[#6b7280] text-lg">+</span>
-            <div className="w-14 h-14 rounded-full bg-white border-2 border-[#3B5A82] shadow flex items-center justify-center text-sm font-bold text-[#3B5A82]">
-              BT
-            </div>
+          <div className="flex items-center justify-center mb-6">
+            <img src="/bt-logo.png" alt="BearTeam" className="w-20 h-20 object-contain" />
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#1a1a2e]">
             Together, let&apos;s make <span className="text-[#3B5A82]">2026</span>
