@@ -35,7 +35,7 @@ export default function BearTeamLogo({
     >
       {/* BT square mark */}
       <img
-        src={isDark ? "/bt-logo.png" : "/bt-logo-white.svg"}
+        src={isDark ? "/bt-logo.png" : "/bt-logo-white.png"}
         alt="BT"
         width={iconSize}
         height={iconSize}

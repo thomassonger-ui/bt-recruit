@@ -344,7 +344,7 @@ function ChatPageInner() {
         <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
           {/* Logo */}
           <a href="/" className="flex shrink-0 items-center gap-2.5 no-underline">
-            <img src="/bt-logo.png" alt="BT" width={32} height={32} style={{ objectFit: 'contain' }} />
+            <img src="/bt-logo-white.png" alt="BT" width={32} height={32} style={{ objectFit: 'contain' }} />
             <span className="hidden text-sm font-bold text-white sm:block" style={{ letterSpacing: "0.01em" }}>
               Bear Real Estate Team
             </span>

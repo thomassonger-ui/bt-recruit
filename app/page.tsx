@@ -184,7 +184,7 @@ function Nav() {
     >
       <div style={{ maxWidth: 1280, margin: "0 auto", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(16px,4vw,40px)" }}>
         <a href="#top" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
-          <img src="/bt-logo.png" alt="BT" width={32} height={32} style={{ objectFit: 'contain' }} />
+          <img src="/bt-logo-white.png" alt="BT" width={32} height={32} style={{ objectFit: 'contain' }} />
           <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.01em" }}>
             Bear Real Estate Team
           </span>
