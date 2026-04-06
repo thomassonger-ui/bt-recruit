@@ -1567,9 +1567,9 @@ export default function HomePage() {
               </Reveal>
             ))}
             <Reveal delay={500}>
-              <div style={{ marginTop: "40px", padding: "28px 32px", background: "rgba(100,181,246,0.06)", border: "1px solid rgba(100,181,246,0.2)", borderRadius: "12px", display: "flex", gap: "20px", alignItems: "center" }}>
-                <div style={{ fontSize: "2rem" }}>→</div>
-                <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.75)", lineHeight: 1.65, margin: 0 }}>
+              <div style={{ marginTop: "40px", padding: "32px 36px", background: "linear-gradient(135deg, rgba(100,181,246,0.15), rgba(129,199,132,0.10))", border: "1px solid rgba(100,181,246,0.35)", borderRadius: "14px", display: "flex", gap: "20px", alignItems: "center", boxShadow: "0 8px 32px rgba(100,181,246,0.15), 0 0 60px rgba(100,181,246,0.05)" }}>
+                <div style={{ fontSize: "1.4rem", color: "#64b5f6" }}>→</div>
+                <p style={{ fontSize: "1.15rem", fontWeight: 600, color: "#ffffff", lineHeight: 1.65, margin: 0, letterSpacing: "-0.01em" }}>
                   Every piece of this runs on day one. You don&rsquo;t build it — you walk into it.
                 </p>
               </div>
