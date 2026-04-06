@@ -259,15 +259,28 @@ function PresentationScreen() {
         </div>
       </section>
 
-      {/* Team */}
+      {/* Testimonials */}
       <section className="bg-white py-16 sm:py-20 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="text-xs font-bold tracking-[0.2em] text-[#3B5A82] uppercase mb-2">Our Team</div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1a1a2e] mb-2">Meet the BearTeam</h2>
-          <p className="text-[#6b7280] mb-8">The support system behind top-producing agents in Central Florida.</p>
-          <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="w-full aspect-square rounded-full bg-gray-200 border-2 border-white shadow-sm" />
+          <div className="text-xs font-bold tracking-[0.2em] text-[#3B5A82] uppercase mb-2">Agent Results</div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1a1a2e] mb-8">What agents say after they make the move.</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { quote: "In my first year at Coldwell Banker, I went from uncertainty to Rookie of the Year. The structure, systems, and support completely changed how I approached the business.", name: "Sally", detail: "Coldwell Banker → Bear Team", stat: "Rookie of the Year", initials: "S", color: "#1B8C3A" },
+              { quote: "I tripled my production in one year after plugging into the right system. It wasn't about working more — it was about finally having a clear process that actually worked.", name: "Tim", detail: "EXIT Realty → Bear Team", stat: "3× Production Growth", initials: "T", color: "#3b5a82" },
+              { quote: "Reaching the top 1% wasn't luck. It came from operating within a system that removed guesswork and allowed me to focus on high-value activities every day.", name: "Carrie", detail: "Coldwell Banker → Bear Team", stat: "Top 1% Producer", initials: "C", color: "#3b82f6" },
+            ].map(({ quote, name, detail, stat, initials, color }, i) => (
+              <div key={i} className="bg-[#f9fafb] rounded-2xl p-6 border border-gray-100 flex flex-col h-full">
+                <div className="text-xs font-bold tracking-wide uppercase px-3 py-1 rounded-full mb-4 self-start" style={{ background: color + '18', color }}>{stat}</div>
+                <p className="text-sm text-[#374151] leading-relaxed flex-1 italic mb-5">&ldquo;{quote}&rdquo;</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ background: color }}>{initials}</div>
+                  <div>
+                    <div className="text-sm font-bold text-[#1a1a2e]">{name}</div>
+                    <div className="text-xs text-[#9ca3af]">{detail}</div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
