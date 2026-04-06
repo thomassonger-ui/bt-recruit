@@ -1696,28 +1696,27 @@ export default function HomePage() {
                 Simple. Systemized. Scalable.
               </h2>
             </Reveal>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
               {[
-                { tag: "Scout™", title: "Free Leads", desc: "Inbound. Ready. You Pick.", accent: "#64b5f6", icon: "🎯" },
-                { tag: "Scout™", title: "Pre-Screening", desc: "Only serious prospects.", accent: "#64b5f6", icon: "🔍" },
-                { tag: "Scout™", title: "Booking", desc: "Appointments, auto-filled.", accent: "#64b5f6", icon: "📅" },
-                { tag: "BearTeamOS™", title: "Pipeline", desc: "Everything, organized. One place.", accent: "#81c784", icon: "📊" },
-                { tag: "BearTeamOS™", title: "Daily Brief", desc: "What to do. Next. Drip campaigns.", accent: "#81c784", icon: "📋" },
-                { tag: "Scout™", title: "Follow-Up", desc: "Runs in the background. While you sleep.", accent: "#64b5f6", icon: "🔄" },
-                { tag: "Scout™", title: "AI Scripts", desc: "What to say, now. Personalized coach.", accent: "#64b5f6", icon: "💬" },
-                { tag: "Bear Academy™", title: "Training", desc: "Learn while you earn.", accent: "#ffb74d", icon: "🎓" },
-                { tag: "BearTeamOS™", title: "Compliance", desc: "Covered. Always.", accent: "#81c784", icon: "✅" },
-                { tag: "BearTeamOS™", title: "Execution", desc: "You close. System runs.", accent: "#81c784", icon: "🚀" },
-              ].map(({ tag, title, desc, accent, icon }, i) => (
+                { tag: "Scout™", title: "Free Leads", desc: "Inbound. Ready. You Pick.", accent: "#64b5f6" },
+                { tag: "Scout™", title: "Pre-Screening", desc: "Only serious prospects.", accent: "#64b5f6" },
+                { tag: "Scout™", title: "Booking", desc: "Appointments, auto-filled.", accent: "#64b5f6" },
+                { tag: "BearTeamOS™", title: "Pipeline", desc: "Everything, organized. One place.", accent: "#81c784" },
+                { tag: "BearTeamOS™", title: "Daily Brief", desc: "What to do. Next. Drip campaigns.", accent: "#81c784" },
+                { tag: "Scout™", title: "Follow-Up", desc: "Runs in the background. While you sleep.", accent: "#64b5f6" },
+                { tag: "Scout™", title: "AI Scripts", desc: "What to say, now. Personalized coach.", accent: "#64b5f6" },
+                { tag: "Bear Academy™", title: "Training", desc: "Learn while you earn.", accent: "#ffb74d" },
+                { tag: "BearTeamOS™", title: "Compliance", desc: "Covered. Always.", accent: "#81c784" },
+                { tag: "BearTeamOS™", title: "Execution", desc: "You close. System runs.", accent: "#81c784" },
+              ].map(({ tag, title, desc, accent }, i) => (
                 <Reveal key={i} delay={100 + i * 80}>
-                  <div style={{ background: "#0b1d3a", borderRadius: "14px", padding: "24px 24px 20px", position: "relative", overflow: "hidden", border: `1px solid ${accent}22`, boxShadow: `0 4px 24px ${accent}18`, transition: "transform 0.25s ease, box-shadow 0.25s ease", cursor: "default" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = `0 12px 36px ${accent}30`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 4px 24px ${accent}18`; }}>
-                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3px", background: `linear-gradient(90deg, ${accent}, transparent)` }} />
-                    <div style={{ fontSize: "1.6rem", marginBottom: "12px" }}>{icon}</div>
-                    <div style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: accent, marginBottom: "6px" }}>{tag}</div>
-                    <div style={{ fontWeight: 800, fontSize: "1.1rem", color: "#ffffff", marginBottom: "6px", letterSpacing: "-0.01em" }}>{title}</div>
-                    <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{desc}</div>
+                  <div style={{ background: "#ffffff", borderRadius: "16px", padding: "32px 28px", position: "relative", overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "default" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-6px) scale(1.02)"; e.currentTarget.style.boxShadow = `0 16px 48px ${accent}25`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.06)"; }}>
+                    <div style={{ position: "absolute", top: 0, left: 0, width: "4px", height: "100%", background: accent }} />
+                    <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: accent, marginBottom: "10px" }}>{tag}</div>
+                    <div style={{ fontWeight: 800, fontSize: "1.35rem", color: "#0b1d3a", marginBottom: "10px", letterSpacing: "-0.02em", lineHeight: 1.2 }}>{title}</div>
+                    <div style={{ fontSize: "1rem", color: "#6b7280", lineHeight: 1.6 }}>{desc}</div>
                   </div>
                 </Reveal>
               ))}
