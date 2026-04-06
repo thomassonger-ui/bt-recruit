@@ -43,6 +43,7 @@ export default function PresentationPage() {
 }
 
 const TEAM = [
+  { name: 'Tom Songer', title: 'Team Lead', img: '/images/tom-songer.jpg' },
   { name: 'Allen Baer', title: 'Title Agent', img: '/images/allen-baer.jpg' },
   { name: 'Lissette Dennis', title: 'Sales Agent', img: '/images/lissette-dennis.jpg' },
   { name: 'Owen Willis', title: 'Property Manager', img: '/images/owen-willis.jpg' },
