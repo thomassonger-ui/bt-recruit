@@ -1698,13 +1698,13 @@ export default function HomePage() {
             </Reveal>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
               {[
-                { tag: "Scout™", title: "Free Leads", desc: "Inbound. Qualified. Ready.", accent: "#64b5f6", icon: "🎯" },
+                { tag: "Scout™", title: "Free Leads", desc: "Inbound. Ready. You Pick.", accent: "#64b5f6", icon: "🎯" },
                 { tag: "Scout™", title: "Pre-Screening", desc: "Only serious prospects.", accent: "#64b5f6", icon: "🔍" },
                 { tag: "Scout™", title: "Booking", desc: "Appointments, auto-filled.", accent: "#64b5f6", icon: "📅" },
-                { tag: "BearTeamOS™", title: "Pipeline", desc: "Everything, organized.", accent: "#81c784", icon: "📊" },
-                { tag: "BearTeamOS™", title: "Daily Brief", desc: "What to do. Next.", accent: "#81c784", icon: "📋" },
-                { tag: "Scout™", title: "Follow-Up", desc: "Runs in the background.", accent: "#64b5f6", icon: "🔄" },
-                { tag: "Scout™", title: "AI Scripts", desc: "What to say, now.", accent: "#64b5f6", icon: "💬" },
+                { tag: "BearTeamOS™", title: "Pipeline", desc: "Everything, organized. One place.", accent: "#81c784", icon: "📊" },
+                { tag: "BearTeamOS™", title: "Daily Brief", desc: "What to do. Next. Drip campaigns.", accent: "#81c784", icon: "📋" },
+                { tag: "Scout™", title: "Follow-Up", desc: "Runs in the background. While you sleep.", accent: "#64b5f6", icon: "🔄" },
+                { tag: "Scout™", title: "AI Scripts", desc: "What to say, now. Personalized coach.", accent: "#64b5f6", icon: "💬" },
                 { tag: "Bear Academy™", title: "Training", desc: "Learn while you earn.", accent: "#ffb74d", icon: "🎓" },
                 { tag: "BearTeamOS™", title: "Compliance", desc: "Covered. Always.", accent: "#81c784", icon: "✅" },
                 { tag: "BearTeamOS™", title: "Execution", desc: "You close. System runs.", accent: "#81c784", icon: "🚀" },
@@ -1722,6 +1722,11 @@ export default function HomePage() {
                 </Reveal>
               ))}
             </div>
+            <Reveal delay={900}>
+              <h3 style={{ textAlign: "center", marginTop: "48px", fontSize: "clamp(1.4rem, 2.5vw, 2rem)", fontWeight: 800, color: "#0b1d3a", letterSpacing: "-0.02em" }}>
+                Three Systems. One Brokerage.
+              </h3>
+            </Reveal>
           </div>
         </section>
 
