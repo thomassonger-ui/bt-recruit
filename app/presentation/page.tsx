@@ -12,12 +12,12 @@ const STATS = [
 ]
 
 const RESOURCES = [
-  { title: 'Agent Results', desc: 'Meet the agents on our team' },
-  { title: 'Hear Live Calls', desc: 'Listen to actual warm transfer calls' },
-  { title: 'Meet the Team', desc: '12+ team members ready to support you' },
-  { title: 'Earnings', desc: 'Calculate your projected income' },
-  { title: 'FAQs', desc: 'Common questions answered' },
-  { title: 'Next Steps', desc: 'What happens after you partner' },
+  { title: 'Real Agent Results', desc: 'See actual production, not promises' },
+  { title: 'Live Call Breakdown', desc: 'Hear how Scout\u2122 converts conversations' },
+  { title: 'Inside Bear Team', desc: 'Meet the people and structure behind the system' },
+  { title: 'Earnings Breakdown', desc: 'See what this model actually pays' },
+  { title: 'System Walkthrough', desc: 'How Scout\u2122 + BearTeamOS\u2122 work together' },
+  { title: 'What Happens Next', desc: 'From onboarding \u2192 first deal closed' },
 ]
 
 export default function PresentationPage() {
@@ -240,7 +240,7 @@ function PresentationScreen() {
               ))}
             </div>
             <button className="w-full mt-4 py-4 rounded-xl bg-[#3B5A82] text-white font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#2F4768] transition-colors cursor-pointer">
-              Access Resources
+              Unlock the System
             </button>
           </div>
         </div>
