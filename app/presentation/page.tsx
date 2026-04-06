@@ -172,10 +172,13 @@ function PresentationScreen() {
             <img src="/bt-logo.png" alt="BearTeam" className="w-20 h-20 object-contain" />
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#1a1a2e]">
-            Together, let&apos;s make <span className="text-[#3B5A82]">2026</span>
+            Three Systems.{' '}
+            <span className="animate-gradient-fill" style={{ background: 'linear-gradient(90deg, #64b5f6 0%, #81c784 40%, #ffffff 40%, #ffffff 100%)', backgroundSize: '300% 100%', backgroundPosition: '100% 0', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              One Brokerage.
+            </span>
           </h2>
-          <p className="text-xl sm:text-2xl font-semibold text-[#34C759] italic mt-2">
-            better than 2025
+          <p className="text-lg sm:text-xl font-semibold text-[#6b7280] mt-3">
+            Free Leads. No Fees. Built-In Execution.
           </p>
         </div>
       </section>
