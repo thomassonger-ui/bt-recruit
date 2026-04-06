@@ -42,6 +42,177 @@ export default function PresentationPage() {
   return <PresentationScreen />
 }
 
+const TEAM = [
+  { name: 'Allen Baer', img: '/images/allen-baer.jpg' },
+  { name: 'Lissette Dennis', img: '/images/lissette-dennis.jpg' },
+  { name: 'Owen Willis', img: '/images/owen-willis.jpg' },
+  { name: 'Shanelle Mitchell', img: '/images/shanelle-mitchell.jpg' },
+  { name: 'Beth Baer', img: '/images/beth-baer.jpg' },
+]
+
+function TeamCarousel() {
+  const [active, setActive] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActive(prev => (prev + 1) % TEAM.length)
+    }, 3500)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Position each card relative to active: -2, -1, 0, +1, +2
+  const getPos = (i: number) => {
+    let diff = i - active
+    if (diff > Math.floor(TEAM.length / 2)) diff -= TEAM.length
+    if (diff < -Math.floor(TEAM.length / 2)) diff += TEAM.length
+    return diff
+  }
+
+  return (
+    <div className="relative max-w-5xl mx-auto" style={{ height: 340 }}>
+      {TEAM.map((member, i) => {
+        const pos = getPos(i)
+        const isCenter = pos === 0
+        const isNear = Math.abs(pos) === 1
+        const isFar = Math.abs(pos) >= 2
+
+        // 3D transforms
+        const translateX = pos * 180
+        const translateZ = isCenter ? 80 : isNear ? 0 : -80
+        const rotateY = pos * -15
+        const scale = isCenter ? 1.15 : isNear ? 0.85 : 0.65
+        const zIndex = isCenter ? 30 : isNear ? 20 : 10
+        const opacity = isFar ? 0.3 : isNear ? 0.6 : 1
+
+        return (
+          <button
+            key={i}
+            onClick={() => setActive(i)}
+            className="absolute left-1/2 border-none bg-transparent cursor-pointer outline-none"
+            style={{
+              transform: `translateX(calc(-50% + ${translateX}px)) perspective(1000px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
+              zIndex,
+              opacity,
+              transition: 'all 0.7s cubic-bezier(0.4,0,0.2,1)',
+              top: 0,
+            }}
+          >
+            {/* Glow behind active */}
+            {isCenter && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: -12,
+                  borderRadius: 28,
+                  background: 'radial-gradient(ellipse at center, rgba(59,90,130,0.35) 0%, transparent 70%)',
+                  filter: 'blur(16px)',
+                  zIndex: -1,
+                  animation: 'pulseGlow 2.5s ease-in-out infinite',
+                }}
+              />
+            )}
+
+            {/* Photo card */}
+            <div
+              style={{
+                width: 180,
+                height: 230,
+                borderRadius: 20,
+                overflow: 'hidden',
+                boxShadow: isCenter
+                  ? '0 20px 60px rgba(59,90,130,0.4), 0 0 0 3px rgba(59,90,130,0.6)'
+                  : '0 8px 30px rgba(0,0,0,0.15)',
+                transition: 'all 0.7s cubic-bezier(0.4,0,0.2,1)',
+              }}
+            >
+              <img
+                src={member.img}
+                alt={member.name}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'top',
+                  filter: isCenter ? 'brightness(1.05)' : 'grayscale(50%) brightness(0.85)',
+                  transition: 'filter 0.7s ease',
+                }}
+              />
+            </div>
+
+            {/* Name label */}
+            <div
+              style={{
+                marginTop: 16,
+                fontSize: isCenter ? 16 : 13,
+                fontWeight: isCenter ? 800 : 600,
+                color: isCenter ? '#1a1a2e' : '#9ca3af',
+                letterSpacing: isCenter ? '0.02em' : 0,
+                transition: 'all 0.7s ease',
+                textAlign: 'center',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {member.name}
+            </div>
+
+            {/* Role line — only visible on active */}
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#3B5A82',
+                textAlign: 'center',
+                opacity: isCenter ? 1 : 0,
+                transform: isCenter ? 'translateY(0)' : 'translateY(6px)',
+                transition: 'all 0.5s ease 0.15s',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase' as const,
+              }}
+            >
+              Bear Team Agent
+            </div>
+          </button>
+        )
+      })}
+
+      {/* Nav arrows */}
+      <button
+        onClick={() => setActive(prev => (prev - 1 + TEAM.length) % TEAM.length)}
+        className="absolute left-2 sm:left-8 top-1/2 -translate-y-1/2 bg-white border-none rounded-full shadow-lg cursor-pointer flex items-center justify-center hover:scale-110"
+        style={{ width: 44, height: 44, zIndex: 40, transition: 'transform 0.2s', color: '#3B5A82' }}
+      >
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 4l-6 6 6 6"/></svg>
+      </button>
+      <button
+        onClick={() => setActive(prev => (prev + 1) % TEAM.length)}
+        className="absolute right-2 sm:right-8 top-1/2 -translate-y-1/2 bg-white border-none rounded-full shadow-lg cursor-pointer flex items-center justify-center hover:scale-110"
+        style={{ width: 44, height: 44, zIndex: 40, transition: 'transform 0.2s', color: '#3B5A82' }}
+      >
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 4l6 6-6 6"/></svg>
+      </button>
+
+      {/* Progress dots */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-2" style={{ zIndex: 40 }}>
+        {TEAM.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setActive(i)}
+            className="border-none cursor-pointer p-0"
+            style={{
+              width: i === active ? 28 : 8,
+              height: 8,
+              borderRadius: 4,
+              background: i === active ? '#3B5A82' : '#d1d5db',
+              transition: 'all 0.4s ease',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /* ════════════════════════════════════════
    ENVELOPE SCREEN
    ════════════════════════════════════════ */
@@ -254,6 +425,15 @@ function PresentationScreen() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Team Carousel */}
+      <section className="py-16 sm:py-20 px-4 overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center mb-10">
+          <div className="text-xs font-bold tracking-[0.2em] text-[#3B5A82] uppercase mb-2">The Team</div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1a1a2e]">Real people. Real results.</h2>
+        </div>
+        <TeamCarousel />
       </section>
 
       {/* Testimonials */}
