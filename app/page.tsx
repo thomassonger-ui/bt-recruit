@@ -1681,6 +1681,15 @@ export default function HomePage() {
         </section>
 
 
+      {/* ── BRIDGE: Scout → Day-to-Day ── */}
+        <section style={{ padding: "clamp(40px,6vw,64px) clamp(20px,5vw,40px)", background: "#f0f3f8", textAlign: "center" }}>
+          <Reveal>
+            <p style={{ fontSize: "clamp(1.1rem, 2vw, 1.35rem)", fontWeight: 600, color: "#6b7280", maxWidth: "520px", margin: "0 auto", lineHeight: 1.6 }}>
+              That&rsquo;s one conversation. Here&rsquo;s what a full day looks like inside Bear Team.
+            </p>
+          </Reveal>
+        </section>
+
       {/* ── DAY-TO-DAY ── */}
 
         <section style={{ padding: "clamp(60px,9vw,100px) clamp(20px,5vw,40px)", background: "#f0f3f8" }}>
