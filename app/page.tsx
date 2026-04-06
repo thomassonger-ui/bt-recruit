@@ -1848,31 +1848,6 @@ export default function HomePage() {
         </section>
 
 
-      {/* ── FINAL CTA ── */}
-
-        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f3f8", textAlign: "center" }}>
-          <Reveal>
-            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "16px", lineHeight: 1.15 }}>
-              Stop Guessing. Start Producing.
-            </h2>
-          </Reveal>
-          <Reveal delay={100}>
-            <p style={{ fontSize: "1.05rem", color: "#6b7280", maxWidth: "440px", margin: "0 auto 40px", lineHeight: 1.65 }}>
-              No commitment. You&rsquo;re not joining today — you&rsquo;re starting a conversation with a system that has answers.
-            </p>
-          </Reveal>
-          <Reveal delay={200}>
-            <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
-              <ScoutCTA size="lg" />
-              <a href="#systems" style={{ padding: "14px 32px", fontSize: "1rem", fontWeight: 600, color: "#3b5a82", border: "2px solid #3b5a82", borderRadius: "8px", textDecoration: "none", display: "inline-block" }}>
-                See How It Works
-              </a>
-            </div>
-          </Reveal>
-        </section>
-
-
-
       {/* ── AGENT TESTIMONIALS ── */}
       <section style={{ background: "#f0f3f8", padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)" }}>
         <div style={{ maxWidth: "960px", margin: "0 auto" }}>
@@ -1913,15 +1888,12 @@ export default function HomePage() {
             ].map(({ quote, name, detail, stat, initials, color }, i) => (
               <Reveal key={name} delay={i * 120}>
                 <div style={{ background: "#ffffff", borderRadius: "14px", padding: "32px 28px", border: "1px solid #e5e7eb", display: "flex", flexDirection: "column", height: "100%", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
-                  {/* Stat badge */}
                   <div style={{ display: "inline-block", background: color + "18", color, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase", padding: "5px 12px", borderRadius: "20px", marginBottom: "20px", alignSelf: "flex-start" }}>
                     {stat}
                   </div>
-                  {/* Quote */}
                   <p style={{ fontSize: "0.95rem", lineHeight: 1.7, color: "#374151", flex: 1, margin: "0 0 24px", fontStyle: "italic" }}>
                     &ldquo;{quote}&rdquo;
                   </p>
-                  {/* Attribution */}
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", paddingTop: "20px", borderTop: "1px solid #f3f4f6" }}>
                     <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: color, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "0.95rem", color: "#fff", flexShrink: 0 }}>
                       {initials}
@@ -1937,6 +1909,31 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── FINAL CTA ── */}
+
+        <section style={{ padding: "clamp(48px,8vw,80px) clamp(20px,5vw,40px)", background: "#f0f3f8", textAlign: "center" }}>
+          <Reveal>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "16px", lineHeight: 1.15 }}>
+              Stop Guessing. Start Producing.
+            </h2>
+          </Reveal>
+          <Reveal delay={100}>
+            <p style={{ fontSize: "1.05rem", color: "#6b7280", maxWidth: "440px", margin: "0 auto 40px", lineHeight: 1.65 }}>
+              No commitment. You&rsquo;re not joining today — you&rsquo;re starting a conversation with a system that has answers.
+            </p>
+          </Reveal>
+          <Reveal delay={200}>
+            <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
+              <ScoutCTA size="lg" />
+              <a href="#systems" style={{ padding: "14px 32px", fontSize: "1rem", fontWeight: 600, color: "#3b5a82", border: "2px solid #3b5a82", borderRadius: "8px", textDecoration: "none", display: "inline-block" }}>
+                See How It Works
+              </a>
+            </div>
+          </Reveal>
+        </section>
+
+
 
       {/* ── TESTIMONIAL ── */}
       <section style={{ background: "#0B1D3A", padding: "clamp(48px,8vw,80px) clamp(16px,5vw,40px)", textAlign: "center" }}>
