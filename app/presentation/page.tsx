@@ -304,7 +304,7 @@ function PresentationScreen() {
 
       {/* Footer */}
       <footer className="py-8 px-4 text-center border-t border-gray-200">
-        <p className="text-xs text-[#6b7280]">&copy; 2026 Bear Real Estate Team</p>
+        <p className="text-xs text-[#6b7280]">&copy; 2026 Bear Real Estate Team &middot; <a href="/privacy" className="text-[#3B5A82] no-underline hover:underline">Privacy Policy</a></p>
       </footer>
     </div>
   )

@@ -1982,8 +1982,10 @@ export default function HomePage() {
           <a href="/scout" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>The System</a>
           <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
           <a href="/academy" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Academy</a>
+          <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
+          <a href="/privacy" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Privacy Policy</a>
         </div>
-        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)" }}>Copyright WorldTeachPathways 2026</div>
+        <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)" }}>&copy; 2026 Bear Real Estate Team. All rights reserved.</div>
       </footer>
     </main>
   );
