@@ -1333,7 +1333,7 @@ function SystemShowcase() {
           label="Brokerage Operating System"
           title="BearTeamOS"
           description="The backend of the brokerage. Commission tracking, agent tiers, transaction management, and the progressive cap model — all in one system."
-          href="https://www.joinbearteam.com/BearTeamOS"
+          href="https://www.joinbearteam.com/bearteamos"
           external={true}
           visual={<BearTeamOSVisual />}
         />
