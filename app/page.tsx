@@ -1693,32 +1693,35 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={80}>
               <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 800, color: "#0b1d3a", marginBottom: "56px", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
-                Your day-to-day, simplified.
+                Simple. Systemized. Scalable.
               </h2>
             </Reveal>
-            {[
-              { num: "01", title: "Scout surfaces your next deal", desc: "AI-assisted pipeline visibility — Scout tells you who to follow up with and when.", bg: "#0b1d3a", accent: "#64b5f6" },
-              { num: "02", title: "System tracks your tier progress", desc: "See exactly where you are on the graduation path. No guessing.", bg: "#ffffff", accent: "#3b5a82" },
-              { num: "03", title: "Transactions handled by TC", desc: "Our coordinator manages paperwork and timelines so you stay in front of clients.", bg: "#0b1d3a", accent: "#81c784" },
-              { num: "04", title: "You close and graduate", desc: "Every deal moves you up the split ladder — automatically.", bg: "#ffffff", accent: "#3b5a82" },
-            ].map(({ num, title, desc, bg, accent }, i) => {
-              const isDark = bg === "#0b1d3a";
-              return (
-                <Reveal key={num} delay={100 + i * 100}>
-                  <div style={{ display: "flex", gap: "0", marginBottom: "12px", borderRadius: "14px", overflow: "hidden", border: isDark ? "none" : "1px solid #e5e7eb", boxShadow: isDark ? "0 4px 20px rgba(11,29,58,0.18)" : "0 1px 6px rgba(0,0,0,0.04)" }}>
-                    {/* Number tab */}
-                    <div style={{ width: "72px", background: accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: "1rem", fontWeight: 800, color: isDark ? "#0b1d3a" : "#fff", letterSpacing: "0.04em" }}>{num}</span>
-                    </div>
-                    {/* Content */}
-                    <div style={{ flex: 1, padding: "22px 28px", background: bg }}>
-                      <div style={{ fontWeight: 700, fontSize: "1.05rem", color: isDark ? "#ffffff" : "#0b1d3a", marginBottom: "6px" }}>{title}</div>
-                      <div style={{ fontSize: "0.9rem", color: isDark ? "rgba(255,255,255,0.55)" : "#6b7280", lineHeight: 1.65 }}>{desc}</div>
-                    </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
+              {[
+                { tag: "Scout™", title: "Free Leads", desc: "Inbound. Qualified. Ready.", accent: "#64b5f6", icon: "🎯" },
+                { tag: "Scout™", title: "Pre-Screening", desc: "Only serious prospects.", accent: "#64b5f6", icon: "🔍" },
+                { tag: "Scout™", title: "Booking", desc: "Appointments, auto-filled.", accent: "#64b5f6", icon: "📅" },
+                { tag: "BearTeamOS™", title: "Pipeline", desc: "Everything, organized.", accent: "#81c784", icon: "📊" },
+                { tag: "BearTeamOS™", title: "Daily Brief", desc: "What to do. Next.", accent: "#81c784", icon: "📋" },
+                { tag: "Scout™", title: "Follow-Up", desc: "Runs in the background.", accent: "#64b5f6", icon: "🔄" },
+                { tag: "Scout™", title: "AI Scripts", desc: "What to say, now.", accent: "#64b5f6", icon: "💬" },
+                { tag: "Bear Academy™", title: "Training", desc: "Learn while you earn.", accent: "#ffb74d", icon: "🎓" },
+                { tag: "BearTeamOS™", title: "Compliance", desc: "Covered. Always.", accent: "#81c784", icon: "✅" },
+                { tag: "BearTeamOS™", title: "Execution", desc: "You close. System runs.", accent: "#81c784", icon: "🚀" },
+              ].map(({ tag, title, desc, accent, icon }, i) => (
+                <Reveal key={i} delay={100 + i * 80}>
+                  <div style={{ background: "#0b1d3a", borderRadius: "14px", padding: "24px 24px 20px", position: "relative", overflow: "hidden", border: `1px solid ${accent}22`, boxShadow: `0 4px 24px ${accent}18`, transition: "transform 0.25s ease, box-shadow 0.25s ease", cursor: "default" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = `0 12px 36px ${accent}30`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 4px 24px ${accent}18`; }}>
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3px", background: `linear-gradient(90deg, ${accent}, transparent)` }} />
+                    <div style={{ fontSize: "1.6rem", marginBottom: "12px" }}>{icon}</div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: accent, marginBottom: "6px" }}>{tag}</div>
+                    <div style={{ fontWeight: 800, fontSize: "1.1rem", color: "#ffffff", marginBottom: "6px", letterSpacing: "-0.01em" }}>{title}</div>
+                    <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{desc}</div>
                   </div>
                 </Reveal>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </section>
 
