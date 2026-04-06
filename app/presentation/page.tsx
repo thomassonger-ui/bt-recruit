@@ -43,11 +43,11 @@ export default function PresentationPage() {
 }
 
 const TEAM = [
-  { name: 'Allen Baer', img: '/images/allen-baer.jpg' },
-  { name: 'Lissette Dennis', img: '/images/lissette-dennis.jpg' },
-  { name: 'Owen Willis', img: '/images/owen-willis.jpg' },
-  { name: 'Shanelle Mitchell', img: '/images/shanelle-mitchell.jpg' },
-  { name: 'Beth Baer', img: '/images/beth-baer.jpg' },
+  { name: 'Allen Baer', title: 'Title Agent', img: '/images/allen-baer.jpg' },
+  { name: 'Lissette Dennis', title: 'Sales Agent', img: '/images/lissette-dennis.jpg' },
+  { name: 'Owen Willis', title: 'Property Manager', img: '/images/owen-willis.jpg' },
+  { name: 'Shanelle Mitchell', title: 'Sales Agent', img: '/images/shanelle-mitchell.jpg' },
+  { name: 'Bethanne Baer', title: 'Broker/Owner', img: '/images/beth-baer.jpg' },
 ]
 
 function TeamCarousel() {
@@ -155,7 +155,7 @@ function TeamCarousel() {
               {member.name}
             </div>
 
-            {/* Role line — only visible on active */}
+            {/* Title line */}
             <div
               style={{
                 marginTop: 4,
@@ -170,7 +170,7 @@ function TeamCarousel() {
                 textTransform: 'uppercase' as const,
               }}
             >
-              Bear Team Agent
+              {member.title}
             </div>
           </button>
         )
