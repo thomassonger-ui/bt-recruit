@@ -1863,26 +1863,26 @@ export default function HomePage() {
             {[
               {
                 quote: "In my first year at Coldwell Banker, I went from uncertainty to Rookie of the Year. The structure, systems, and support completely changed how I approached the business.",
-                name: "Venesa",
+                name: "Sally",
                 detail: "Coldwell Banker → Bear Team",
                 stat: "Rookie of the Year",
-                initials: "V",
+                initials: "S",
                 color: "#1B8C3A",
               },
               {
                 quote: "I tripled my production in one year after plugging into the right system. It wasn't about working more — it was about finally having a clear process that actually worked.",
-                name: "Joe",
+                name: "Tim",
                 detail: "EXIT Realty → Bear Team",
                 stat: "3× Production Growth",
-                initials: "J",
+                initials: "T",
                 color: "#3b5a82",
               },
               {
                 quote: "Reaching the top 1% wasn't luck. It came from operating within a system that removed guesswork and allowed me to focus on high-value activities every day.",
-                name: "Mike",
+                name: "Carrie",
                 detail: "Coldwell Banker → Bear Team",
                 stat: "Top 1% Producer",
-                initials: "M",
+                initials: "C",
                 color: "#3b82f6",
               },
             ].map(({ quote, name, detail, stat, initials, color }, i) => (
