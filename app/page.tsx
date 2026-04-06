@@ -1506,14 +1506,14 @@ export default function HomePage() {
               "They&rsquo;re paying their brokerage hundreds a month and getting nothing back.",
               "They hit a ceiling and can&rsquo;t figure out why. No visibility. No structure. No next step.",
             ].map((text, i) => (
-              <Reveal key={i} delay={150 + i * 120}>
+              <Reveal key={i} delay={300 + i * 600}>
                 <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", marginBottom: "32px", paddingBottom: "32px", borderBottom: i < 2 ? "1px solid rgba(0,0,0,0.06)" : "none" }}>
                   <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#dc2626", marginTop: "7px", flexShrink: 0, boxShadow: "0 0 0 3px rgba(220,38,38,0.12)" }} />
                   <p style={{ fontSize: "1.1rem", lineHeight: 1.7, color: "#374151", margin: 0 }} dangerouslySetInnerHTML={{ __html: text }} />
                 </div>
               </Reveal>
             ))}
-            <Reveal delay={550}>
+            <Reveal delay={2100}>
               <div style={{ marginTop: "8px", borderLeft: "3px solid #dc2626", paddingLeft: "24px" }}>
                 <p style={{ fontSize: "1rem", fontStyle: "italic", color: "#6b7280", lineHeight: 1.65, margin: 0 }}>
                   The brokerage isn&rsquo;t the problem. The absence of a system is.
