@@ -141,7 +141,7 @@ function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
             Find What&apos;s Missing
           </a>
           <a
-            href="https://www.joinbearteam.com/"
+            href="https://www.joinbearteam.com/bearteamos"
             className={`w-full py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer no-underline ${activeTab === 2 ? 'bg-[#0F2747] text-white shadow-lg scale-[1.02] border border-[#0F2747]' : 'bg-white border border-gray-200 text-[#1a1a2e]'}`}
           >
             Explore BearTeamOS&#8482;
