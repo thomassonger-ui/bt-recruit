@@ -204,7 +204,7 @@ function PresentationScreen() {
       </section>
 
       {/* Video + Resources */}
-      <section className="py-16 sm:py-20 px-4">
+      <section className="py-10 sm:py-14 px-4">
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
 
           {/* Video placeholder */}
@@ -248,7 +248,7 @@ function PresentationScreen() {
       </section>
 
       {/* Stats */}
-      <section className="py-12 px-4">
+      <section className="py-6 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4">
           {STATS.map((s, i) => (
             <div key={i} className="bg-white rounded-xl p-6 text-center border border-gray-100 shadow-sm">
