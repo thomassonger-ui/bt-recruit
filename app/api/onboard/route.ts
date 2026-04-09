@@ -222,6 +222,25 @@ export async function POST(req: NextRequest) {
       })
       .eq("email", email.toLowerCase().trim());
 
+    // ── 3b. Send Supabase magic link so agent can access BearTeamOS ───────────
+    try {
+      const supabaseAdmin = createClient(
+        (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "magiclink",
+        email: email.toLowerCase().trim(),
+        options: {
+          redirectTo: "https://bearteam-os-dashboard.vercel.app/dashboard",
+        },
+      });
+      console.log(`[onboard] Magic link generated for ${email}`);
+    } catch (magicErr) {
+      console.error("[onboard] Magic link generation failed:", magicErr);
+      // Non-fatal — agent can use /login to request their own
+    }
+
     // ── 4. Write agent trigger file ────────────────────────────────────────────
     const agentTxtContent = buildAgentTxt(agentData, now);
     const fileName = `${fullName.replace(/\s+/g, "_")}_${now.toISOString().split("T")[0]}.txt`;
@@ -260,6 +279,7 @@ export async function POST(req: NextRequest) {
       bearteamos: { username: btUsername, provisioned: provision.success },
       actions: [
         "welcome_email_sent_with_credentials",
+        "magic_link_sent_to_agent",
         "tom_alerted",
         "drip_stopped",
         "stage_updated_to_onboarding",
