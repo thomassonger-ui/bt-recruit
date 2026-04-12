@@ -7,66 +7,67 @@ export const runtime = "nodejs"
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text()
-    
-    // Log the FULL raw payload so we can see exactly what Calendly sends
-    console.log(`[webhook] RAW PAYLOAD: ${rawBody}`)
-    
     const body = JSON.parse(rawBody)
     const eventType = body.event
     const payload = body.payload || {}
 
-    console.log(`[webhook] event=${eventType}`)
-    console.log(`[webhook] invitee field type=${typeof payload.invitee} value=${JSON.stringify(payload.invitee)?.slice(0,200)}`)
+    console.log(`[wh] event=${eventType} tokenLen=${process.env.CALENDLY_TOKEN?.length||0}`)
 
     if (eventType !== "invitee.created") {
       return NextResponse.json({ ok: true, skipped: eventType })
     }
 
-    // Get invitee URI from payload
+    // Handle ALL possible Calendly payload formats
+    // Format A (v2 API): payload.invitee = string URI
+    // Format B (older):  payload.invitee = object { uri, email, name }
+    // Format C (some):   payload.email + payload.name directly in payload
     const inviteeUri = typeof payload.invitee === "string"
       ? payload.invitee
       : payload.invitee?.uri || null
 
-    const scheduledEvent = payload.scheduled_event || {}
-    const eventStart = scheduledEvent.start_time || null
-    const eventEnd = scheduledEvent.end_time || null
-    const eventUri = scheduledEvent.uri || null
-
-    console.log(`[webhook] inviteeUri=${inviteeUri}`)
-    console.log(`[webhook] hasCalendlyToken=${!!process.env.CALENDLY_TOKEN}`)
-    console.log(`[webhook] tokenLength=${process.env.CALENDLY_TOKEN?.length || 0}`)
-
-    // Fetch invitee details
-    let name = "Unknown"
-    let email = ""
+    // Try to get email/name directly from payload first (works in some formats)
+    let name  = payload.invitee?.name  || payload.name  || ""
+    let email = payload.invitee?.email || payload.email || ""
     let phone = ""
 
-    if (inviteeUri && process.env.CALENDLY_TOKEN) {
+    const scheduledEvent = payload.scheduled_event || payload.event_type || {}
+    const eventStart = scheduledEvent.start_time || payload.event_start_time || null
+    const eventEnd   = scheduledEvent.end_time   || payload.event_end_time   || null
+    const eventUri   = scheduledEvent.uri || null
+
+    console.log(`[wh] inviteeUri=${inviteeUri} directEmail=${email} directName=${name}`)
+
+    // If we got email directly from payload, skip the API call
+    if (!email && inviteeUri && process.env.CALENDLY_TOKEN) {
       const r = await fetch(inviteeUri, {
         headers: { Authorization: `Bearer ${process.env.CALENDLY_TOKEN}` }
       })
-      console.log(`[webhook] Calendly API status=${r.status}`)
+      console.log(`[wh] Calendly API status=${r.status}`)
       if (r.ok) {
         const data = await r.json()
-        const inv = data.resource || {}
-        name  = inv.name  || "Unknown"
-        email = inv.email || ""
+        const inv = data.resource || data
+        name  = inv.name  || name  || "Unknown"
+        email = inv.email || email || ""
         const qa = inv.questions_and_answers || []
-        phone = qa.find((q: { question: string; answer: string }) =>
-          q.question?.toLowerCase().includes("phone") ||
-          q.question?.toLowerCase().includes("number")
+        phone = qa.find((q: {question:string;answer:string}) =>
+          q.question?.toLowerCase().includes("phone") || q.question?.toLowerCase().includes("number")
         )?.answer || ""
-        console.log(`[webhook] SUCCESS: name=${name} email=${email}`)
+        console.log(`[wh] API fetch OK: name=${name} email=${email}`)
       } else {
         const txt = await r.text()
-        console.error(`[webhook] Calendly API FAILED: status=${r.status} body=${txt}`)
+        console.error(`[wh] API fetch FAILED: ${r.status} — ${txt.slice(0,200)}`)
       }
-    } else {
-      console.error(`[webhook] SKIP: inviteeUri=${inviteeUri} hasToken=${!!process.env.CALENDLY_TOKEN} tokenLen=${process.env.CALENDLY_TOKEN?.length}`)
+    } else if (email) {
+      // Got email directly from payload
+      const qa = payload.invitee?.questions_and_answers || payload.questions_and_answers || []
+      phone = qa.find((q: {question:string;answer:string}) =>
+        q.question?.toLowerCase().includes("phone") || q.question?.toLowerCase().includes("number")
+      )?.answer || ""
+      console.log(`[wh] Got email directly from payload: ${email}`)
     }
 
     if (!email) {
-      console.error(`[webhook] NO EMAIL — cannot write lead`)
+      console.error(`[wh] NO EMAIL. inviteeUri=${inviteeUri} tokenLen=${process.env.CALENDLY_TOKEN?.length||0} rawPayload=${rawBody.slice(0,500)}`)
       if (process.env.NOTIFY_EMAIL && process.env.SENDGRID_API_KEY) {
         await fetch("https://api.sendgrid.com/v3/mail/send", {
           method: "POST",
@@ -74,13 +75,15 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             personalizations: [{ to: [{ email: process.env.NOTIFY_EMAIL }] }],
             from: { email: "tom@bearteam.com" },
-            subject: "⚠️ Booking received — email missing, manual entry needed",
-            content: [{ type: "text/html", value: `<p>Booking fired but email could not be resolved.</p><p>Invitee URI: ${inviteeUri}</p><p>Event start: ${eventStart}</p><p>Token length: ${process.env.CALENDLY_TOKEN?.length || 0}</p>` }]
+            subject: "⚠️ Booking — email missing, manual entry needed",
+            content: [{ type: "text/html", value: `<p>Invitee URI: ${inviteeUri}</p><p>Token length in Vercel: ${process.env.CALENDLY_TOKEN?.length||0}</p><p>Event: ${eventStart}</p><p>Raw (first 500): ${rawBody.slice(0,500)}</p>` }]
           })
         })
       }
-      return NextResponse.json({ ok: false, error: "no email" })
+      return NextResponse.json({ ok: false, error: "no email", tokenLen: process.env.CALENDLY_TOKEN?.length||0 })
     }
+
+    name = name || "Unknown"
 
     // Write to Supabase
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -100,9 +103,9 @@ export async function POST(req: NextRequest) {
             status: "booked"
           })
       if (error) {
-        console.error(`[webhook] Supabase error:`, JSON.stringify(error))
+        console.error(`[wh] Supabase error: ${JSON.stringify(error)}`)
       } else {
-        console.log(`[webhook] Supabase OK: ${name} ${emailKey}`)
+        console.log(`[wh] Supabase OK: ${name} ${emailKey}`)
       }
     }
 
@@ -118,7 +121,7 @@ export async function POST(req: NextRequest) {
           personalizations: [{ to: [{ email: process.env.NOTIFY_EMAIL }] }],
           from: { email: "tom@bearteam.com" },
           subject: `📞 Call booked — ${name} · ${timeStr}`,
-          content: [{ type: "text/html", value: `<p><strong>${name}</strong><br>${email}<br>${phone || "no phone"}<br>${timeStr} ET</p>` }]
+          content: [{ type: "text/html", value: `<p><strong>${name}</strong><br>${email}<br>${phone||"no phone"}<br>${timeStr} ET</p>` }]
         })
       })
     }
@@ -126,7 +129,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, name, email })
 
   } catch (err) {
-    console.error("[webhook] Error:", err)
+    console.error("[wh] Crash:", err)
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 }
