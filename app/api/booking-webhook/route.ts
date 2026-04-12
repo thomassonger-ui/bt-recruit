@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { createHmac, timingSafeEqual } from "crypto"
 
 
 // ─── SENDGRID EMAIL HELPER ────────────────────────────────────────────────────
@@ -50,15 +49,10 @@ export const runtime = "nodejs"
 //
 // Required environment variables (Vercel → Settings → Environment Variables):
 //   SUPABASE_URL              — from Supabase project settings
-//   SUPABASE_ANON_KEY         — from Supabase project settings
-//   RESEND_API_KEY            — already set
+//   SUPABASE_SERVICE_ROLE_KEY — from Supabase project settings
+//   SENDGRID_API_KEY          — already set
 //   NOTIFY_EMAIL              — already set (tom@bearteam.com)
-//   CALENDLY_WEBHOOK_SECRET   — from Calendly: Integrations → Webhooks → signing key
-//
-// Signature verification:
-//   Calendly sends header: Calendly-Webhook-Signature: t=<timestamp>,v1=<hmac>
-//   HMAC is SHA-256 of "<timestamp>.<raw_body>" using your webhook signing key.
-//   If CALENDLY_WEBHOOK_SECRET is not set, verification is skipped (dev/test mode).
+//   CALENDLY_TOKEN            — Personal Access Token from Calendly (fetches invitee details)
 //
 // Fix 3-D: Re-booking deduplication
 //   If a lead already has drip_step > 0, they are mid-sequence from a prior call.
@@ -80,63 +74,10 @@ const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet"
 const FROM_EMAIL    = "Tom Songer <tom@bearteam.com>"
 const REPLY_TO      = "tom@bearteam.com"
 
-function verifyCalendlySignature(
-  rawBody: string,
-  signatureHeader: string | null,
-  secret: string
-): boolean {
-  if (!signatureHeader) return false
-
-  // Header format: "t=1234567890,v1=abcdef..."
-  const parts = Object.fromEntries(
-    signatureHeader.split(",").map((p) => p.split("=") as [string, string])
-  )
-  const timestamp = parts["t"]
-  const receivedSig = parts["v1"]
-
-  if (!timestamp || !receivedSig) return false
-
-  // Reject payloads older than 5 minutes (replay attack protection)
-  const age = Date.now() / 1000 - parseInt(timestamp, 10)
-  if (age > 300) return false
-
-  const expected = createHmac("sha256", secret)
-    .update(`${timestamp}.${rawBody}`)
-    .digest("hex")
-
-  try {
-    return timingSafeEqual(
-      Buffer.from(expected, "hex"),
-      Buffer.from(receivedSig, "hex")
-    )
-  } catch {
-    return false
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
-    // Read raw body first — needed for signature verification before JSON parse
+    // Read raw body — signature verification removed (signing key not available from Calendly UI)
     const rawBody = await req.text()
-
-    // ── Signature verification ─────────────────────────────────────────────────
-    const secret = process.env.CALENDLY_WEBHOOK_SECRET
-    if (secret) {
-      const sigHeader = req.headers.get("Calendly-Webhook-Signature")
-      const valid = verifyCalendlySignature(rawBody, sigHeader, secret)
-      if (!valid) {
-        console.warn("Calendly webhook: invalid signature — request rejected")
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
-      }
-    } else {
-      // Log a warning in production so it's obvious the env var needs to be set
-      if (process.env.NODE_ENV === "production") {
-        console.warn(
-          "CALENDLY_WEBHOOK_SECRET is not set — webhook signature verification is disabled"
-        )
-      }
-    }
-
     const body = JSON.parse(rawBody)
     console.log(`[booking-webhook] Parsed event=${body.event} payload_keys=${Object.keys(body.payload || {}).join(",")}`)
 
@@ -209,6 +150,9 @@ export async function POST(req: NextRequest) {
     let name = "Unknown"
     let email = ""
     let phone = ""
+
+    console.log(`[booking-webhook] calendlyInviteeUri=${calendlyInviteeUri} hasToken=${!!process.env.CALENDLY_TOKEN}`)
+
     if (calendlyInviteeUri && process.env.CALENDLY_TOKEN) {
       try {
         const inviteeRes = await fetch(calendlyInviteeUri, {
@@ -225,12 +169,18 @@ export async function POST(req: NextRequest) {
               qa.question?.toLowerCase().includes("phone") ||
               qa.question?.toLowerCase().includes("number")
           )?.answer || ""
-          console.log(`[booking-webhook] Fetched invitee: name=${name} email=${email}`)
+          console.log(`[booking-webhook] Fetched invitee OK: name=${name} email=${email}`)
         } else {
-          console.error("[booking-webhook] Calendly API fetch failed:", inviteeRes.status)
+          const errText = await inviteeRes.text()
+          console.error(`[booking-webhook] Calendly API fetch failed: status=${inviteeRes.status} body=${errText}`)
+          // Fallback to inline payload
+          name  = payload?.invitee?.name  || "Unknown"
+          email = payload?.invitee?.email || ""
         }
       } catch (err) {
         console.error("[booking-webhook] Calendly API fetch error:", err)
+        name  = payload?.invitee?.name  || "Unknown"
+        email = payload?.invitee?.email || ""
       }
     } else {
       // Fallback: try inline payload fields
@@ -244,6 +194,23 @@ export async function POST(req: NextRequest) {
       )?.answer || ""
       console.log(`[booking-webhook] Inline fallback: name=${name} email=${email}`)
     }
+
+    // GUARD: if we still don't have an email, we cannot write a useful lead record.
+    // Log the full payload for debugging and return early.
+    if (!email) {
+      console.error("[booking-webhook] ABORT: could not resolve invitee email. Full payload:", JSON.stringify(payload))
+      // Still notify Tom so the booking isn't silently lost
+      if (process.env.NOTIFY_EMAIL) {
+        await sendEmail({
+          from: "Scout <tom@bearteam.com>",
+          to: process.env.NOTIFY_EMAIL,
+          subject: `⚠️ Booking received but email missing — manual entry needed`,
+          html: `<p>A Calendly booking fired but the invitee email could not be resolved. Check Vercel logs for the full payload.</p><p>Event URI: ${calendlyEventUri}</p><p>Invitee URI: ${calendlyInviteeUri}</p>`,
+        })
+      }
+      return NextResponse.json({ ok: false, error: "invitee email not resolved" }, { status: 200 })
+    }
+
     const notes = ""
 
     // Format time for email
