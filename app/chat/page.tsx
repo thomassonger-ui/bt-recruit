@@ -490,7 +490,15 @@ function ChatPageInner() {
                             li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                             strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                             a: ({ href, children }) => (
-                              <a href={href} className="underline" target="_blank" rel="noopener noreferrer">{children}</a>
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block mt-3 px-5 py-2.5 rounded-lg font-semibold text-sm no-underline shadow-sm"
+                                style={{ background: '#c9a84c', color: '#1a1a1a' }}
+                              >
+                                {children}
+                              </a>
                             ),
                           }}
                         >
