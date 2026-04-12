@@ -18,14 +18,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Handle ALL possible Calendly payload formats
-    // Format A (v2 API): payload.invitee = string URI
-    // Format B (older):  payload.invitee = object { uri, email, name }
-    // Format C (some):   payload.email + payload.name directly in payload
     const inviteeUri = typeof payload.invitee === "string"
       ? payload.invitee
       : payload.invitee?.uri || null
 
-    // Try to get email/name directly from payload first (works in some formats)
     let name  = payload.invitee?.name  || payload.name  || ""
     let email = payload.invitee?.email || payload.email || ""
     let phone = ""
@@ -37,7 +33,6 @@ export async function POST(req: NextRequest) {
 
     console.log(`[wh] inviteeUri=${inviteeUri} directEmail=${email} directName=${name}`)
 
-    // If we got email directly from payload, skip the API call
     if (!email && inviteeUri && process.env.CALENDLY_TOKEN) {
       const r = await fetch(inviteeUri, {
         headers: { Authorization: `Bearer ${process.env.CALENDLY_TOKEN}` }
@@ -52,13 +47,12 @@ export async function POST(req: NextRequest) {
         phone = qa.find((q: {question:string;answer:string}) =>
           q.question?.toLowerCase().includes("phone") || q.question?.toLowerCase().includes("number")
         )?.answer || ""
-        console.log(`[wh] API fetch OK: name=${name} email=${email}`)
+        console.log(`[wh] API fetch OK: name=${name} email=${email} phone=${phone}`)
       } else {
         const txt = await r.text()
         console.error(`[wh] API fetch FAILED: ${r.status} — ${txt.slice(0,200)}`)
       }
     } else if (email) {
-      // Got email directly from payload
       const qa = payload.invitee?.questions_and_answers || payload.questions_and_answers || []
       phone = qa.find((q: {question:string;answer:string}) =>
         q.question?.toLowerCase().includes("phone") || q.question?.toLowerCase().includes("number")
@@ -89,13 +83,23 @@ export async function POST(req: NextRequest) {
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
       const emailKey = email.toLowerCase().trim()
-      const { data: existing } = await sb.from("leads").select("id").eq("email", emailKey).maybeSingle()
+      const { data: existing } = await sb.from("leads").select("id, phone").eq("email", emailKey).maybeSingle()
+
+      // Build update payload — only overwrite phone if Calendly gave us one,
+      // otherwise preserve whatever Scout already saved
+      const updatePayload: Record<string, string | null> = {
+        name,
+        event_start: eventStart,
+        event_end: eventEnd,
+        calendly_event_uri: eventUri,
+        calendly_invitee_uri: inviteeUri,
+        status: "booked",
+        updated_at: new Date().toISOString(),
+      }
+      if (phone) updatePayload.phone = phone  // only set if Calendly returned a phone
+
       const { error } = existing
-        ? await sb.from("leads").update({
-            name, phone, event_start: eventStart, event_end: eventEnd,
-            calendly_event_uri: eventUri, calendly_invitee_uri: inviteeUri,
-            status: "booked", updated_at: new Date().toISOString()
-          }).eq("id", existing.id)
+        ? await sb.from("leads").update(updatePayload).eq("id", existing.id)
         : await sb.from("leads").insert({
             name, email: emailKey, phone,
             event_start: eventStart, event_end: eventEnd,
@@ -105,7 +109,7 @@ export async function POST(req: NextRequest) {
       if (error) {
         console.error(`[wh] Supabase error: ${JSON.stringify(error)}`)
       } else {
-        console.log(`[wh] Supabase OK: ${name} ${emailKey}`)
+        console.log(`[wh] Supabase OK: ${name} ${emailKey} phone=${existing?.phone || phone || "none"}`)
       }
     }
 
