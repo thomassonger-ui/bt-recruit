@@ -489,17 +489,34 @@ function ChatPageInner() {
                             ol: ({ children }) => <ol className="mb-2 list-decimal space-y-1 pl-4">{children}</ol>,
                             li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                             strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                            a: ({ href, children }) => (
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-block mt-3 px-5 py-2.5 rounded-lg font-semibold text-sm no-underline shadow-sm"
-                                style={{ background: '#c9a84c', color: '#1a1a1a' }}
-                              >
-                                {children}
-                              </a>
-                            ),
+                            a: ({ href, children }) => {
+                              const isCalendly = href && href.includes('calendly.com')
+                              if (isCalendly) {
+                                return (
+                                  <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      display: 'inline-block',
+                                      marginTop: '12px',
+                                      padding: '12px 24px',
+                                      borderRadius: '8px',
+                                      background: '#c9a84c',
+                                      color: '#1a1a1a',
+                                      fontWeight: 700,
+                                      fontSize: '14px',
+                                      textDecoration: 'none',
+                                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                      letterSpacing: '0.01em',
+                                    }}
+                                  >
+                                    {children}
+                                  </a>
+                                )
+                              }
+                              return <a href={href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline', color: '#1a1a1a' }}>{children}</a>
+                            },
                           }}
                         >
                           {msg.content}
