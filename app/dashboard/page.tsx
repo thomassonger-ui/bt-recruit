@@ -44,6 +44,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [joiningId, setJoiningId] = useState<string | null>(null)
+  const [joinModal, setJoinModal] = useState<{ leadId: string; leadName: string } | null>(null)
+  const [joinConfirmText, setJoinConfirmText] = useState("")
   const [pausingDripId, setPausingDripId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "leads" | "stalled" | "drip" | "prospects">("overview")
 
@@ -110,14 +112,21 @@ export default function DashboardPage() {
     finally { setAcceptingId(null) }
   }
 
-  const markJoined = async (leadId: string) => {
-    if (!confirm("Mark this agent as joined? This will send them a welcome email and alert Tom.")) return
-    setJoiningId(leadId)
+  const markJoined = (leadId: string, leadName: string) => {
+    setJoinModal({ leadId, leadName })
+    setJoinConfirmText("")
+  }
+
+  const confirmMarkJoined = async () => {
+    if (!joinModal) return
+    setJoiningId(joinModal.leadId)
+    setJoinModal(null)
+    setJoinConfirmText("")
     try {
       const res = await fetch("/api/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId, pw: password }),
+        body: JSON.stringify({ leadId: joinModal.leadId, pw: password }),
       })
       if (res.ok) {
         alert("Done — welcome email sent, Tom alerted.")
@@ -464,7 +473,7 @@ export default function DashboardPage() {
                       <td style={{ padding: "10px 14px", color: "#6B7280", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.notes || "—"}</td>
                       <td style={{ padding: "10px 14px" }}>
                         {lead.status !== "joined" && lead.email ? (
-                          <button onClick={() => markJoined(lead.id)} disabled={joiningId === lead.id}
+                          <button onClick={() => markJoined(lead.id, lead.name || lead.email)} disabled={joiningId === lead.id}
                             style={{ background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A", color: joiningId === lead.id ? "#9CA3AF" : "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: joiningId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
                             {joiningId === lead.id ? "Sending..." : "Mark Joined"}
                           </button>
@@ -692,7 +701,7 @@ export default function DashboardPage() {
                         <td style={{ padding: "10px 14px", fontWeight: 600, color: "#1B8C3A" }}>{fmt$(lead.estimated_value)}</td>
                         <td style={{ padding: "10px 14px", color: "#6B7280" }}>{lead.drip_step > 0 ? `Email ${lead.drip_step} sent` : "Not started"}</td>
                         <td style={{ padding: "10px 14px" }}>
-                          <button onClick={() => markJoined(lead.id)} disabled={joiningId === lead.id}
+                          <button onClick={() => markJoined(lead.id, lead.name || lead.email)} disabled={joiningId === lead.id}
                             style={{ background: "#0B1D3A", color: "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                             Mark Joined
                           </button>
@@ -831,6 +840,44 @@ export default function DashboardPage() {
         )}
 
       </div>
+
+      {/* Mark Joined confirmation modal — requires typing agent name */}
+      {joinModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: "32px 36px", maxWidth: 420, width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
+            <div style={{ fontSize: 22, marginBottom: 8 }}>⚠️ Confirm Onboarding</div>
+            <p style={{ color: "#374151", fontSize: 14, lineHeight: 1.6, margin: "0 0 20px" }}>
+              This will <strong>immediately send {joinModal.leadName} a welcome email with their BearTeamOS login credentials</strong>. This cannot be undone.
+            </p>
+            <p style={{ color: "#6B7280", fontSize: 13, margin: "0 0 8px" }}>
+              Type <strong style={{ color: "#0B1D3A" }}>{joinModal.leadName}</strong> to confirm:
+            </p>
+            <input
+              autoFocus
+              value={joinConfirmText}
+              onChange={e => setJoinConfirmText(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && joinConfirmText === joinModal.leadName) confirmMarkJoined() }}
+              placeholder={joinModal.leadName}
+              style={{ width: "100%", padding: "10px 12px", border: "2px solid #E5E7EB", borderRadius: 6, fontSize: 14, outline: "none", boxSizing: "border-box", marginBottom: 20 }}
+            />
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button
+                onClick={() => { setJoinModal(null); setJoinConfirmText("") }}
+                style={{ padding: "9px 20px", borderRadius: 6, border: "1px solid #E5E7EB", background: "#fff", color: "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+                Cancel
+              </button>
+              <button
+                onClick={confirmMarkJoined}
+                disabled={joinConfirmText !== joinModal.leadName}
+                style={{ padding: "9px 20px", borderRadius: 6, border: "none", background: joinConfirmText === joinModal.leadName ? "#C62828" : "#E5E7EB", color: joinConfirmText === joinModal.leadName ? "#fff" : "#9CA3AF", fontWeight: 700, fontSize: 13, cursor: joinConfirmText === joinModal.leadName ? "pointer" : "default", transition: "background 0.15s" }}>
+                Send Credentials
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
+
