@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
       .lt("event_end", fourHoursAgo.toISOString())
       .is("call_outcome", null)
       .or("noshow_followup_sent.is.null,noshow_followup_sent.eq.false")
-      .not("stage", "in", '("Closed Won","Closed Lost")');
+      .not("stage", "in", '("Closed Won","Closed Lost","scout_captured","Onboarding")');
 
     if (inferenceError) {
       console.error("[drip-cron] Completion inference query error:", inferenceError);
@@ -182,7 +182,7 @@ export async function GET(req: NextRequest) {
         .select("*")
         .lt(anchor, windowEnd.toISOString())
         .gt(anchor, windowStart.toISOString())
-        .not("stage", "in", '("Closed Won","Closed Lost")')
+        .not("stage", "in", '("Closed Won","Closed Lost","scout_captured","Onboarding")')
         .not("email", "is", null)
         .neq("email", "")
         .or(stepFilter)
@@ -546,3 +546,4 @@ function buildTomDripSummary(results: Array<{ email: string; name: string; drip_
 </body>
 </html>`.trim();
 }
+
