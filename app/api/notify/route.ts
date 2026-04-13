@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: process.env.NOTIFY_EMAIL! }] }],
-        from: { email: "tom@bearteam.com", name: "Scout" },
+        from: { email: "thomas.songer@gmail.com", name: "Scout" },
         subject: "Someone is using Scout",
         content: [{
           type: "text/html",
