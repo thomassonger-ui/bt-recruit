@@ -22,8 +22,8 @@ import { postToBuffer } from "@/bearsignal/runtime/buffer";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const FROM_EMAIL = "Tom Songer <tom@bearteam.com>";
-const REPLY_TO   = "tom@bearteam.com";
+const FROM_EMAIL = "Tom Songer <thomas.songer@gmail.com>";
+const REPLY_TO   = "thomas.songer@gmail.com";
 
 type Channel = "email" | "linkedin";
 
@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const toEmail = process.env.SIGNAL_TO_EMAIL || "tom@bearteam.com";
+  const toEmail = process.env.SIGNAL_TO_EMAIL || "thomas.songer@gmail.com";
   const now     = new Date();
   const dow     = now.getDay();
   const channel = CHANNEL_BY_DOW[dow];
