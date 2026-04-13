@@ -472,13 +472,15 @@ export default function DashboardPage() {
                       </td>
                       <td style={{ padding: "10px 14px", color: "#6B7280", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.notes || "—"}</td>
                       <td style={{ padding: "10px 14px" }}>
-                        {lead.status !== "joined" && lead.email ? (
+                        {lead.status === "joined" ? (
+                          <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
+                        ) : lead.email && lead.event_end && new Date(lead.event_end) < new Date() ? (
                           <button onClick={() => markJoined(lead.id, lead.name || lead.email)} disabled={joiningId === lead.id}
                             style={{ background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A", color: joiningId === lead.id ? "#9CA3AF" : "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: joiningId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
                             {joiningId === lead.id ? "Sending..." : "Mark Joined"}
                           </button>
-                        ) : lead.status === "joined" ? (
-                          <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
+                        ) : lead.email && lead.event_end ? (
+                          <span style={{ fontSize: 11, color: "#6B7280" }}>Call pending</span>
                         ) : null}
                       </td>
                     </tr>
@@ -701,10 +703,14 @@ export default function DashboardPage() {
                         <td style={{ padding: "10px 14px", fontWeight: 600, color: "#1B8C3A" }}>{fmt$(lead.estimated_value)}</td>
                         <td style={{ padding: "10px 14px", color: "#6B7280" }}>{lead.drip_step > 0 ? `Email ${lead.drip_step} sent` : "Not started"}</td>
                         <td style={{ padding: "10px 14px" }}>
-                          <button onClick={() => markJoined(lead.id, lead.name || lead.email)} disabled={joiningId === lead.id}
-                            style={{ background: "#0B1D3A", color: "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
-                            Mark Joined
-                          </button>
+                          {lead.event_end && new Date(lead.event_end) < new Date() ? (
+                            <button onClick={() => markJoined(lead.id, lead.name || lead.email)} disabled={joiningId === lead.id}
+                              style={{ background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A", color: joiningId === lead.id ? "#9CA3AF" : "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: joiningId === lead.id ? "default" : "pointer" }}>
+                              {joiningId === lead.id ? "Sending..." : "Mark Joined"}
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: 11, color: "#6B7280" }}>Call pending</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -880,4 +886,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
 
