@@ -18,18 +18,18 @@ async function sendEmail(to: string, subject: string, html: string, replyTo?: st
     headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
-      from: { email: "tom@bearteam.com", name: "Tom Songer" },
-      reply_to: { email: replyTo || "tom@bearteam.com" },
+      from: { email: "thomas.songer@gmail.com", name: "Tom Songer" },
+      reply_to: { email: replyTo || "thomas.songer@gmail.com" },
       subject,
       content: [{ type: "text/html", value: html }],
     }),
   })
 }
 
-const TOM_EMAIL = "tom@bearteam.com";
+const TOM_EMAIL = "thomas.songer@gmail.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
-const FROM_EMAIL = "Tom Songer <tom@bearteam.com>";
-const REPLY_TO = "tom@bearteam.com";
+const FROM_EMAIL = "Tom Songer <thomas.songer@gmail.com>";
+const REPLY_TO = "thomas.songer@gmail.com";
 
 // ─── COLD CRON — TWO SEGMENTS ─────────────────────────────────────────────────
 //
