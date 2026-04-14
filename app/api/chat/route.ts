@@ -13,16 +13,57 @@ function getOpenAI() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 async function sendEmail(to: string, subject: string, html: string) {
   const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey) { console.error("[chat] SENDGRID_API_KEY not set"); return; }
-  await fetch("https://api.sendgrid.com/v3/mail/send", {
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
     method: "POST",
     headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
-      from: { email: "scout@joinbearteam.com", name: "Scout" },
+      from: { email: "thomas.songer@gmail.com", name: "Scout | Bear Team" },
       subject,
       content: [{ type: "text/html", value: html }],
     }),
   });
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error(`[chat] SendGrid error ${res.status}:`, errText);
+  } else {
+    console.log(`[chat] Email sent to ${to}: ${subject}`);
+  }
+}
+
+/**
+ * Extract a name from conversation history.
+ * Looks for the user response immediately after Scout asks for their name.
+ */
+function extractName(messages: { role: string; content: string }[]): string | undefined {
+  for (let i = 1; i < messages.length; i++) {
+    const prev = messages[i - 1];
+    const curr = messages[i];
+    if (
+      prev.role === "assistant" &&
+      /your (?:full )?name|first and last/i.test(prev.content) &&
+      curr.role === "user"
+    ) {
+      const text = curr.content.trim();
+      // Must look like a name — 1-4 words, no email/phone
+      if (text.split(/\s+/).length <= 5 && !text.includes("@") && !/\d{7,}/.test(text)) {
+        return text;
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Extract a phone number from conversation history.
+ */
+function extractPhone(messages: { role: string; content: string }[]): string | undefined {
+  for (const msg of messages) {
+    if (msg.role !== "user") continue;
+    const match = msg.content.match(/(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+    if (match) return match[0].replace(/\s+/g, "");
+  }
+  return undefined;
 }
 
 // Lazy init — avoids build-time crash
@@ -318,6 +359,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Extract name/phone from conversation history (frontend doesn't send as body params)
+    const extractedName = bodyName || extractName(chatMessages);
+    const extractedPhone = bodyPhone || extractPhone(chatMessages);
+
     if (resolvedEmail) {
       const returningLead = await getReturningLead(resolvedEmail);
       if (returningLead) {
@@ -329,10 +374,11 @@ export async function POST(req: NextRequest) {
         const leadData: Partial<LeadRecord> = {
           email: resolvedEmail,
           stage: "scout_captured",
+          source: "scout_chat",
           last_contact: new Date().toISOString().split("T")[0],
         };
-        if (bodyName) leadData.name = bodyName;
-        if (bodyPhone) leadData.phone = bodyPhone;
+        if (extractedName) leadData.name = extractedName;
+        if (extractedPhone) leadData.phone = extractedPhone;
 
         // Hydrate from session snapshot if this is the first time we have their email
         if (sessionId && !returningLeadBlock) {
@@ -352,14 +398,32 @@ export async function POST(req: NextRequest) {
         if (deal_count) leadData.deal_count = deal_count;
 
         await upsertLead(leadData);
+        console.log("[chat] Lead upserted:", resolvedEmail, { name: extractedName, phone: extractedPhone, brokerage, deal_count });
 
-        // Fire-and-forget Tom alert on full lead capture
-        if (bodyName && bodyPhone) {
+        // Fire Tom alert — triggers when we have email + name OR email + phone
+        if (extractedName || extractedPhone) {
+          const leadName = extractedName || resolvedEmail;
+          const brokerageLabel = brokerage || "Unknown";
+          const dealsLabel = deal_count ? `${deal_count}/yr` : "N/A";
           sendEmail(
             "thomas.songer@gmail.com",
-            `🔔 New Lead: ${bodyName}`,
-            `<p><strong>Scout captured a new lead:</strong></p><ul><li><strong>Name:</strong> ${bodyName}</li><li><strong>Email:</strong> ${resolvedEmail}</li><li><strong>Phone:</strong> ${bodyPhone}</li></ul><p>Log in to your <a href="https://joinbearteam.com/dashboard">dashboard</a> to follow up.</p>`,
-          ).catch(() => {});
+            `[LEAD] ${leadName} — ${brokerageLabel} · ${dealsLabel} deals`,
+            `<div style="font-family:sans-serif;max-width:540px;">
+              <div style="background:#1a1a1a;padding:14px 20px;border-radius:6px 6px 0 0;">
+                <p style="color:#c9a84c;font-weight:700;margin:0;">New Scout Lead Captured</p>
+              </div>
+              <div style="background:#fff;border:1px solid #e5e7eb;padding:18px 20px;border-radius:0 0 6px 6px;">
+                <table style="font-size:14px;color:#374151;border-collapse:collapse;width:100%;">
+                  <tr><td style="padding:4px 8px;font-weight:600;">Name</td><td style="padding:4px 8px;">${extractedName ?? "—"}</td></tr>
+                  <tr><td style="padding:4px 8px;font-weight:600;">Email</td><td style="padding:4px 8px;">${resolvedEmail}</td></tr>
+                  <tr><td style="padding:4px 8px;font-weight:600;">Phone</td><td style="padding:4px 8px;">${extractedPhone ?? "—"}</td></tr>
+                  <tr><td style="padding:4px 8px;font-weight:600;">Brokerage</td><td style="padding:4px 8px;">${brokerageLabel}</td></tr>
+                  <tr><td style="padding:4px 8px;font-weight:600;">Deals</td><td style="padding:4px 8px;">${dealsLabel}</td></tr>
+                </table>
+                <p style="margin:14px 0 0;font-size:13px;color:#6b7280;">Lead saved to Supabase. View in your <a href="https://joinbearteam.com/dashboard">dashboard</a>.</p>
+              </div>
+            </div>`,
+          ).catch((err) => console.error("[chat] Tom notification error:", err));
         }
       }
     }
