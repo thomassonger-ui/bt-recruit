@@ -218,3 +218,53 @@ drop trigger if exists scout_sessions_updated_at on scout_sessions;
 create trigger scout_sessions_updated_at
   before update on scout_sessions
   for each row execute function set_updated_at();
+
+
+-- ─── AGENT PROSPECTS TABLE ───────────────────────────────────────────────────
+-- DBPR bulk import and Tracerly skip-trace results.
+-- Upserted on license_number from /api/cron/dbpr-import and /api/import-prospects.
+-- Accepted prospects get promoted to the leads table via /api/prospects.
+
+create table if not exists agent_prospects (
+  id               uuid        default gen_random_uuid() primary key,
+  created_at       timestamptz default now(),
+  updated_at       timestamptz default now(),
+
+  full_name        text,
+  first_name       text,
+  last_name        text,
+  license_number   text unique,
+  license_type     text,
+  license_status   text,
+  license_date     date,
+  city             text,
+  state            text default 'FL',
+  zip              text,
+  county           text,
+  address          text,
+  brokerage        text,
+  phone            text,
+  email            text,
+  source           text,               -- DBPR | manual | tracerly
+  stage            text default 'pre_activation',  -- pre_activation | active_agent
+  accepted         boolean default false,
+  accepted_at      timestamptz
+);
+
+create index if not exists agent_prospects_license_idx  on agent_prospects(license_number);
+create index if not exists agent_prospects_brokerage_idx on agent_prospects(brokerage);
+create index if not exists agent_prospects_accepted_idx on agent_prospects(accepted);
+
+
+-- ─── CONVERSATIONS TABLE ─────────────────────────────────────────────────────
+-- Tracks Scout chat sessions for the dashboard session count and unique visitors.
+-- Written by the Scout route on each conversation turn.
+
+create table if not exists conversations (
+  id          uuid        default gen_random_uuid() primary key,
+  created_at  timestamptz default now(),
+  session_id  text
+);
+
+create index if not exists conversations_session_idx on conversations(session_id);
+create index if not exists conversations_created_idx on conversations(created_at desc);
