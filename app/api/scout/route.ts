@@ -343,11 +343,11 @@ async function saveLeadToSupabase(ctx: RecruitContext): Promise<void> {
 
     // Upsert on email if available, otherwise insert
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let result;
+    let result: any;
     if (ctx.contactEmail) {
-      result = await supabase.from("leads").upsert(payload, { onConflict: "email" });
+      result = await (supabase.from as any)("leads").upsert(payload, { onConflict: "email" });
     } else {
-      result = await supabase.from("leads").insert(payload);
+      result = await (supabase.from as any)("leads").insert(payload);
     }
     if (result.error) {
       console.error("[scout] Lead save FAILED:", result.error.message, result.error.details);
