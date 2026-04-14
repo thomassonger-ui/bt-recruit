@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (body.pw && body.pw !== process.env.DASHBOARD_PASSWORD) {
+    if (!body.pw || body.pw !== process.env.DASHBOARD_PASSWORD) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
