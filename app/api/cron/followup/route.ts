@@ -14,7 +14,7 @@ function getSupabase() {
 
 const TOM_EMAIL = "thomas.songer@gmail.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
-const FROM_EMAIL = "Tom Songer <thomas.songer@gmail.com>";
+const FROM_EMAIL = "thomas.songer@gmail.com";
 const REPLY_TO = "thomas.songer@gmail.com";
 
 // ─── FOLLOW-UP DATE TRIGGER ────────────────────────────────────────────────────
