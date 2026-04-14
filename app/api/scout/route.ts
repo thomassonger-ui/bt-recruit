@@ -343,14 +343,19 @@ async function saveLeadToSupabase(ctx: RecruitContext): Promise<void> {
 
     // Upsert on email if available, otherwise insert
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = supabase as any;
+    let result;
     if (ctx.contactEmail) {
-      await db.from("leads").upsert(payload, { onConflict: "email" });
+      result = await supabase.from("leads").upsert(payload, { onConflict: "email" });
     } else {
-      await db.from("leads").insert(payload);
+      result = await supabase.from("leads").insert(payload);
+    }
+    if (result.error) {
+      console.error("[scout] Lead save FAILED:", result.error.message, result.error.details);
+    } else {
+      console.log("[scout] Lead saved:", ctx.contactEmail ?? ctx.contactPhone);
     }
   } catch (err) {
-    console.error("[scout] Supabase save error:", err);
+    console.error("[scout] Supabase save exception:", err);
     // Non-fatal — don't block the Calendly response
   }
 }
