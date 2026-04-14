@@ -154,26 +154,21 @@ Each step is independently deployable and reversible. No step breaks Scout.
 - Verify dedup, verify drip emails go out, verify unsubscribe kills both campaigns
 - Compare against bt-pipeline's behavior on the same batch (keep bt-pipeline still running)
 
-### Step 5 — Migrate live bt-pipeline leads (2 hrs)
-
-- Export all active leads from Neon Postgres → CSV
-- Upload via new `/api/leads/upload` with `source='csv_batch'` and `campaign='outbound_batch'`
-- Preserve original `drip_step` so sequence picks up where it left off
-
-### Step 6 — Cut over (30 min)
+### Step 5 — Cut over (30 min)
 
 - Point any public endpoints bt-pipeline was serving to bt-recruit
 - Flip bt-pipeline Vercel deploy to read-only (remove env vars, keep build)
 - Update bt-pipeline's INFRASTRUCTURE.md to a deprecation notice pointing here
+- No lead migration — starting fresh per 2026-04-14 decision. Any agent still being drip-touched in Neon either finishes their sequence before cut-over or gets re-uploaded as a fresh CSV row in bt-recruit
 
-### Step 7 — Decommission (30 days after cut-over)
+### Step 6 — Decommission (30 days after cut-over)
 
 - Delete bt-pipeline Vercel project
-- Delete Neon Postgres database
+- Delete Neon Postgres database (all historical lead data lost — acceptable per fresh-start decision)
 - Archive bt-pipeline GitHub repo
-- Remove separate SendGrid account (consolidate onto joinbearteam.com domain auth)
+- Retire bt-pipeline SendGrid account (single sender `thomas.songer@gmail.com` continues on bt-recruit's SendGrid)
 
-**Total estimated work: ~8-10 hours spread across 2-3 weeks.**
+**Total estimated work: ~6-8 hours spread across 2-3 weeks** (down from 8-10 after removing the lead migration step).
 
 ---
 
@@ -183,9 +178,9 @@ At every step, rollback is: revert the Vercel deploy. Schema changes are additiv
 
 - If Step 1 breaks Scout: revert deploy (columns stay, but new defaults are safe)
 - If Step 3's outbound drip misbehaves: set all `campaign='outbound_batch'` rows to `campaign='paused'` in one SQL update
-- If Step 5 migration corrupts data: existing leads untouched (new rows only), re-export from Neon and re-import cleanly
+- If Step 5 cut-over causes issues: bt-pipeline's Neon + Vercel remain live and untouched for 30 days; flip DNS/endpoints back if needed
 
-bt-pipeline stays live and fully operational through Step 6. No hard cut until parallel run proves stable.
+bt-pipeline stays live and fully operational through Step 5. No hard cut until parallel run proves stable.
 
 ---
 
@@ -204,13 +199,18 @@ Separate audit (April 14, 2026) identified bugs in `/api/onboard` that need fixi
 
 ---
 
-## 8. Open questions (resolve before Step 1)
+## 8. Open questions
 
-1. **Do we migrate bt-pipeline's existing leads or start fresh?** Pulling them in preserves drip history but risks importing stale data. Starting fresh is cleaner but loses sequence state.
+**Resolved 2026-04-14:**
+
+1. ~~**Migrate bt-pipeline's existing leads or start fresh?**~~ **DECIDED: Start fresh.** No Neon → Supabase import. Step 5 of the migration is removed. bt-pipeline leads stay in Neon until decommission (Step 7); if Tom wants any specific ones brought over later, he'll re-upload via CSV through the new `/api/leads/upload`.
+4. ~~**Single sender or two?**~~ **DECIDED: Single sender — `thomas.songer@gmail.com`** across inbound and outbound. Deliverability trade-off accepted: Gmail's `p=reject` DMARC policy means SendGrid cannot pass SPF/DKIM alignment when sending as @gmail.com, so some mail will bounce or land in spam. This is the same deliverability issue flagged in the April 14 onboard audit. Simplicity wins for now; revisit if bounce rate becomes painful (fix = add SendGrid domain auth on joinbearteam.com and flip `from:`, ~30 min of work).
+
+**Still open (resolve before Step 1):**
+
 2. **Do inbound and outbound drips share templates or diverge?** Today they diverge (Scout's pitch vs. cold outreach). Proposal: keep them separate via `campaign` branch, share only the unsubscribe footer and from-address.
 3. **Should CSV uploads pause by default?** Proposal: yes. Uploaded batches start with `campaign='paused'` and you manually flip to `outbound_batch` when ready. Matches bt-pipeline's "controlled, small-batch" original principle.
-4. **Single sender or two?** Proposal: single `scout@joinbearteam.com` across inbound and outbound after SendGrid domain auth lands. Simpler, one reputation to manage.
-5. **Is bt-pipeline's dashboard replaceable?** What does that dashboard show today that bt-recruit's `/dashboard` doesn't? (I haven't audited it — need to look before cut-over.)
+5. **Is bt-pipeline's dashboard replaceable?** What does that dashboard show today that bt-recruit's `/dashboard` doesn't? (15-min audit needed before cut-over.)
 6. **Unsubscribe link format?** Today bt-recruit has `/api/unsubscribe`. Does bt-pipeline use the same endpoint or its own? One endpoint for both post-merge.
 
 ---
@@ -222,7 +222,8 @@ Separate audit (April 14, 2026) identified bugs in `/api/onboard` that need fixi
 | Supabase schema migration breaks Scout | Low | High | Additive only, rollback = revert deploy |
 | Outbound drip floods agents already in inbound sequence | Medium | High | Dedup check in Step 3, `drip_stopped` flag honored across both |
 | SendGrid reputation damage from outbound volume | Medium | Medium | Rate limit per batch (existing in bt-pipeline, port over) |
-| Tom's existing bt-pipeline campaigns lose drip state | Low | Medium | Step 5 preserves `drip_step` during import |
+| Active bt-pipeline drip sequences abandoned at cut-over | Medium | Low | Accepted per "start fresh" decision 2026-04-14; Neon stays read-only 30 days for reference |
+| Gmail DMARC rejects outbound as thomas.songer@gmail.com | High | Medium | Accepted per "keep single sender" decision 2026-04-14; fix path is SendGrid domain auth on joinbearteam.com if bounce rate becomes painful |
 | /api/onboard breaks mid-merge | Already broken | High | Fix first (see April 14 audit), separate PR |
 
 ---
@@ -232,7 +233,9 @@ Separate audit (April 14, 2026) identified bugs in `/api/onboard` that need fixi
 | Date | Decision | Rationale |
 |------|----------|-----------|
 | 2026-04-14 | Plan doc drafted | Tom approved direction after merged-architecture sketch |
+| 2026-04-14 | Start fresh — no Neon → Supabase lead migration | Simpler. Neon's lead state is stale enough that re-starting beats preserving `drip_step`. Step 5 of original plan removed; ~2 hrs saved |
+| 2026-04-14 | Single sender = `thomas.songer@gmail.com` (not `scout@joinbearteam.com`) | Simplicity. Deliverability trade-off accepted: Gmail `p=reject` DMARC means some mail bounces/hits spam. Fix path (domain auth) kept open for later |
 
 ---
 
-*Draft v0.1 — 2026-04-14*
+*Draft v0.2 — 2026-04-14 — Two open questions resolved (start fresh + single @gmail sender)*
