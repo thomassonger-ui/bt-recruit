@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 
 interface StageData { count: number; value: number; weighted: number }
 interface FunnelStage { name: string; count: number; dropoff: number; dropoffRate: number; lostValue: number }
-interface StalledLead { id: string; name: string; email: string; phone: string; stage: string; brokerage: string; deal_count: number; last_activity: string; days_stalled: number; estimated_value: number; drip_step: number }
+interface StalledLead { id: string; name: string; email: string; phone: string; stage: string; brokerage: string; deal_count: number; last_activity: string; days_stalled: number; estimated_value: number; drip_step: number; event_end: string | null }
 interface SourceData { leads: number; booked: number; joined: number; gciValue: number }
 interface RTBucket { bucket: string; label: string; total: number; booked: number; bookRate: number; joinRate: number }
 interface DripLead { id: string; name: string; email: string; brokerage: string; stage: string; drip_step: number; drip_last_sent_at: string | null; event_end: string; days_since_call: number; next_step_due: string | null; next_subject: string | null; sequence_complete: boolean }
