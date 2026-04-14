@@ -360,6 +360,61 @@ async function saveLeadToSupabase(ctx: RecruitContext): Promise<void> {
   }
 }
 
+// ── Notify Tom via SendGrid ───────────────────────────────────────────────────
+async function notifyTom(ctx: RecruitContext): Promise<void> {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  if (!apiKey) { console.error("[scout] SENDGRID_API_KEY not set — skipping Tom notification"); return; }
+
+  const firstName = ctx.contactName?.split(" ")[0] || "Unknown";
+  const brokerage = ctx.newLicensee ? "New Licensee" : (ctx.brokerage ?? "Unknown");
+  const deals = ctx.dealCount !== null ? `${ctx.dealCount}/yr` : "N/A";
+  const frustration = ctx.frustration ?? "—";
+  const moveReason = ctx.moveReason ?? "—";
+
+  const subject = `[LEAD] ${ctx.contactName || ctx.contactEmail} — ${brokerage} · ${deals} deals`;
+  const html = `
+    <div style="font-family:sans-serif;max-width:540px;">
+      <div style="background:#1a1a1a;padding:14px 20px;border-radius:6px 6px 0 0;">
+        <p style="color:#c9a84c;font-weight:700;margin:0;">🐻 New Scout Lead Captured</p>
+      </div>
+      <div style="background:#fff;border:1px solid #e5e7eb;padding:18px 20px;border-radius:0 0 6px 6px;">
+        <table style="font-size:14px;color:#374151;border-collapse:collapse;width:100%;">
+          <tr><td style="padding:4px 8px;font-weight:600;">Name</td><td style="padding:4px 8px;">${ctx.contactName ?? "—"}</td></tr>
+          <tr><td style="padding:4px 8px;font-weight:600;">Email</td><td style="padding:4px 8px;">${ctx.contactEmail ?? "—"}</td></tr>
+          <tr><td style="padding:4px 8px;font-weight:600;">Phone</td><td style="padding:4px 8px;">${ctx.contactPhone ?? "—"}</td></tr>
+          <tr><td style="padding:4px 8px;font-weight:600;">Brokerage</td><td style="padding:4px 8px;">${brokerage}</td></tr>
+          <tr><td style="padding:4px 8px;font-weight:600;">Deals</td><td style="padding:4px 8px;">${deals}</td></tr>
+          <tr><td style="padding:4px 8px;font-weight:600;">Frustration</td><td style="padding:4px 8px;">${frustration}</td></tr>
+          <tr><td style="padding:4px 8px;font-weight:600;">Move reason</td><td style="padding:4px 8px;">${moveReason}</td></tr>
+          <tr><td style="padding:4px 8px;font-weight:600;">Pain type</td><td style="padding:4px 8px;">${derivePainType(frustration)}</td></tr>
+        </table>
+        <p style="margin:14px 0 0;font-size:13px;color:#6b7280;">Calendly link was sent. Lead saved to Supabase. View in your <a href="https://joinbearteam.com/dashboard">dashboard</a>.</p>
+      </div>
+    </div>`;
+
+  try {
+    const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: "thomas.songer@gmail.com" }] }],
+        from: { email: "thomas.songer@gmail.com" },
+        reply_to: { email: "thomas.songer@gmail.com" },
+        subject,
+        content: [{ type: "text/html", value: html }],
+      }),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`[scout] Tom notification failed ${res.status}:`, errText);
+    } else {
+      console.log("[scout] Tom notified of new lead:", ctx.contactEmail);
+    }
+  } catch (err) {
+    console.error("[scout] Tom notification exception:", err);
+  }
+}
+
 function derivePainType(frustration: string): string {
   const lower = frustration.toLowerCase();
   if (/fee|cost|month|overhead|desk|tech/i.test(lower)) return "fees";
@@ -417,6 +472,8 @@ export async function POST(req: NextRequest) {
       // ── Step 3a: If BOOK stage — save to Supabase, return Calendly ──
       if (ctx.stage === "BOOK") {
         await saveLeadToSupabase(ctx);
+        // Fire notification to Tom — non-blocking so Calendly response isn't delayed
+        notifyTom(ctx).catch((err) => console.error("[scout] notifyTom bg error:", err));
         const name = ctx.contactName ? `, ${ctx.contactName.split(" ")[0]}` : "";
         return NextResponse.json({
           reply: `Perfect${name} — here's Tom's calendar to lock in your 15 minutes: ${CALENDLY_LINK}\n\nTakes 30 seconds. Looking forward to connecting.`,
