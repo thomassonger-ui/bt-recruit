@@ -108,8 +108,7 @@ async function getReturningLead(email: string): Promise<LeadRecord | null> {
   if (!email || !email.includes("@")) return null;
 
   try {
-    const { data, error } = await getSupabase()
-      .from("leads")
+    const { data, error } = await (getSupabase().from as any)("leads")
       .select("*")
       .eq("email", email.toLowerCase().trim())
       .single();
@@ -130,18 +129,23 @@ async function upsertLead(lead: Partial<LeadRecord>): Promise<void> {
   if (!lead.email) return;
 
   try {
-    await getSupabase()
-      .from("leads")
-      .upsert(
-        {
-          ...lead,
-          email: lead.email.toLowerCase().trim(),
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "email" }
-      );
+    const payload = {
+      ...lead,
+      email: lead.email.toLowerCase().trim(),
+      updated_at: new Date().toISOString(),
+    };
+    console.log("[chat] upsertLead payload:", JSON.stringify(payload));
+    const { data, error } = await (getSupabase().from as any)("leads").upsert(
+      payload,
+      { onConflict: "email" }
+    );
+    if (error) {
+      console.error("[chat] Supabase upsert FAILED:", error.message, error.details, error.hint);
+    } else {
+      console.log("[chat] Supabase upsert OK for:", lead.email);
+    }
   } catch (err) {
-    console.error("Supabase upsert error:", err);
+    console.error("[chat] Supabase upsert exception:", err);
   }
 }
 
@@ -161,8 +165,7 @@ async function saveSessionSnapshot(
 ): Promise<void> {
   if (!sessionId) return;
   try {
-    await getSupabase()
-      .from("scout_sessions")
+    await (getSupabase().from as any)("scout_sessions")
       .upsert(
         {
           session_id: sessionId,
@@ -188,8 +191,7 @@ async function getSessionSnapshot(sessionId: string): Promise<{
 } | null> {
   if (!sessionId) return null;
   try {
-    const { data, error } = await getSupabase()
-      .from("scout_sessions")
+    const { data, error } = await (getSupabase().from as any)("scout_sessions")
       .select("brokerage, deal_count, objections, notes")
       .eq("session_id", sessionId)
       .single();
