@@ -398,7 +398,7 @@ async function notifyTom(ctx: RecruitContext): Promise<void> {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: "thomas.songer@gmail.com" }] }],
-        from: { email: "thomas.songer@gmail.com" },
+        from: { email: "tom@bearteam.com", name: "Scout" },
         reply_to: { email: "thomas.songer@gmail.com" },
         subject,
         content: [{ type: "text/html", value: html }],

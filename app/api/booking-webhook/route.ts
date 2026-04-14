@@ -68,7 +68,8 @@ export async function POST(req: NextRequest) {
           headers: { Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`, "Content-Type": "application/json" },
           body: JSON.stringify({
             personalizations: [{ to: [{ email: process.env.NOTIFY_EMAIL }] }],
-            from: { email: "thomas.songer@gmail.com" },
+            from: { email: "tom@bearteam.com", name: "Scout | Bear Team" },
+            reply_to: { email: "thomas.songer@gmail.com" },
             subject: "⚠️ Booking — email missing, manual entry needed",
             content: [{ type: "text/html", value: `<p>Invitee URI: ${inviteeUri}</p><p>Token length in Vercel: ${process.env.CALENDLY_TOKEN?.length||0}</p><p>Event: ${eventStart}</p><p>Raw (first 500): ${rawBody.slice(0,500)}</p>` }]
           })
@@ -123,7 +124,8 @@ export async function POST(req: NextRequest) {
         headers: { Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           personalizations: [{ to: [{ email: process.env.NOTIFY_EMAIL }] }],
-          from: { email: "thomas.songer@gmail.com" },
+          from: { email: "tom@bearteam.com", name: "Scout | Bear Team" },
+          reply_to: { email: "thomas.songer@gmail.com" },
           subject: `📞 Call booked — ${name} · ${timeStr}`,
           content: [{ type: "text/html", value: `<p><strong>${name}</strong><br>${email}<br>${phone||"no phone"}<br>${timeStr} ET</p>` }]
         })

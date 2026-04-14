@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const FROM_NAME  = "Tom Songer";
-const FROM_EMAIL = "thomas.songer@gmail.com";
+const FROM_EMAIL = "tom@bearteam.com";
 const REPLY_TO   = "thomas.songer@gmail.com";
 
 type Channel = "email" | "linkedin";
