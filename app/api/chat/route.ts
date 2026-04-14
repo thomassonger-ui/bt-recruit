@@ -404,7 +404,7 @@ export async function POST(req: NextRequest) {
         console.log("[chat] Lead upserted:", resolvedEmail, { name: extractedName, phone: extractedPhone, brokerage, deal_count });
 
         // Fire Tom alert — triggers when we have email + name OR email + phone
-        if (extractedName || extractedPhone) {
+        if (!returningLead && (extractedName || extractedPhone)) {
           const leadName = extractedName || resolvedEmail;
           const brokerageLabel = brokerage || "Unknown";
           const dealsLabel = deal_count ? `${deal_count}/yr` : "N/A";
