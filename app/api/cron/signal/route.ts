@@ -22,7 +22,8 @@ import { postToBuffer } from "@/bearsignal/runtime/buffer";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const FROM_EMAIL = "Tom Songer <thomas.songer@gmail.com>";
+const FROM_NAME  = "Tom Songer";
+const FROM_EMAIL = "thomas.songer@gmail.com";
 const REPLY_TO   = "thomas.songer@gmail.com";
 
 type Channel = "email" | "linkedin";
@@ -50,7 +51,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
   }
   const body = {
     personalizations: [{ to: [{ email: to }] }],
-    from: { email: FROM_EMAIL },
+    from: { email: FROM_EMAIL, name: FROM_NAME },
     reply_to: { email: REPLY_TO },
     subject,
     content: [{ type: "text/html", value: html }],
