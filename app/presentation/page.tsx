@@ -379,18 +379,43 @@ function PresentationScreen() {
       <section className="py-10 sm:py-14 px-4">
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-          {/* Video */}
-          <div className="rounded-2xl overflow-hidden aspect-video shadow-lg">
-            <iframe
-              width="100%"
-              height="100%"
-              src="https://www.youtube.com/embed/BaTCb2ZRq8o?rel=0"
-              title="Welcome to Bear Team"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{ border: "none" }}
-            />
+          {/* Video + Bethanne Note */}
+          <div className="flex flex-col gap-4">
+            <div className="rounded-2xl overflow-hidden aspect-video shadow-lg">
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/BaTCb2ZRq8o?rel=0"
+                title="Welcome to Bear Team"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{ border: "none" }}
+              />
+            </div>
+
+            {/* Bethanne's Personal Note */}
+            <div style={{
+              background: '#fefce8',
+              borderRadius: 16,
+              padding: '20px 24px',
+              border: '1px solid #fde68a',
+              boxShadow: '2px 3px 12px rgba(0,0,0,0.06)',
+              transform: 'rotate(-0.4deg)',
+            }}>
+              <div style={{ fontSize: 44, color: '#d97706', lineHeight: 1, marginBottom: -4, fontFamily: 'Georgia, serif', opacity: 0.7 }}>&ldquo;</div>
+              <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 15, color: '#374151', lineHeight: 1.65, margin: 0 }}>
+                I built this so agents stop paying for nothing and start building something real.
+              </p>
+              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                <span style={{ fontFamily: "'Brush Script MT', 'Segoe Script', cursive", fontSize: 24, color: '#3B5A82', lineHeight: 1 }}>
+                  — Bethanne Baer
+                </span>
+                <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'system-ui', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  Broker / Owner · Bear Team Real Estate
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Resources */}
