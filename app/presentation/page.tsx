@@ -394,7 +394,7 @@ function PresentationScreen() {
               />
             </div>
 
-            {/* Beth Signature — Apple Mirror Glass */}
+            {/* Beth Signature — Floating */}
             <style>{`
               @import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap');
               @keyframes writeSig {
@@ -408,93 +408,47 @@ function PresentationScreen() {
               }
             `}</style>
 
-            {/* Dark gradient backdrop — required for glass to read as glass */}
-            <div style={{
-              background: 'linear-gradient(145deg, #0a1628 0%, #1a3355 45%, #0d2240 100%)',
-              borderRadius: 22,
-              padding: '1.5px',
-              position: 'relative' as const,
-              boxShadow: '0 24px 64px rgba(0,0,0,0.28)',
-            }}>
-              {/* Glass pane */}
-              <div style={{
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 100%)',
-                backdropFilter: 'blur(40px) saturate(200%) brightness(1.08)',
-                WebkitBackdropFilter: 'blur(40px) saturate(200%) brightness(1.08)',
-                borderRadius: 21,
-                padding: '28px 30px',
-                border: '1px solid rgba(255,255,255,0.18)',
-                boxShadow: [
-                  'inset 0 1.5px 0 rgba(255,255,255,0.42)',
-                  'inset 0 -1px 0 rgba(0,0,0,0.18)',
-                  'inset 1px 0 0 rgba(255,255,255,0.08)',
-                ].join(', '),
-                position: 'relative' as const,
-                overflow: 'hidden',
+            <div style={{ padding: '20px 8px' }}>
+              <p style={{
+                fontFamily: 'Georgia, serif',
+                fontStyle: 'italic',
+                fontSize: 18,
+                color: '#374151',
+                lineHeight: 1.75,
+                margin: '0 0 24px 0',
+                letterSpacing: '0.01em',
               }}>
-                {/* Diagonal specular reflection — top-left corner */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0, left: 0,
-                  width: '55%', height: '50%',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.10) 0%, transparent 70%)',
-                  borderRadius: '21px 0 0 0',
-                  pointerEvents: 'none',
-                }} />
-                {/* Subtle bottom rim light */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: 0, left: '10%', right: '10%', height: 1,
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)',
-                  pointerEvents: 'none',
-                }} />
+                &ldquo;I built this so agents stop paying for nothing and start building something real.&rdquo;
+              </p>
 
-                <p style={{
-                  fontFamily: 'Georgia, serif',
-                  fontStyle: 'italic',
-                  fontSize: 14,
-                  color: 'rgba(255,255,255,0.85)',
-                  lineHeight: 1.75,
-                  margin: '0 0 22px 0',
-                  letterSpacing: '0.01em',
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column' as const,
+                alignItems: 'flex-end',
+                gap: 4,
+              }}>
+                <span
+                  className="beth-sig"
+                  style={{
+                    fontFamily: "'Pinyon Script', cursive",
+                    fontSize: 58,
+                    color: '#1a1a2e',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  Beth Baer
+                </span>
+                <span style={{
+                  fontSize: 10,
+                  color: '#9ca3af',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase' as const,
+                  fontFamily: 'system-ui, sans-serif',
                 }}>
-                  &ldquo;I built this so agents stop paying for nothing and start building something real.&rdquo;
-                </p>
-
-                <div style={{
-                  borderTop: '1px solid rgba(255,255,255,0.10)',
-                  paddingTop: 18,
-                  display: 'flex',
-                  flexDirection: 'column' as const,
-                  alignItems: 'flex-end',
-                  gap: 5,
-                }}>
-                  <span
-                    className="beth-sig"
-                    style={{
-                      fontFamily: "'Pinyon Script', cursive",
-                      fontSize: 46,
-                      color: 'rgba(255,255,255,0.95)',
-                      lineHeight: 1.1,
-                      letterSpacing: '0.01em',
-                      textShadow: '0 0 30px rgba(100,181,246,0.35)',
-                    }}
-                  >
-                    Beth Baer
-                  </span>
-                  <span style={{
-                    fontSize: 9,
-                    color: 'rgba(255,255,255,0.38)',
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase' as const,
-                    fontFamily: 'system-ui, sans-serif',
-                  }}>
-                    Broker / Owner &middot; Bear Team Real Estate
-                  </span>
-                </div>
+                  Broker / Owner &middot; Bear Team Real Estate
+                </span>
               </div>
             </div>
-          </div>
 
           {/* Resources */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
