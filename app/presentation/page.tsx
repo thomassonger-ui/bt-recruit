@@ -394,25 +394,78 @@ function PresentationScreen() {
               />
             </div>
 
-            {/* Bethanne's Personal Note */}
+            {/* Beth Signature — Apple Glass */}
+            <style>{`
+              @import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap');
+              @keyframes writeSig {
+                0%   { clip-path: inset(0 100% 0 0); opacity: 0; }
+                5%   { opacity: 1; }
+                100% { clip-path: inset(0 0% 0 0);   opacity: 1; }
+              }
+              .beth-sig {
+                display: inline-block;
+                animation: writeSig 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.9s both;
+              }
+            `}</style>
             <div style={{
-              background: '#fefce8',
-              borderRadius: 16,
-              padding: '20px 24px',
-              border: '1px solid #fde68a',
-              boxShadow: '2px 3px 12px rgba(0,0,0,0.06)',
-              transform: 'rotate(-0.4deg)',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.48) 100%)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              borderRadius: 20,
+              padding: '28px 32px',
+              border: '1px solid rgba(255,255,255,0.88)',
+              boxShadow: '0 8px 32px rgba(59,90,130,0.10), 0 1.5px 0 rgba(255,255,255,0.95) inset',
+              position: 'relative' as const,
+              overflow: 'hidden',
             }}>
-              <div style={{ fontSize: 44, color: '#d97706', lineHeight: 1, marginBottom: -4, fontFamily: 'Georgia, serif', opacity: 0.7 }}>&ldquo;</div>
-              <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 15, color: '#374151', lineHeight: 1.65, margin: 0 }}>
-                I built this so agents stop paying for nothing and start building something real.
+              {/* Specular top-edge highlight */}
+              <div style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, height: 1,
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%)',
+                pointerEvents: 'none',
+              }} />
+
+              <p style={{
+                fontFamily: 'Georgia, serif',
+                fontStyle: 'italic',
+                fontSize: 14,
+                color: '#374151',
+                lineHeight: 1.72,
+                margin: '0 0 22px 0',
+                letterSpacing: '0.01em',
+              }}>
+                &ldquo;I built this so agents stop paying for nothing and start building something real.&rdquo;
               </p>
-              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                <span style={{ fontFamily: "'Brush Script MT', 'Segoe Script', cursive", fontSize: 24, color: '#3B5A82', lineHeight: 1 }}>
-                  — Bethanne Baer
+
+              <div style={{
+                borderTop: '1px solid rgba(59,90,130,0.10)',
+                paddingTop: 18,
+                display: 'flex',
+                flexDirection: 'column' as const,
+                alignItems: 'flex-end',
+                gap: 5,
+              }}>
+                <span
+                  className="beth-sig"
+                  style={{
+                    fontFamily: "'Pinyon Script', cursive",
+                    fontSize: 44,
+                    color: '#1a1a2e',
+                    lineHeight: 1.1,
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  Beth Baer
                 </span>
-                <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'system-ui', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  Broker / Owner · Bear Team Real Estate
+                <span style={{
+                  fontSize: 9,
+                  color: '#9ca3af',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase' as const,
+                  fontFamily: 'system-ui, sans-serif',
+                }}>
+                  Broker / Owner &middot; Bear Team Real Estate
                 </span>
               </div>
             </div>
