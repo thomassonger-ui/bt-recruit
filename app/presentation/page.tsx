@@ -331,6 +331,51 @@ function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
   )
 }
 
+
+/* ════════════════════════════════════════
+   VIDEO PLAYER — autoplay muted, volume 15% on unmute
+   ════════════════════════════════════════ */
+function VideoPlayer() {
+  useEffect(() => {
+    const win = window as any
+
+    const initPlayer = () => {
+      new win.YT.Player('yt-player', {
+        videoId: 'BaTCb2ZRq8o',
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          rel: 0,
+          playsinline: 1,
+          modestbranding: 1,
+        },
+        events: {
+          onReady: (e: any) => {
+            e.target.setVolume(15)
+          },
+        },
+      })
+    }
+
+    if (win.YT && win.YT.Player) {
+      initPlayer()
+    } else {
+      win.onYouTubeIframeAPIReady = initPlayer
+      if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+        const s = document.createElement('script')
+        s.src = 'https://www.youtube.com/iframe_api'
+        document.head.appendChild(s)
+      }
+    }
+  }, [])
+
+  return (
+    <div className="rounded-2xl overflow-hidden aspect-video shadow-lg">
+      <div id="yt-player" style={{ width: '100%', height: '100%' }} />
+    </div>
+  )
+}
+
 /* ════════════════════════════════════════
    PRESENTATION SCREEN
    ════════════════════════════════════════ */
@@ -381,18 +426,7 @@ function PresentationScreen() {
 
           {/* Video + Bethanne Note */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-2xl overflow-hidden aspect-video shadow-lg">
-              <iframe
-                width="100%"
-                height="100%"
-                src="https://www.youtube.com/embed/BaTCb2ZRq8o?rel=0&autoplay=1&mute=1&playsinline=1"
-                title="Welcome to Bear Team"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{ border: "none" }}
-              />
-            </div>
+            <VideoPlayer />
 
             {/* Beth Signature — Floating */}
             <style>{`
