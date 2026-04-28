@@ -168,7 +168,7 @@ function TeamCarousel() {
                 transform: isCenter ? 'translateY(0)' : 'translateY(6px)',
                 transition: 'all 0.5s ease 0.15s',
                 letterSpacing: '0.08em',
-                textTransform: 'uppercase' as const,
+                textTransform: 'uppercase',
               }}
             >
               {member.title}
@@ -423,7 +423,7 @@ function PresentationScreen() {
 
               <div style={{
                 display: 'flex',
-                flexDirection: 'column' as const,
+                flexDirection: 'column',
                 alignItems: 'flex-end',
                 gap: 4,
               }}>
@@ -442,7 +442,7 @@ function PresentationScreen() {
                   fontSize: 10,
                   color: '#9ca3af',
                   letterSpacing: '0.12em',
-                  textTransform: 'uppercase' as const,
+                  textTransform: 'uppercase',
                   fontFamily: 'system-ui, sans-serif',
                 }}>
                   Broker / Owner &middot; Bear Team Real Estate
