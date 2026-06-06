@@ -63,6 +63,7 @@ interface DashboardData {
   stalledLeads: { leads: StalledLead[]; totalCount: number; totalValue: number }
   drip: { activeCount: number; completedCount: number; notStartedCount: number; totalEligible: number; dueToday: DripDueLead[]; stepCounts: DripStepCount[]; leads: DripLead[] }
   weeklyTrend: { week: string; leads: number }[]
+  referrals: { leaderboard: { slug: string; name: string; leads: number; booked: number; joined: number }[]; totalReferrers: number; totalReferred: number; totalJoined: number }
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -84,13 +85,16 @@ export default function DashboardPage() {
   const [error, setError] = useState("")
   const [joiningId, setJoiningId] = useState<string | null>(null)
   const [pausingDripId, setPausingDripId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"overview" | "campaign" | "events" | "toolkit" | "pipeline" | "leads" | "stalled" | "drip" | "prospects">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "campaign" | "events" | "toolkit" | "referrals" | "pipeline" | "leads" | "stalled" | "drip" | "prospects">("overview")
 
   // Toolkit (QR + tracked link generator)
   const [tkSrc, setTkSrc] = useState("qr_flyer")
   const [tkRef, setTkRef] = useState("")
   const [tkCustom, setTkCustom] = useState("")
   const qrWrapRef = useRef<HTMLDivElement>(null)
+  const [rlName, setRlName] = useState("")
+  const rlSlug = rlName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+  const rlLink = `${SITE_BASE}?src=referral&ref=${encodeURIComponent(rlSlug || "agent")}`
   const isReferral = tkSrc === "referral"
   const activeCode = tkSrc === "custom" ? (tkCustom.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "_") || "custom") : tkSrc
   const refSlug = tkRef.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
@@ -314,7 +318,7 @@ export default function DashboardPage() {
   }
 
   if (!data) return null
-  const { summary, funnel, statusCounts, recentLeads, pipeline, forecast, funnelLeaks, responseTime, sourceAttribution, stalledLeads, drip, weeklyTrend } = data
+  const { summary, funnel, statusCounts, recentLeads, pipeline, forecast, funnelLeaks, responseTime, sourceAttribution, stalledLeads, drip, weeklyTrend, referrals } = data
   const maxWeeklyLeads = Math.max(...(weeklyTrend || []).map(w => w.leads), 1)
 
   const tabStyle = (tab: string) => ({
@@ -342,12 +346,13 @@ export default function DashboardPage() {
           <div style={{ color: "#93C5FD", fontSize: 12, marginTop: 2 }}>Bear Team Real Estate · Live recruiting funnel · Auto-refreshes every 60s</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {(["overview", "campaign", "events", "toolkit", "pipeline", "leads", "stalled", "drip", "prospects"] as const).map(tab => (
+          {(["overview", "campaign", "events", "toolkit", "referrals", "pipeline", "leads", "stalled", "drip", "prospects"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={tabStyle(tab)}>
               {tab === "overview" ? "Overview"
                 : tab === "campaign" ? "Campaign"
                 : tab === "events" ? `Events${events.length > 0 ? ` (${events.length})` : ""}`
                 : tab === "toolkit" ? "Toolkit"
+                : tab === "referrals" ? "Referrals"
                 : tab === "pipeline" ? `Pipeline ${fmt$(pipeline?.weightedValue || 0)}`
                 : tab === "leads" ? "All Leads"
                 : tab === "stalled" ? `Stalled (${stalledLeads?.totalCount || 0})`
@@ -801,6 +806,71 @@ export default function DashboardPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          </>
+        )}
+
+        {/* ── REFERRALS TAB (in-house referral program) ── */}
+        {activeTab === "referrals" && (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 20 }}>
+              {[
+                { label: "Referring Agents", value: referrals?.totalReferrers || 0, sub: "Agents sending leads", color: "#0B1D3A" },
+                { label: "Leads Referred", value: referrals?.totalReferred || 0, sub: "Total in-house referrals", color: "#2F5C8F" },
+                { label: "Joined via Referral", value: referrals?.totalJoined || 0, sub: "Your warmest channel", color: "#1B8C3A" },
+              ].map(card => (
+                <div key={card.label} style={{ background: "#fff", borderRadius: 14, padding: "18px 20px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+                  <div style={{ fontSize: 30, fontWeight: 700, color: card.color }}>{card.value}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginTop: 4 }}>{card.label}</div>
+                  <div style={{ fontSize: 11, color: "#8A94A6", marginTop: 2 }}>{card.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick referral link generator */}
+            <div style={{ background: "#fff", borderRadius: 14, padding: "20px 24px", marginBottom: 20, border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33", marginBottom: 4 }}>Generate an Agent&apos;s Referral Link</div>
+              <div style={{ fontSize: 12, color: "#8A94A6", marginBottom: 14 }}>Give each agent their own link. Anyone who books or joins through it is credited to them on the leaderboard below.</div>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <input value={rlName} onChange={e => setRlName(e.target.value)} placeholder="Agent name (e.g. Jane Smith)" style={{ ...evInput, minWidth: 220 }} />
+                <div style={{ flex: 1, minWidth: 240, background: "#F7F8FA", border: "1px solid #E6E8EC", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "#374151", wordBreak: "break-all" }}>{rlLink}</div>
+                <button onClick={() => copy(rlLink, "rl")} disabled={!rlSlug} style={{ padding: "9px 16px", fontSize: 12, fontWeight: 600, background: rlSlug ? "#0B1D3A" : "#E6E8EC", color: rlSlug ? "#fff" : "#9CA3AF", border: "none", borderRadius: 8, cursor: rlSlug ? "pointer" : "default" }}>
+                  {copied === "rl" ? "✓ Copied" : "Copy link"}
+                </button>
+              </div>
+            </div>
+
+            {/* Leaderboard */}
+            <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33", marginBottom: 4 }}>Referral Leaderboard</div>
+              <div style={{ fontSize: 12, color: "#8A94A6", marginBottom: 18 }}>Ranked by agents joined, then booked calls, then total referrals.</div>
+              {(!referrals?.leaderboard || referrals.leaderboard.length === 0) ? (
+                <div style={{ textAlign: "center", padding: 40, color: "#8A94A6" }}>
+                  <div style={{ fontSize: 14, color: "#0B1B33", marginBottom: 6 }}>No referrals yet.</div>
+                  <div style={{ fontSize: 12 }}>Generate links above and share them with your agents — credited referrals appear here automatically.</div>
+                </div>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: "#F7F8FA" }}>
+                      {["#", "Agent", "Referred", "Booked", "Joined"].map(h => (
+                        <th key={h} style={{ padding: "10px 14px", textAlign: h === "Agent" || h === "#" ? "left" : "center", color: "#8A94A6", fontWeight: 600 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {referrals.leaderboard.map((r, i) => (
+                      <tr key={r.slug} style={{ borderBottom: "1px solid #F1F2F4", background: i % 2 === 0 ? "#fff" : "#FAFBFC" }}>
+                        <td style={{ padding: "12px 14px", fontWeight: 700, color: i < 3 ? "#c9a84c" : "#8A94A6" }}>{i + 1}</td>
+                        <td style={{ padding: "12px 14px", fontWeight: 600, color: "#0B1B33" }}>{r.name}</td>
+                        <td style={{ padding: "12px 14px", textAlign: "center", color: "#374151" }}>{r.leads}</td>
+                        <td style={{ padding: "12px 14px", textAlign: "center", color: "#2F5C8F", fontWeight: 600 }}>{r.booked}</td>
+                        <td style={{ padding: "12px 14px", textAlign: "center", color: "#1B8C3A", fontWeight: 700 }}>{r.joined}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </>
         )}
