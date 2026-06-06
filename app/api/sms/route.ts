@@ -18,12 +18,32 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
+import { createClient } from "@supabase/supabase-js";
 import { getContact, saveContact } from "@/lib/state";
 import { classifyIntent } from "@/lib/intent";
 import { nextStage } from "@/lib/flow";
 import { generateScoutResponse } from "@/lib/scout";
 
 const { MessagingResponse } = twilio.twiml;
+
+// Auto-pause the drip sequence the moment a lead replies by text.
+// Matches the lead by phone (exact or last-10-digits) and stops future drip emails.
+async function pauseDripByPhone(from: string): Promise<void> {
+  try {
+    const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) return;
+    const last10 = from.replace(/\D/g, "").slice(-10);
+    if (last10.length < 10) return;
+    const supabase = createClient(url, key);
+    await supabase
+      .from("leads")
+      .update({ drip_unsubscribed: true, stage: "Active Convo", updated_at: new Date().toISOString() })
+      .or(`phone.eq.${from},phone.ilike.%${last10}%`);
+  } catch {
+    /* fire-and-forget — never block the SMS reply */
+  }
+}
 
 function buildTwiml(body: string): string {
   const response = new MessagingResponse();
@@ -45,6 +65,9 @@ export async function POST(request: NextRequest) {
         { status: 200, headers: { "Content-Type": "text/xml" } }
       );
     }
+
+    // 0. A reply means they're engaged — auto-pause the drip so we don't email over a live convo
+    pauseDripByPhone(from).catch(() => {});
 
     // 1. Load state
     const contact = await getContact(from);
