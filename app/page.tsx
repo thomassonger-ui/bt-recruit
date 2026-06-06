@@ -179,23 +179,14 @@ function Nav() {
             textDecoration: "none",
           }}
         >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 30,
-              height: 30,
-              borderRadius: 7,
-              border: `2px solid ${NAVY}`,
-              color: NAVY,
-              fontWeight: 800,
-              fontSize: 13,
-              letterSpacing: "-1px",
-            }}
-          >
-            BT
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/bt-logo-mark.svg"
+            alt="Bear Team"
+            width={30}
+            height={30}
+            style={{ display: "block" }}
+          />
           <span style={{ color: INK, fontWeight: 700, fontSize: 16 }}>
             Bear Team
           </span>
@@ -369,16 +360,16 @@ function Hero() {
 // ─── Single product screenshot: BearTeamOS dashboard ──────────────────────────
 function DashboardMock() {
   const kpis = [
-    { label: "Active Agents", value: "12", delta: "+3" },
-    { label: "Q2 Closings", value: "47", delta: "live" },
-    { label: "Avg Split", value: "74%", delta: "+4%" },
-    { label: "Your YTD Net", value: "$87K", delta: "on track" },
+    { label: "Starting Split", value: "60/40", delta: "up to 90/10" },
+    { label: "Monthly Fees", value: "$0", delta: "always" },
+    { label: "Per Closing", value: "$150", delta: "flat fee" },
+    { label: "E&O Insurance", value: "Covered", delta: "by Bear Team" },
   ];
   const rows = [
-    ["M. Rodriguez", "Team Lead", "19", "90/10"],
-    ["S. Thompson", "Tier 3", "12", "80/20"],
-    ["J. Williams", "Tier 2", "7", "70/30"],
-    ["A. Patel", "Tier 1", "3", "60/40"],
+    ["Tier 1 · Start", "Day one — your first deals", "60/40"],
+    ["Tier 2", "After Bear Team collects $16K", "70/30"],
+    ["Tier 3", "Keep producing", "80/20"],
+    ["Team Lead", "16+ deals", "90/10"],
   ];
   return (
     <div
@@ -426,7 +417,7 @@ function DashboardMock() {
           }}
         >
           <strong style={{ color: INK, fontSize: 15 }}>
-            BearTeamOS™ · Q2 2026
+            Your Bear Team numbers
           </strong>
           <span style={{ fontSize: 12, color: "#4FAE63", fontWeight: 600 }}>
             ● ONLINE
@@ -464,8 +455,8 @@ function DashboardMock() {
               >
                 {k.value}
               </div>
-              <div style={{ fontSize: 11.5, color: "#4FAE63", marginTop: 4 }}>
-                ↑ {k.delta}
+              <div style={{ fontSize: 11.5, color: ACCENT, marginTop: 4 }}>
+                {k.delta}
               </div>
             </div>
           ))}
@@ -480,7 +471,7 @@ function DashboardMock() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "2fr 1fr 0.7fr 0.8fr",
+              gridTemplateColumns: "1fr 1.8fr 0.8fr",
               padding: "10px 16px",
               background: SOFT,
               fontSize: 12,
@@ -488,17 +479,16 @@ function DashboardMock() {
               fontWeight: 600,
             }}
           >
-            <span>Agent</span>
             <span>Tier</span>
-            <span>Deals</span>
-            <span>Split</span>
+            <span>When you reach it</span>
+            <span style={{ textAlign: "right" }}>Split</span>
           </div>
           {rows.map((r, i) => (
             <div
               key={r[0]}
               style={{
                 display: "grid",
-                gridTemplateColumns: "2fr 1fr 0.7fr 0.8fr",
+                gridTemplateColumns: "1fr 1.8fr 0.8fr",
                 padding: "12px 16px",
                 borderTop: `1px solid ${BORDER}`,
                 fontSize: 14,
@@ -508,8 +498,7 @@ function DashboardMock() {
             >
               <span style={{ fontWeight: 600 }}>{r[0]}</span>
               <span style={{ color: BODY }}>{r[1]}</span>
-              <span style={{ color: BODY }}>{r[2]}</span>
-              <span style={{ fontWeight: 600, color: ACCENT }}>{r[3]}</span>
+              <span style={{ fontWeight: 700, color: ACCENT, textAlign: "right" }}>{r[2]}</span>
             </div>
           ))}
         </div>
@@ -1361,8 +1350,20 @@ function Footer() {
         }}
       >
         <div>
-          <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>
-            Bear Team Real Estate
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 10 }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/bt-logo-white.svg"
+              alt="Bear Team"
+              width={26}
+              height={26}
+              style={{ display: "block" }}
+            />
+            <span style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>
+              Bear Team Real Estate
+            </span>
           </div>
           <div style={{ fontSize: 13, marginTop: 6 }}>
             Orlando, FL · Independent Licensed Brokerage · Bethanne Baer, Broker
