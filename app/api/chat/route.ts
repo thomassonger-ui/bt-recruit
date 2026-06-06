@@ -51,6 +51,7 @@ interface LeadRecord {
   created_at?: string;
   updated_at?: string;
   source?: string;
+  referred_by?: string;
   tier?: string;
   call_outcome?: string;
   top_objection?: string;
@@ -353,7 +354,10 @@ export async function POST(req: NextRequest) {
         const deal_count = extractDealCount(chatMessages);
         if (brokerage) leadData.brokerage = brokerage;
         if (deal_count) leadData.deal_count = deal_count;
-        if (bodyRef) leadData.notes = [leadData.notes, `Referred by: ${String(bodyRef).slice(0, 60)}`].filter(Boolean).join(" | ");
+        if (bodyRef) {
+          leadData.referred_by = String(bodyRef).slice(0, 60)
+          leadData.notes = [leadData.notes, `Referred by: ${leadData.referred_by}`].filter(Boolean).join(" | ")
+        };
 
         await upsertLead(leadData);
 
