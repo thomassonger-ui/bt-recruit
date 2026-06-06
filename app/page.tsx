@@ -179,23 +179,14 @@ function Nav() {
             textDecoration: "none",
           }}
         >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 30,
-              height: 30,
-              borderRadius: 7,
-              border: `2px solid ${NAVY}`,
-              color: NAVY,
-              fontWeight: 800,
-              fontSize: 13,
-              letterSpacing: "-1px",
-            }}
-          >
-            BT
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/bt-logo-mark.svg"
+            alt="Bear Team"
+            width={30}
+            height={30}
+            style={{ display: "block" }}
+          />
           <span style={{ color: INK, fontWeight: 700, fontSize: 16 }}>
             Bear Team
           </span>
@@ -1361,8 +1352,20 @@ function Footer() {
         }}
       >
         <div>
-          <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>
-            Bear Team Real Estate
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 10 }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/bt-logo-white.svg"
+              alt="Bear Team"
+              width={26}
+              height={26}
+              style={{ display: "block" }}
+            />
+            <span style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>
+              Bear Team Real Estate
+            </span>
           </div>
           <div style={{ fontSize: 13, marginTop: 6 }}>
             Orlando, FL · Independent Licensed Brokerage · Bethanne Baer, Broker
