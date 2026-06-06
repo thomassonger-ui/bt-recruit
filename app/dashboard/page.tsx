@@ -41,6 +41,8 @@ interface ProspectRow {
   city?: string | null
 }
 
+interface WorkingChannel { channel: string; leads: number; booked: number; joined: number; bookRate: number; joinRate: number }
+
 interface StageData { count: number; value: number; weighted: number }
 interface FunnelStage { name: string; count: number; dropoff: number; dropoffRate: number; lostValue: number }
 interface StalledLead { id: string; name: string; email: string; phone: string; stage: string; brokerage: string; deal_count: number; last_activity: string; days_stalled: number; estimated_value: number; drip_step: number }
@@ -64,6 +66,7 @@ interface DashboardData {
   drip: { activeCount: number; completedCount: number; notStartedCount: number; totalEligible: number; dueToday: DripDueLead[]; stepCounts: DripStepCount[]; leads: DripLead[] }
   weeklyTrend: { week: string; leads: number }[]
   referrals: { leaderboard: { slug: string; name: string; leads: number; booked: number; joined: number }[]; totalReferrers: number; totalReferred: number; totalJoined: number }
+  whatsWorking: { channels: WorkingChannel[]; topByJoins: WorkingChannel | null; topByBooking: WorkingChannel | null }
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -318,7 +321,7 @@ export default function DashboardPage() {
   }
 
   if (!data) return null
-  const { summary, funnel, statusCounts, recentLeads, pipeline, forecast, funnelLeaks, responseTime, sourceAttribution, stalledLeads, drip, weeklyTrend, referrals } = data
+  const { summary, funnel, statusCounts, recentLeads, pipeline, forecast, funnelLeaks, responseTime, sourceAttribution, stalledLeads, drip, weeklyTrend, referrals, whatsWorking } = data
   const maxWeeklyLeads = Math.max(...(weeklyTrend || []).map(w => w.leads), 1)
 
   const tabStyle = (tab: string) => ({
@@ -382,6 +385,54 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>{card.label}</div>
                 </div>
               ))}
+            </div>
+
+            {/* What's Working — channels ranked by what produces joins */}
+            <div style={{ background: "#fff", borderRadius: 14, padding: "22px 24px", marginBottom: 24, border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33" }}>What&apos;s Working</div>
+                <div style={{ fontSize: 11, color: "#8A94A6" }}>Every channel, ranked by what actually produces joins</div>
+              </div>
+              {(whatsWorking?.topByJoins || whatsWorking?.topByBooking) && (
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", margin: "12px 0 16px" }}>
+                  {whatsWorking.topByJoins && (
+                    <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 8, padding: "8px 14px", fontSize: 12, color: "#166534", fontWeight: 600 }}>
+                      🏆 Best for joins: {whatsWorking.topByJoins.channel} ({whatsWorking.topByJoins.joined})
+                    </div>
+                  )}
+                  {whatsWorking.topByBooking && (
+                    <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 8, padding: "8px 14px", fontSize: 12, color: "#1e40af", fontWeight: 600 }}>
+                      📈 Best booking rate: {whatsWorking.topByBooking.channel} ({whatsWorking.topByBooking.bookRate}%)
+                    </div>
+                  )}
+                </div>
+              )}
+              {(!whatsWorking?.channels || whatsWorking.channels.length === 0) ? (
+                <div style={{ textAlign: "center", padding: "28px 0", color: "#8A94A6", fontSize: 13 }}>
+                  No channel data yet. Generate tracked links in the <strong style={{ color: "#2F5C8F" }}>Toolkit</strong> tab — as leads come in, the winners rank here.
+                </div>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: "#F7F8FA" }}>
+                      {["Channel", "Leads", "Booked", "Book %", "Joined"].map(h => (
+                        <th key={h} style={{ padding: "9px 12px", textAlign: h === "Channel" ? "left" : "center", color: "#8A94A6", fontWeight: 600 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {whatsWorking.channels.slice(0, 8).map((c, i) => (
+                      <tr key={c.channel} style={{ borderBottom: "1px solid #F1F2F4", background: i === 0 && c.joined > 0 ? "#FBF7EC" : "#fff" }}>
+                        <td style={{ padding: "10px 12px", fontWeight: 600, color: "#0B1B33" }}>{c.channel}</td>
+                        <td style={{ padding: "10px 12px", textAlign: "center", color: "#374151" }}>{c.leads}</td>
+                        <td style={{ padding: "10px 12px", textAlign: "center", color: "#2F5C8F", fontWeight: 600 }}>{c.booked}</td>
+                        <td style={{ padding: "10px 12px", textAlign: "center", color: c.bookRate >= 40 ? "#1B8C3A" : "#6B7280" }}>{c.bookRate}%</td>
+                        <td style={{ padding: "10px 12px", textAlign: "center", color: "#1B8C3A", fontWeight: 700 }}>{c.joined}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
