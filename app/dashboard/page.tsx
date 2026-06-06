@@ -387,8 +387,9 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            {/* What's Working — channels ranked by what produces joins */}
-            <div style={{ background: "#fff", borderRadius: 14, padding: "22px 24px", marginBottom: 24, border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+            {/* What's Working (left) + How-it-works guide (right) */}
+            <div className="ov-top" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20, marginBottom: 24, alignItems: "start" }}>
+            <div style={{ background: "#fff", borderRadius: 14, padding: "22px 24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 4 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33" }}>What&apos;s Working</div>
                 <div style={{ fontSize: 11, color: "#8A94A6" }}>Every channel, ranked by what actually produces joins</div>
@@ -433,6 +434,34 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               )}
+            </div>
+
+            {/* How it works + directions (right column) */}
+            <div style={{ background: "#fff", borderRadius: 14, padding: "20px 22px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33", marginBottom: 2 }}>How it works</div>
+              <div style={{ fontSize: 11, color: "#8A94A6", marginBottom: 14 }}>Free channel → Scout → booked → joined</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 18 }}>
+                {([
+                  ["1", "Tracked link / QR", "100%", "#0B1D3A"],
+                  ["2", "Scout captures", "87%", "#1B3A63"],
+                  ["3", "Books a call", "74%", "#2F5C8F"],
+                  ["4", "Drip nurtures", "61%", "#4E7AA3"],
+                  ["5", "Joined", "48%", "#1B8C3A"],
+                ] as const).map(([n, t, w, bg]) => (
+                  <div key={n} style={{ width: w, background: bg, color: "#fff", borderRadius: 7, padding: "7px 12px", fontSize: 12, fontWeight: 600, display: "flex", gap: 8, alignItems: "center", whiteSpace: "nowrap" }}>
+                    <span style={{ opacity: 0.6 }}>{n}</span>{t}
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#2F5C8F", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Start here</div>
+              <ol style={{ margin: 0, paddingLeft: 18, color: "#374151", fontSize: 12.5, lineHeight: 1.7 }}>
+                <li>Make a QR / link in the <strong>Toolkit</strong> tab</li>
+                <li>Put it on a flyer, post, or sign</li>
+                <li>Scout answers questions &amp; books the call</li>
+                <li>The drip follows up automatically</li>
+                <li>Read your <strong>7am digest</strong> each day</li>
+              </ol>
+            </div>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
