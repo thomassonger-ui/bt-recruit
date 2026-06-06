@@ -25,7 +25,9 @@ async function callScoutAPI(
   messages: Message[],
   context: string,
   sessionId: string,
-  agentEmail?: string
+  agentEmail?: string,
+  source?: string,
+  ref?: string
 ): Promise<ScoutAPIResponse> {
   const res = await fetch("/api/chat", {
     method: "POST",
@@ -35,6 +37,8 @@ async function callScoutAPI(
       context,
       sessionId,
       agentEmail: agentEmail || null,
+      source: source || null,
+      ref: ref || null,
     }),
   })
 
@@ -135,6 +139,8 @@ function MobileNav() {
 function ChatPageInner() {
   const searchParams = useSearchParams()
   const context = searchParams.get("context") || "public"
+  const src = searchParams.get("src") || ""
+  const ref = searchParams.get("ref") || ""
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
@@ -227,7 +233,7 @@ function ChatPageInner() {
       if (emailMatch && !agentEmail) setAgentEmail(emailMatch[0].toLowerCase());
 
       try {
-        const response = await callScoutAPI(updatedMessages, context, sessionId, agentEmail || emailMatch?.[0]?.toLowerCase())
+        const response = await callScoutAPI(updatedMessages, context, sessionId, agentEmail || emailMatch?.[0]?.toLowerCase(), src, ref)
         setMessages((prev) => [
           ...prev,
           {
@@ -255,7 +261,7 @@ function ChatPageInner() {
         setTimeout(() => inputRef.current?.focus(), 100)
       }
     },
-    [input, messages, isLoading, context, sendNotification, agentEmail, sessionId]
+    [input, messages, isLoading, context, sendNotification, agentEmail, sessionId, src, ref]
   )
 
   const handleKeyDown = useCallback(
@@ -489,34 +495,9 @@ function ChatPageInner() {
                             ol: ({ children }) => <ol className="mb-2 list-decimal space-y-1 pl-4">{children}</ol>,
                             li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                             strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                            a: ({ href, children }) => {
-                              const isCalendly = href && href.includes('calendly.com')
-                              if (isCalendly) {
-                                return (
-                                  <a
-                                    href={href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                      display: 'inline-block',
-                                      marginTop: '12px',
-                                      padding: '12px 24px',
-                                      borderRadius: '8px',
-                                      background: '#c9a84c',
-                                      color: '#1a1a1a',
-                                      fontWeight: 700,
-                                      fontSize: '14px',
-                                      textDecoration: 'none',
-                                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                                      letterSpacing: '0.01em',
-                                    }}
-                                  >
-                                    {children}
-                                  </a>
-                                )
-                              }
-                              return <a href={href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline', color: '#1a1a1a' }}>{children}</a>
-                            },
+                            a: ({ href, children }) => (
+                              <a href={href} className="underline" target="_blank" rel="noopener noreferrer">{children}</a>
+                            ),
                           }}
                         >
                           {msg.content}
