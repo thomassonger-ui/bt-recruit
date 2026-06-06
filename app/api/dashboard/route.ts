@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
   // ── Fetch all leads (extended fields) ──────────────────────────────────────
   const { data: leads } = await supabase
     .from("leads")
-    .select("id, created_at, updated_at, name, email, phone, status, notes, event_start, event_end, stage, brokerage, deal_count, avg_price, drip_step, drip_last_sent_at, drip_unsubscribed, noshow_followup_sent, onboarded_at, source")
+    .select("id, created_at, updated_at, name, email, phone, status, notes, event_start, event_end, stage, brokerage, deal_count, avg_price, drip_step, drip_last_sent_at, drip_unsubscribed, noshow_followup_sent, onboarded_at, source, referred_by")
     .order("created_at", { ascending: false })
 
   // ── Fetch conversation count + sessions ────────────────────────────────────
@@ -239,6 +239,28 @@ export async function GET(req: NextRequest) {
   const bestSourceByValue = Object.entries(sourceBreakdown)
     .map(([source, data]) => ({ source, ...data }))
     .sort((a, b) => b.gciValue - a.gciValue)[0]
+
+  // ── 4b. REFERRAL LEADERBOARD (in-house referral program) ───────────────────
+  const prettyAgent = (slug: string) =>
+    slug.split(/[-_\s]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+  const referralAgg = allLeads.reduce((acc: Record<string, { leads: number; booked: number; joined: number }>, l) => {
+    const r = (l.referred_by || "").trim()
+    if (!r) return acc
+    if (!acc[r]) acc[r] = { leads: 0, booked: 0, joined: 0 }
+    acc[r].leads++
+    if (["booked", "no_show", "completed"].includes(l.status)) acc[r].booked++
+    if (l.status === "joined" || l.stage === "Closed Won" || l.stage === "Onboarding") acc[r].joined++
+    return acc
+  }, {})
+  const referralLeaderboard = Object.entries(referralAgg)
+    .map(([slug, d]) => ({ slug, name: prettyAgent(slug), ...d }))
+    .sort((a, b) => b.joined - a.joined || b.booked - a.booked || b.leads - a.leads)
+  const referrals = {
+    leaderboard: referralLeaderboard,
+    totalReferrers: referralLeaderboard.length,
+    totalReferred: referralLeaderboard.reduce((s, r) => s + r.leads, 0),
+    totalJoined: referralLeaderboard.reduce((s, r) => s + r.joined, 0),
+  }
 
   // ── 5. STALLED LEAD REACTIVATION ──────────────────────────────────────────
   // Leads that haven't moved in 14+ days and aren't closed
@@ -461,6 +483,7 @@ export async function GET(req: NextRequest) {
       bestSourceByValue: bestSourceByValue?.source || "Scout Chat",
       bestSourceGCI: Math.round(bestSourceByValue?.gciValue || 0),
     },
+    referrals,
     forecast: {
       d30: { agents: Math.round(forecast.d30.agents * 10) / 10, gci: Math.round(forecast.d30.gci) },
       d60: { agents: Math.round(forecast.d60.agents * 10) / 10, gci: Math.round(forecast.d60.gci) },
