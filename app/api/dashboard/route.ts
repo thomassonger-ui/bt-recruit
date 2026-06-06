@@ -262,6 +262,23 @@ export async function GET(req: NextRequest) {
     totalJoined: referralLeaderboard.reduce((s, r) => s + r.joined, 0),
   }
 
+  // ── 4c. WHAT'S WORKING — every channel ranked by what produces joins ────────
+  const workingChannels = Object.entries(sourceBreakdown)
+    .map(([channel, d]) => ({
+      channel,
+      leads: d.leads,
+      booked: d.booked,
+      joined: d.joined,
+      bookRate: d.leads > 0 ? Math.round((d.booked / d.leads) * 100) : 0,
+      joinRate: d.leads > 0 ? Math.round((d.joined / d.leads) * 100) : 0,
+    }))
+    .sort((a, b) => b.joined - a.joined || b.booked - a.booked || b.leads - a.leads)
+  const topByJoins = workingChannels.find(c => c.joined > 0) || null
+  const topByBooking = [...workingChannels]
+    .filter(c => c.leads >= 2)
+    .sort((a, b) => b.bookRate - a.bookRate)[0] || null
+  const whatsWorking = { channels: workingChannels, topByJoins, topByBooking }
+
   // ── 5. STALLED LEAD REACTIVATION ──────────────────────────────────────────
   // Leads that haven't moved in 14+ days and aren't closed
   const stalledLeads = allLeads.filter(l => {
@@ -484,6 +501,7 @@ export async function GET(req: NextRequest) {
       bestSourceGCI: Math.round(bestSourceByValue?.gciValue || 0),
     },
     referrals,
+    whatsWorking,
     forecast: {
       d30: { agents: Math.round(forecast.d30.agents * 10) / 10, gci: Math.round(forecast.d30.gci) },
       d60: { agents: Math.round(forecast.d60.agents * 10) / 10, gci: Math.round(forecast.d60.gci) },
