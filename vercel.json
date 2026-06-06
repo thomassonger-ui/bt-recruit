@@ -21,12 +21,8 @@
       "schedule": "0 10 * * *"
     },
     {
-      "path": "/api/cron/signal",
-      "schedule": "0 13 * * 1-5"
-    },
-    {
-      "path": "/api/cron/followup",
-      "schedule": "0 14 * * *"
+      "path": "/api/cron/needs-human",
+      "schedule": "0 11 * * *"
     }
   ]
 }
