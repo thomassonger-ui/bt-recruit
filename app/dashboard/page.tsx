@@ -389,6 +389,7 @@ export default function DashboardPage() {
 
             {/* What's Working (left) + How-it-works guide (right) */}
             <div className="ov-top" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20, marginBottom: 24, alignItems: "start" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div style={{ background: "#fff", borderRadius: 14, padding: "22px 24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 4 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33" }}>What&apos;s Working</div>
@@ -434,6 +435,25 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               )}
+            </div>
+
+            {/* This cycle's campaign — fills the column + surfaces the rotating campaign */}
+            <div style={{ background: "#0B1D3A", borderRadius: 14, padding: "22px 24px", color: "#E7ECF3" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#7FA8D4" }}>This cycle&apos;s campaign</div>
+                <div style={{ fontSize: 11, color: "#9DB4D0" }}>Day {campaign.dayInCycle} of 30 · {campaign.daysRemaining} left</div>
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", margin: "8px 0 6px", letterSpacing: "-0.02em" }}>{campaign.theme.name}</div>
+              <div style={{ fontSize: 13, lineHeight: 1.5, color: "#cdd9e8" }}>{campaign.theme.bigIdea}</div>
+              <div style={{ height: 6, background: "rgba(255,255,255,0.12)", borderRadius: 99, margin: "14px 0 14px", overflow: "hidden" }}>
+                <div style={{ height: 6, background: "#c9a84c", borderRadius: 99, width: `${(campaign.dayInCycle / 30) * 100}%` }} />
+              </div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <button onClick={() => setActiveTab("campaign")} style={{ padding: "9px 16px", fontSize: 12.5, fontWeight: 600, background: "#fff", color: "#0B1D3A", border: "none", borderRadius: 8, cursor: "pointer" }}>Open Campaign →</button>
+                <button onClick={() => setActiveTab("toolkit")} style={{ padding: "9px 16px", fontSize: 12.5, fontWeight: 600, background: "transparent", color: "#fff", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 8, cursor: "pointer" }}>Make a link →</button>
+              </div>
+              <div style={{ fontSize: 11, color: "#6E89AD", marginTop: 14 }}>Next up: {campaign.nextTheme.name}</div>
+            </div>
             </div>
 
             {/* How it works + directions (right column) */}
