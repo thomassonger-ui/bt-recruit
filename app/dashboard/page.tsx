@@ -1,5 +1,6 @@
 "use client"
 
+// Bear Team recruiting command center — overview, campaign, events, toolkit, pipeline
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import { QRCodeCanvas } from "qrcode.react"
 import { getCurrentCampaign, CAMPAIGN_SIGNATURE } from "../../lib/campaigns"
