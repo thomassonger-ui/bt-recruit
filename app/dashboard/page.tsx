@@ -1,10 +1,49 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+// Bear Team recruiting command center — overview, campaign, events, toolkit, pipeline
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { QRCodeCanvas } from "qrcode.react"
+import { getCurrentCampaign, CAMPAIGN_SIGNATURE } from "../../lib/campaigns"
+
+const SITE_BASE = "https://www.joinbearteam.com/chat"
+const TOOLKIT_CHANNELS: { code: string; label: string; hint: string }[] = [
+  { code: "qr_flyer", label: "Flyer QR", hint: "Printed flyers & handouts" },
+  { code: "qr_yardsign", label: "Yard Sign QR", hint: "Listing & open-house signs" },
+  { code: "qr_card", label: "Business Card QR", hint: "Back of your card" },
+  { code: "qr_brokeropen", label: "Broker Open QR", hint: "Event signage & sign-in" },
+  { code: "qr_workshop", label: "Workshop QR", hint: "Workshop slides & handouts" },
+  { code: "social_ig", label: "Instagram", hint: "Link in bio / stories" },
+  { code: "social_fb", label: "Facebook", hint: "Posts & groups" },
+  { code: "social_li", label: "LinkedIn", hint: "Posts & DMs" },
+]
+
+interface RecruitEvent {
+  id: string
+  type: "broker_open" | "workshop"
+  title: string
+  event_date: string | null
+  event_time: string | null
+  location: string | null
+  notes: string | null
+  invited: number
+  attended: number
+  recruited: number
+  status: string
+}
+
+interface ProspectRow {
+  id: string
+  full_name?: string
+  brokerage?: string | null
+  county?: string | null
+  license_date?: string | null
+  license_number?: string | null
+  city?: string | null
+}
 
 interface StageData { count: number; value: number; weighted: number }
 interface FunnelStage { name: string; count: number; dropoff: number; dropoffRate: number; lostValue: number }
-interface StalledLead { id: string; name: string; email: string; phone: string; stage: string; brokerage: string; deal_count: number; last_activity: string; days_stalled: number; estimated_value: number; drip_step: number; event_end: string | null }
+interface StalledLead { id: string; name: string; email: string; phone: string; stage: string; brokerage: string; deal_count: number; last_activity: string; days_stalled: number; estimated_value: number; drip_step: number }
 interface SourceData { leads: number; booked: number; joined: number; gciValue: number }
 interface RTBucket { bucket: string; label: string; total: number; booked: number; bookRate: number; joinRate: number }
 interface DripLead { id: string; name: string; email: string; brokerage: string; stage: string; drip_step: number; drip_last_sent_at: string | null; event_end: string; days_since_call: number; next_step_due: string | null; next_subject: string | null; sequence_complete: boolean }
@@ -15,7 +54,7 @@ interface DashboardData {
   summary: { totalLeads: number; weekLeads: number; monthLeads: number; uniqueSessions: number; convCount: number }
   funnel: { visitors: number; leads: number; booked: number; noShows: number; showed: number; joined: number; bookRate: number; showRate: number; joinRate: number }
   statusCounts: Record<string, number>
-  recentLeads: { id: string; created_at: string; name: string; email: string; phone: string; status: string; notes: string; event_start: string | null; event_end: string | null }[]
+  recentLeads: { id: string; created_at: string; name: string; email: string; phone: string; status: string; notes: string; event_start: string | null }[]
   pipeline: { totalValue: number; weightedValue: number; closedWonValue: number; byStage: Record<string, StageData>; activeCount: number }
   forecast: { d30: { agents: number; gci: number }; d60: { agents: number; gci: number }; d90: { agents: number; gci: number }; monthlyLeadRate: number; zeroRecruitingNote: string }
   funnelLeaks: { stages: FunnelStage[]; biggestLeak: string; biggestLeakDropoff: number; biggestLeakValue: number }
@@ -44,13 +83,48 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [joiningId, setJoiningId] = useState<string | null>(null)
-  const [joinModal, setJoinModal] = useState<{ leadId: string; leadName: string } | null>(null)
-  const [joinConfirmText, setJoinConfirmText] = useState("")
   const [pausingDripId, setPausingDripId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "leads" | "stalled" | "drip" | "prospects">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "campaign" | "events" | "toolkit" | "pipeline" | "leads" | "stalled" | "drip" | "prospects">("overview")
+
+  // Toolkit (QR + tracked link generator)
+  const [tkSrc, setTkSrc] = useState("qr_flyer")
+  const [tkRef, setTkRef] = useState("")
+  const [tkCustom, setTkCustom] = useState("")
+  const qrWrapRef = useRef<HTMLDivElement>(null)
+  const isReferral = tkSrc === "referral"
+  const activeCode = tkSrc === "custom" ? (tkCustom.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "_") || "custom") : tkSrc
+  const refSlug = tkRef.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+  const trackedLink = `${SITE_BASE}?src=${encodeURIComponent(activeCode)}${isReferral && refSlug ? `&ref=${encodeURIComponent(refSlug)}` : ""}`
+  const downloadQR = () => {
+    const canvas = qrWrapRef.current?.querySelector("canvas")
+    if (!canvas) return
+    const a = document.createElement("a")
+    a.href = canvas.toDataURL("image/png")
+    a.download = `bearteam-qr-${activeCode}${isReferral && refSlug ? `-${refSlug}` : ""}.png`
+    a.click()
+  }
+
+  // Campaign (auto-rotating, computed from date)
+  const campaign = getCurrentCampaign()
+  const [copied, setCopied] = useState<string | null>(null)
+  const copy = (text: string, key: string) => {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopied(key); setTimeout(() => setCopied(null), 1500)
+    }).catch(() => {})
+  }
+
+  // Events tracker (broker opens + workshops)
+  const [events, setEvents] = useState<RecruitEvent[]>([])
+  const [eventTotals, setEventTotals] = useState({ invited: 0, attended: 0, recruited: 0 })
+  const [eventsLoading, setEventsLoading] = useState(false)
+  const [showEventForm, setShowEventForm] = useState(false)
+  const [savingEvent, setSavingEvent] = useState(false)
+  const [evForm, setEvForm] = useState<{ type: "broker_open" | "workshop"; title: string; event_date: string; event_time: string; location: string; notes: string }>(
+    { type: "broker_open", title: "", event_date: "", event_time: "", location: "", notes: "" }
+  )
 
   // Prospects state
-  const [prospects, setProspects] = useState<any[]>([])
+  const [prospects, setProspects] = useState<ProspectRow[]>([])
   const [prospectsLoading, setProspectsLoading] = useState(false)
   const [prospectSearch, setProspectSearch] = useState("")
   const [prospectBrokerage, setProspectBrokerage] = useState("")
@@ -112,21 +186,14 @@ export default function DashboardPage() {
     finally { setAcceptingId(null) }
   }
 
-  const markJoined = (leadId: string, leadName: string) => {
-    setJoinModal({ leadId, leadName })
-    setJoinConfirmText("")
-  }
-
-  const confirmMarkJoined = async () => {
-    if (!joinModal) return
-    setJoiningId(joinModal.leadId)
-    setJoinModal(null)
-    setJoinConfirmText("")
+  const markJoined = async (leadId: string) => {
+    if (!confirm("Mark this agent as joined? This will send them a welcome email and alert Tom.")) return
+    setJoiningId(leadId)
     try {
       const res = await fetch("/api/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId: joinModal.leadId, pw: password }),
+        body: JSON.stringify({ leadId, pw: password }),
       })
       if (res.ok) {
         alert("Done — welcome email sent, Tom alerted.")
@@ -155,6 +222,55 @@ export default function DashboardPage() {
     finally { setPausingDripId(null) }
   }
 
+  const fetchEvents = useCallback(async (pw: string) => {
+    setEventsLoading(true)
+    try {
+      const res = await fetch(`/api/events?pw=${encodeURIComponent(pw)}`)
+      const d = await res.json()
+      setEvents(d.events || [])
+      setEventTotals(d.totals || { invited: 0, attended: 0, recruited: 0 })
+    } catch { setEvents([]) }
+    finally { setEventsLoading(false) }
+  }, [])
+
+  const saveEvent = async () => {
+    if (!evForm.title.trim()) { alert("Give the event a title."); return }
+    setSavingEvent(true)
+    try {
+      const res = await fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...evForm, pw: password }),
+      })
+      if (res.ok) {
+        setShowEventForm(false)
+        setEvForm({ type: "broker_open", title: "", event_date: "", event_time: "", location: "", notes: "" })
+        fetchEvents(password)
+      } else { alert("Could not save event.") }
+    } catch { alert("Could not save event.") }
+    finally { setSavingEvent(false) }
+  }
+
+  const patchEvent = async (id: string, patch: Partial<RecruitEvent>) => {
+    setEvents(evs => evs.map(e => e.id === id ? { ...e, ...patch } : e)) // optimistic
+    try {
+      await fetch("/api/events", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, pw: password, ...patch }),
+      })
+      fetchEvents(password)
+    } catch {}
+  }
+
+  const deleteEvent = async (id: string) => {
+    if (!confirm("Delete this event?")) return
+    try {
+      await fetch(`/api/events?pw=${encodeURIComponent(password)}&id=${id}`, { method: "DELETE" })
+      fetchEvents(password)
+    } catch {}
+  }
+
   const fetchData = useCallback(async (pw: string) => {
     setLoading(true); setError("")
     try {
@@ -172,9 +288,13 @@ export default function DashboardPage() {
     return () => clearInterval(interval)
   }, [authed, password, fetchData])
 
+  useEffect(() => {
+    if (authed && password && activeTab === "events") fetchEvents(password)
+  }, [authed, password, activeTab, fetchEvents])
+
   if (!authed) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0B1D3A", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: "#0B1D3A", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-geist-sans), Inter, system-ui, sans-serif" }}>
         <div style={{ background: "#fff", borderRadius: 12, padding: "40px 48px", width: 360, textAlign: "center" }}>
           <div style={{ fontSize: 28, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>Recruit Dashboard</div>
           <div style={{ fontSize: 14, color: "#6B7280", marginBottom: 28 }}>Bear Team Real Estate · Orlando, FL</div>
@@ -203,8 +323,18 @@ export default function DashboardPage() {
     color: activeTab === tab ? "#0B1D3A" : "rgba(255,255,255,0.6)",
   })
 
+  const copyBtnStyle: React.CSSProperties = {
+    marginTop: 10, padding: "5px 12px", fontSize: 11, fontWeight: 600,
+    background: "#fff", color: "#2F5C8F", border: "1px solid #E6E8EC",
+    borderRadius: 6, cursor: "pointer",
+  }
+  const evInput: React.CSSProperties = {
+    padding: "9px 12px", fontSize: 13, background: "#fff", border: "1px solid #E6E8EC",
+    borderRadius: 8, color: "#0B1B33", outline: "none",
+  }
+
   return (
-    <div style={{ minHeight: "100vh", background: "#F3F4F6", fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#F7F8FA", fontFamily: "var(--font-geist-sans), Inter, system-ui, sans-serif" }}>
       {/* Header */}
       <div style={{ background: "#0B1D3A", padding: "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
@@ -212,9 +342,12 @@ export default function DashboardPage() {
           <div style={{ color: "#93C5FD", fontSize: 12, marginTop: 2 }}>Bear Team Real Estate · Live recruiting funnel · Auto-refreshes every 60s</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {(["overview", "pipeline", "leads", "stalled", "drip", "prospects"] as const).map(tab => (
+          {(["overview", "campaign", "events", "toolkit", "pipeline", "leads", "stalled", "drip", "prospects"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={tabStyle(tab)}>
               {tab === "overview" ? "Overview"
+                : tab === "campaign" ? "Campaign"
+                : tab === "events" ? `Events${events.length > 0 ? ` (${events.length})` : ""}`
+                : tab === "toolkit" ? "Toolkit"
                 : tab === "pipeline" ? `Pipeline ${fmt$(pipeline?.weightedValue || 0)}`
                 : tab === "leads" ? "All Leads"
                 : tab === "stalled" ? `Stalled (${stalledLeads?.totalCount || 0})`
@@ -239,7 +372,7 @@ export default function DashboardPage() {
                 { label: "Scout Sessions", value: summary.uniqueSessions, color: "#E6A817" },
                 { label: "Agents Joined", value: funnel.joined, color: "#7C3AED" },
               ].map(card => (
-                <div key={card.label} style={{ background: "#fff", borderRadius: 10, padding: "18px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+                <div key={card.label} style={{ background: "#fff", borderRadius: 10, padding: "18px 20px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                   <div style={{ fontSize: 30, fontWeight: 700, color: card.color }}>{card.value}</div>
                   <div style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>{card.label}</div>
                 </div>
@@ -248,7 +381,7 @@ export default function DashboardPage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
               {/* Funnel leaks */}
-              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A" }}>Conversion Funnel</div>
                   {funnelLeaks?.biggestLeak && (
@@ -278,7 +411,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Weekly trend */}
-              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 18 }}>Weekly Lead Trend</div>
                 <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 120, paddingBottom: 4 }}>
                   {(weeklyTrend || []).map((w, i) => (
@@ -294,7 +427,7 @@ export default function DashboardPage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
               {/* Response time + correlation */}
-              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>Speed-to-Lead Correlation</div>
                 <div style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 14 }}>Faster response = higher booking rate</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 14 }}>
@@ -330,7 +463,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Source attribution + GCI value */}
-              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>Source Attribution</div>
                 <div style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 16 }}>Booking rate + GCI value by source</div>
                 {sourceAttribution?.bestSourceGCI > 0 && (
@@ -356,7 +489,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Status breakdown */}
-              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ background: "#fff", borderRadius: 10, padding: "22px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 16 }}>Lead Status</div>
                 {Object.entries(statusCounts).map(([status, count]) => (
                   <div key={status} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: 6, marginBottom: 6, background: "#F9FAFB", border: "1px solid #E5E7EB" }}>
@@ -367,6 +500,306 @@ export default function DashboardPage() {
                     <span style={{ fontSize: 15, fontWeight: 700, color: STATUS_COLORS[status] || "#374151" }}>{count}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── CAMPAIGN TAB (auto-rotating guerrilla campaign) ── */}
+        {activeTab === "campaign" && (
+          <>
+            {/* Theme banner */}
+            <div style={{ background: "#0B1D3A", borderRadius: 16, padding: "26px 28px", marginBottom: 20, position: "relative", overflow: "hidden" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+                <div style={{ maxWidth: 620 }}>
+                  <div style={{ color: "#7FA8D4", fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>
+                    This Cycle&apos;s Guerrilla Campaign · Auto-rotates every 30 days
+                  </div>
+                  <div style={{ color: "#fff", fontSize: 30, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.1 }}>{campaign.theme.name}</div>
+                  <div style={{ color: "#E7ECF3", fontSize: 15, lineHeight: 1.55, marginTop: 12 }}>{campaign.theme.bigIdea}</div>
+                  <div style={{ color: "#9DB4D0", fontSize: 13, marginTop: 12 }}>
+                    <strong style={{ color: "#cdd9e8" }}>Target pain:</strong> {campaign.theme.targetPain}
+                  </div>
+                </div>
+                <div style={{ minWidth: 180, textAlign: "right" }}>
+                  <div style={{ color: "#7FA8D4", fontSize: 12, fontWeight: 600 }}>Day {campaign.dayInCycle} of 30</div>
+                  <div style={{ color: "#c9a84c", fontSize: 40, fontWeight: 700, lineHeight: 1 }}>{campaign.daysRemaining}</div>
+                  <div style={{ color: "#9DB4D0", fontSize: 12 }}>days left in cycle</div>
+                  <div style={{ height: 6, background: "rgba(255,255,255,0.12)", borderRadius: 99, marginTop: 12, overflow: "hidden" }}>
+                    <div style={{ height: 6, background: "#c9a84c", borderRadius: 99, width: `${(campaign.dayInCycle / 30) * 100}%` }} />
+                  </div>
+                  <div style={{ color: "#6E89AD", fontSize: 11, marginTop: 10 }}>
+                    {campaign.cycleStart.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – {campaign.cycleEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </div>
+                  <div style={{ color: "#6E89AD", fontSize: 11, marginTop: 6 }}>Next up: {campaign.nextTheme.name}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Play calendar */}
+            <div style={{ background: "#fff", borderRadius: 14, padding: "24px", marginBottom: 20, border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33", marginBottom: 4 }}>30-Day Play Calendar</div>
+              <div style={{ fontSize: 12, color: "#8A94A6", marginBottom: 18 }}>Run these plays in order. Broker opens and workshops are flagged — schedule them in the Events tab.</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+                {[1, 2, 3, 4].map(wk => (
+                  <div key={wk} style={{ background: "#F7F8FA", borderRadius: 12, border: "1px solid #E6E8EC", padding: "14px 14px 6px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#2F5C8F", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Week {wk}</div>
+                    {campaign.theme.plays.filter(p => p.week === wk).map((p, i) => (
+                      <div key={i} style={{ marginBottom: 12 }}>
+                        <span style={{
+                          display: "inline-block", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, marginBottom: 5,
+                          background: p.event === "broker_open" ? "#0B1D3A" : p.event === "workshop" ? "#c9a84c" : "#E6E8EC",
+                          color: p.event === "broker_open" ? "#fff" : p.event === "workshop" ? "#0B1D3A" : "#5B6675",
+                        }}>
+                          {p.event === "broker_open" ? "BROKER OPEN" : p.event === "workshop" ? "WORKSHOP" : p.channel.toUpperCase()}
+                        </span>
+                        <div style={{ fontSize: 12.5, color: "#374151", lineHeight: 1.45 }}>{p.action}</div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Content & assets */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+              {/* Social posts */}
+              <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33", marginBottom: 16 }}>Social Posts</div>
+                {campaign.theme.content.socialPosts.map((post, i) => (
+                  <div key={i} style={{ background: "#F7F8FA", border: "1px solid #E6E8EC", borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
+                    <div style={{ fontSize: 13.5, color: "#374151", lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{post}</div>
+                    <button onClick={() => copy(post, `post-${i}`)} style={copyBtnStyle}>{copied === `post-${i}` ? "✓ Copied" : "Copy"}</button>
+                  </div>
+                ))}
+              </div>
+
+              {/* DMs */}
+              <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33", marginBottom: 16 }}>Direct Messages</div>
+                {campaign.theme.content.dms.map((dm, i) => (
+                  <div key={i} style={{ background: "#F7F8FA", border: "1px solid #E6E8EC", borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
+                    <div style={{ fontSize: 13.5, color: "#374151", lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{dm}</div>
+                    <button onClick={() => copy(dm, `dm-${i}`)} style={copyBtnStyle}>{copied === `dm-${i}` ? "✓ Copied" : "Copy"}</button>
+                  </div>
+                ))}
+                <div style={{ fontSize: 11, color: "#8A94A6", marginTop: 4 }}>Replace [Name] / [area] before sending. Sign-off: {CAMPAIGN_SIGNATURE}</div>
+              </div>
+
+              {/* Flyer + open house */}
+              <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33", marginBottom: 16 }}>Flyer &amp; Open-House Angle</div>
+                <div style={{ background: "#0B1D3A", borderRadius: 10, padding: "20px", marginBottom: 14, textAlign: "center" }}>
+                  <div style={{ color: "#fff", fontSize: 19, fontWeight: 700, lineHeight: 1.2 }}>{campaign.theme.content.flyerHeadline}</div>
+                  <div style={{ color: "#9DB4D0", fontSize: 13, marginTop: 10 }}>{campaign.theme.content.flyerSub}</div>
+                </div>
+                <button onClick={() => copy(`${campaign.theme.content.flyerHeadline}\n${campaign.theme.content.flyerSub}`, "flyer")} style={copyBtnStyle}>{copied === "flyer" ? "✓ Copied" : "Copy flyer text"}</button>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#2F5C8F", marginTop: 18, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Open-House Angle</div>
+                <div style={{ fontSize: 13.5, color: "#374151", lineHeight: 1.55 }}>{campaign.theme.content.openHouseAngle}</div>
+              </div>
+
+              {/* Event invites */}
+              <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33", marginBottom: 16 }}>Event Plays — Broker Open &amp; Workshop</div>
+                <div style={{ background: "#F7F8FA", border: "1px solid #E6E8EC", borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
+                  <span style={{ display: "inline-block", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: "#0B1D3A", color: "#fff", marginBottom: 8 }}>BROKER OPEN</span>
+                  <div style={{ fontSize: 13.5, color: "#374151", lineHeight: 1.55 }}>{campaign.theme.content.brokerOpenInvite}</div>
+                  <button onClick={() => copy(campaign.theme.content.brokerOpenInvite, "bo")} style={copyBtnStyle}>{copied === "bo" ? "✓ Copied" : "Copy invite"}</button>
+                </div>
+                <div style={{ background: "#F7F8FA", border: "1px solid #E6E8EC", borderRadius: 10, padding: "14px 16px" }}>
+                  <span style={{ display: "inline-block", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: "#c9a84c", color: "#0B1D3A", marginBottom: 8 }}>WORKSHOP</span>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "#0B1B33", marginBottom: 4 }}>{campaign.theme.content.workshopTitle}</div>
+                  <div style={{ fontSize: 13.5, color: "#374151", lineHeight: 1.55 }}>{campaign.theme.content.workshopInvite}</div>
+                  <button onClick={() => copy(`${campaign.theme.content.workshopTitle}\n\n${campaign.theme.content.workshopInvite}`, "ws")} style={copyBtnStyle}>{copied === "ws" ? "✓ Copied" : "Copy invite"}</button>
+                </div>
+                <button onClick={() => { setEvForm(f => ({ ...f, title: campaign.theme.content.workshopTitle, type: "workshop" })); setActiveTab("events"); setShowEventForm(true) }}
+                  style={{ marginTop: 16, width: "100%", padding: "10px 0", background: "#0B1D3A", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  Schedule these in Events →
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── EVENTS TAB (broker opens + workshops) ── */}
+        {activeTab === "events" && (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 20 }}>
+              {[
+                { label: "Events", value: events.length, sub: "Broker opens + workshops", color: "#0B1D3A" },
+                { label: "Agents Invited", value: eventTotals.invited, sub: "Across all events", color: "#2F5C8F" },
+                { label: "Attended", value: eventTotals.attended, sub: "Showed up", color: "#E6A817" },
+                { label: "Recruited", value: eventTotals.recruited, sub: eventTotals.attended > 0 ? `${Math.round((eventTotals.recruited / eventTotals.attended) * 100)}% of attendees` : "From events", color: "#1B8C3A" },
+              ].map(card => (
+                <div key={card.label} style={{ background: "#fff", borderRadius: 14, padding: "18px 20px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+                  <div style={{ fontSize: 30, fontWeight: 700, color: card.color }}>{card.value}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginTop: 4 }}>{card.label}</div>
+                  <div style={{ fontSize: 11, color: "#8A94A6", marginTop: 2 }}>{card.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1B33" }}>Scheduled Events</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => fetchEvents(password)} style={{ padding: "9px 14px", fontSize: 12, fontWeight: 600, background: "#fff", color: "#0B1B33", border: "1px solid #E6E8EC", borderRadius: 8, cursor: "pointer" }}>↺ Refresh</button>
+                <button onClick={() => setShowEventForm(v => !v)} style={{ padding: "9px 16px", fontSize: 12, fontWeight: 600, background: "#0B1D3A", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>
+                  {showEventForm ? "Close" : "+ New Event"}
+                </button>
+              </div>
+            </div>
+
+            {showEventForm && (
+              <div style={{ background: "#fff", borderRadius: 14, padding: "22px", marginBottom: 20, border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 12, marginBottom: 12 }}>
+                  <select value={evForm.type} onChange={e => setEvForm(f => ({ ...f, type: e.target.value as "broker_open" | "workshop" }))} style={evInput}>
+                    <option value="broker_open">Broker Open</option>
+                    <option value="workshop">Workshop</option>
+                  </select>
+                  <input value={evForm.title} onChange={e => setEvForm(f => ({ ...f, title: e.target.value }))} placeholder="Event title" style={evInput} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 12, marginBottom: 12 }}>
+                  <input type="date" value={evForm.event_date} onChange={e => setEvForm(f => ({ ...f, event_date: e.target.value }))} style={evInput} />
+                  <input value={evForm.event_time} onChange={e => setEvForm(f => ({ ...f, event_time: e.target.value }))} placeholder="Time (e.g. 11–1)" style={evInput} />
+                  <input value={evForm.location} onChange={e => setEvForm(f => ({ ...f, location: e.target.value }))} placeholder="Location / address" style={evInput} />
+                </div>
+                <textarea value={evForm.notes} onChange={e => setEvForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notes (target zip, co-host, listing...)" style={{ ...evInput, width: "100%", minHeight: 60, resize: "vertical", boxSizing: "border-box" }} />
+                <div style={{ marginTop: 12 }}>
+                  <button onClick={saveEvent} disabled={savingEvent} style={{ padding: "10px 20px", fontSize: 13, fontWeight: 600, background: "#0B1D3A", color: "#fff", border: "none", borderRadius: 8, cursor: savingEvent ? "default" : "pointer" }}>
+                    {savingEvent ? "Saving..." : "Save Event"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+              {eventsLoading ? (
+                <div style={{ color: "#8A94A6", textAlign: "center", padding: 30 }}>Loading events...</div>
+              ) : events.length === 0 ? (
+                <div style={{ textAlign: "center", padding: 40, color: "#8A94A6" }}>
+                  <div style={{ fontSize: 14, color: "#0B1B33", marginBottom: 6 }}>No events scheduled yet.</div>
+                  <div style={{ fontSize: 12 }}>Click &quot;+ New Event&quot; to add a broker open or workshop — or schedule this cycle&apos;s plays from the Campaign tab.</div>
+                </div>
+              ) : (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ background: "#F7F8FA" }}>
+                        {["Type", "Event", "Date", "Invited", "Attended", "Recruited", "Status", ""].map(h => (
+                          <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "#8A94A6", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {events.map((ev, i) => (
+                        <tr key={ev.id} style={{ borderBottom: "1px solid #F1F2F4", background: i % 2 === 0 ? "#fff" : "#FAFBFC" }}>
+                          <td style={{ padding: "10px 12px" }}>
+                            <span style={{ display: "inline-block", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: ev.type === "broker_open" ? "#0B1D3A" : "#c9a84c", color: ev.type === "broker_open" ? "#fff" : "#0B1D3A", whiteSpace: "nowrap" }}>
+                              {ev.type === "broker_open" ? "BROKER OPEN" : "WORKSHOP"}
+                            </span>
+                          </td>
+                          <td style={{ padding: "10px 12px" }}>
+                            <div style={{ fontWeight: 600, color: "#0B1B33" }}>{ev.title}</div>
+                            {ev.location && <div style={{ fontSize: 11, color: "#8A94A6" }}>{ev.location}{ev.event_time ? ` · ${ev.event_time}` : ""}</div>}
+                          </td>
+                          <td style={{ padding: "10px 12px", color: "#374151", whiteSpace: "nowrap" }}>
+                            {ev.event_date ? new Date(ev.event_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
+                          </td>
+                          {(["invited", "attended", "recruited"] as const).map(field => (
+                            <td key={field} style={{ padding: "10px 12px" }}>
+                              <input
+                                type="number" min={0} value={ev[field]}
+                                onChange={e => patchEvent(ev.id, { [field]: Number(e.target.value) || 0 } as Partial<RecruitEvent>)}
+                                style={{ width: 56, padding: "5px 8px", fontSize: 13, border: "1px solid #E6E8EC", borderRadius: 6, color: "#0B1B33", outline: "none" }}
+                              />
+                            </td>
+                          ))}
+                          <td style={{ padding: "10px 12px" }}>
+                            <select value={ev.status} onChange={e => patchEvent(ev.id, { status: e.target.value })}
+                              style={{ padding: "5px 8px", fontSize: 12, border: "1px solid #E6E8EC", borderRadius: 6, color: "#0B1B33", background: "#fff", outline: "none" }}>
+                              <option value="planned">Planned</option>
+                              <option value="done">Done</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: "10px 12px" }}>
+                            <button onClick={() => deleteEvent(ev.id)} title="Delete" style={{ background: "#FEF2F2", color: "#C62828", border: "1px solid #FECACA", borderRadius: 6, padding: "5px 9px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>✕</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* ── TOOLKIT TAB (QR + tracked links) ── */}
+        {activeTab === "toolkit" && (
+          <>
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#0B1B33" }}>Lead Capture Toolkit</div>
+              <div style={{ fontSize: 13, color: "#8A94A6", marginTop: 4, maxWidth: 640 }}>
+                Pick a channel, then print or post the QR code / link. Every scan funnels into Scout and tags the lead&apos;s source automatically — results show under Overview → Source Attribution.
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr", gap: 20, alignItems: "start" }}>
+              {/* Channel picker */}
+              <div style={{ background: "#fff", borderRadius: 14, padding: 24, border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0B1B33", marginBottom: 12 }}>Channel</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10 }}>
+                  {TOOLKIT_CHANNELS.map(ch => {
+                    const active = tkSrc === ch.code
+                    return (
+                      <button key={ch.code} onClick={() => setTkSrc(ch.code)} style={{ textAlign: "left", cursor: "pointer", borderRadius: 10, padding: "12px 14px", border: `1.5px solid ${active ? "#0B1D3A" : "#E6E8EC"}`, background: active ? "#0B1D3A" : "#fff", color: active ? "#fff" : "#0B1B33" }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 600 }}>{ch.label}</div>
+                        <div style={{ fontSize: 11, color: active ? "#9DB4D0" : "#8A94A6", marginTop: 2 }}>{ch.hint}</div>
+                      </button>
+                    )
+                  })}
+                  <button onClick={() => setTkSrc("referral")} style={{ textAlign: "left", cursor: "pointer", borderRadius: 10, padding: "12px 14px", border: `1.5px solid ${isReferral ? "#0B1D3A" : "#E6E8EC"}`, background: isReferral ? "#0B1D3A" : "#fff", color: isReferral ? "#fff" : "#0B1B33" }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600 }}>Referral Link</div>
+                    <div style={{ fontSize: 11, color: isReferral ? "#9DB4D0" : "#8A94A6", marginTop: 2 }}>One per agent — credit tracked</div>
+                  </button>
+                  <button onClick={() => setTkSrc("custom")} style={{ textAlign: "left", cursor: "pointer", borderRadius: 10, padding: "12px 14px", border: `1.5px solid ${tkSrc === "custom" ? "#0B1D3A" : "#E6E8EC"}`, background: tkSrc === "custom" ? "#0B1D3A" : "#fff", color: tkSrc === "custom" ? "#fff" : "#0B1B33" }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600 }}>Custom Code</div>
+                    <div style={{ fontSize: 11, color: tkSrc === "custom" ? "#9DB4D0" : "#8A94A6", marginTop: 2 }}>Anything else you run</div>
+                  </button>
+                </div>
+
+                {isReferral && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Referring agent</div>
+                    <input value={tkRef} onChange={e => setTkRef(e.target.value)} placeholder="Agent name (e.g. Jane Smith)" style={{ ...evInput, width: "100%", boxSizing: "border-box" }} />
+                    <div style={{ fontSize: 11, color: "#8A94A6", marginTop: 6 }}>Give each agent their own link. Anyone who books or joins through it is credited to them automatically.</div>
+                  </div>
+                )}
+                {tkSrc === "custom" && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Custom source code</div>
+                    <input value={tkCustom} onChange={e => setTkCustom(e.target.value)} placeholder="e.g. mailer_june or postcard_winterpark" style={{ ...evInput, width: "100%", boxSizing: "border-box" }} />
+                  </div>
+                )}
+              </div>
+
+              {/* Link + QR */}
+              <div style={{ background: "#fff", borderRadius: 14, padding: 24, border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)", textAlign: "center" }}>
+                <div ref={qrWrapRef} style={{ display: "inline-block", padding: 16, background: "#fff", borderRadius: 12, border: "1px solid #E6E8EC" }}>
+                  <QRCodeCanvas value={trackedLink} size={196} level="M" fgColor="#0B1D3A" />
+                </div>
+                <div style={{ marginTop: 14, fontSize: 12, color: "#8A94A6" }}>
+                  Tags as <strong style={{ color: "#2F5C8F" }}>{activeCode}{isReferral && refSlug ? ` · ${refSlug}` : ""}</strong>
+                </div>
+                <div style={{ marginTop: 10, background: "#F7F8FA", border: "1px solid #E6E8EC", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "#374151", wordBreak: "break-all", textAlign: "left" }}>{trackedLink}</div>
+                <div style={{ display: "flex", gap: 10, marginTop: 14, justifyContent: "center" }}>
+                  <button onClick={() => copy(trackedLink, "tklink")} style={{ padding: "9px 16px", fontSize: 12, fontWeight: 600, background: "#0B1D3A", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>
+                    {copied === "tklink" ? "✓ Copied" : "Copy link"}
+                  </button>
+                  <button onClick={downloadQR} style={{ padding: "9px 16px", fontSize: 12, fontWeight: 600, background: "#fff", color: "#0B1B33", border: "1px solid #E6E8EC", borderRadius: 8, cursor: "pointer" }}>
+                    Download QR
+                  </button>
+                </div>
               </div>
             </div>
           </>
@@ -406,14 +839,14 @@ export default function DashboardPage() {
                 { label: "Total Pipeline (Unweighted)", value: fmt$(pipeline?.totalValue || 0), sub: `${pipeline?.activeCount || 0} active leads`, color: "#1B8C3A" },
                 { label: "Closed Won Revenue", value: fmt$(pipeline?.closedWonValue || 0), sub: "Annual broker revenue locked in", color: "#7C3AED" },
               ].map(card => (
-                <div key={card.label} style={{ background: "#fff", borderRadius: 10, padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+                <div key={card.label} style={{ background: "#fff", borderRadius: 10, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                   <div style={{ fontSize: 36, fontWeight: 700, color: card.color }}>{card.value}</div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginTop: 4 }}>{card.label}</div>
                   <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{card.sub}</div>
                 </div>
               ))}
             </div>
-            <div style={{ background: "#fff", borderRadius: 10, padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+            <div style={{ background: "#fff", borderRadius: 10, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>Pipeline by Stage</div>
               <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 20 }}>Avg 6 deals/yr · $415K avg price · 40% Bear Team share at Tier 1</div>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -446,7 +879,7 @@ export default function DashboardPage() {
 
         {/* ── ALL LEADS TAB ── */}
         {activeTab === "leads" && (
-          <div style={{ background: "#fff", borderRadius: 10, padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+          <div style={{ background: "#fff", borderRadius: 10, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 20 }}>All Recent Leads</div>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -472,15 +905,13 @@ export default function DashboardPage() {
                       </td>
                       <td style={{ padding: "10px 14px", color: "#6B7280", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.notes || "—"}</td>
                       <td style={{ padding: "10px 14px" }}>
-                        {lead.status === "joined" ? (
-                          <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
-                        ) : lead.email && lead.event_end && new Date(lead.event_end) < new Date() ? (
-                          <button onClick={() => markJoined(lead.id, lead.name || lead.email)} disabled={joiningId === lead.id}
+                        {lead.status !== "joined" && lead.email ? (
+                          <button onClick={() => markJoined(lead.id)} disabled={joiningId === lead.id}
                             style={{ background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A", color: joiningId === lead.id ? "#9CA3AF" : "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: joiningId === lead.id ? "default" : "pointer", whiteSpace: "nowrap" }}>
                             {joiningId === lead.id ? "Sending..." : "Mark Joined"}
                           </button>
-                        ) : lead.email && lead.event_end ? (
-                          <span style={{ fontSize: 11, color: "#6B7280" }}>Call pending</span>
+                        ) : lead.status === "joined" ? (
+                          <span style={{ fontSize: 12, color: "#1B8C3A", fontWeight: 600 }}>✓ Joined</span>
                         ) : null}
                       </td>
                     </tr>
@@ -502,7 +933,7 @@ export default function DashboardPage() {
                 { label: "Sequence Complete", value: drip?.completedCount || 0, sub: "All 5 emails sent", color: "#7C3AED" },
                 { label: "Not Started", value: drip?.notStartedCount || 0, sub: "Had call, no drip yet", color: "#E6A817" },
               ].map(card => (
-                <div key={card.label} style={{ background: "#fff", borderRadius: 10, padding: "18px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+                <div key={card.label} style={{ background: "#fff", borderRadius: 10, padding: "18px 20px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                   <div style={{ fontSize: 32, fontWeight: 700, color: card.color }}>{card.value}</div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginTop: 4 }}>{card.label}</div>
                   <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{card.sub}</div>
@@ -511,7 +942,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Step distribution bar */}
-            <div style={{ background: "#fff", borderRadius: 10, padding: "22px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+            <div style={{ background: "#fff", borderRadius: 10, padding: "22px 24px", marginBottom: 20, border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 16 }}>Sequence Step Distribution</div>
               <div style={{ display: "flex", gap: 10, alignItems: "flex-end", height: 64 }}>
                 {(drip?.stepCounts || []).map((s, i) => {
@@ -570,7 +1001,7 @@ export default function DashboardPage() {
             )}
 
             {/* Full drip sequence table */}
-            <div style={{ background: "#fff", borderRadius: 10, padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+            <div style={{ background: "#fff", borderRadius: 10, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>All Leads in Drip Sequence</div>
               <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 20 }}>
                 {drip?.totalEligible || 0} leads eligible (had a call, not closed) · Auto-sent via cron daily at 8 AM ET
@@ -664,18 +1095,18 @@ export default function DashboardPage() {
         {activeTab === "stalled" && (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14, marginBottom: 24 }}>
-              <div style={{ background: "#fff", borderRadius: 10, padding: "20px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ background: "#fff", borderRadius: 10, padding: "20px 24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                 <div style={{ fontSize: 32, fontWeight: 700, color: "#C62828" }}>{stalledLeads?.totalCount || 0}</div>
                 <div style={{ fontSize: 13, color: "#374151", fontWeight: 600, marginTop: 4 }}>Stalled Leads</div>
                 <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>No activity in 14+ days</div>
               </div>
-              <div style={{ background: "#fff", borderRadius: 10, padding: "20px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+              <div style={{ background: "#fff", borderRadius: 10, padding: "20px 24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
                 <div style={{ fontSize: 32, fontWeight: 700, color: "#E6A817" }}>{fmt$(stalledLeads?.totalValue || 0)}</div>
                 <div style={{ fontSize: 13, color: "#374151", fontWeight: 600, marginTop: 4 }}>At-Risk Pipeline Value</div>
                 <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>Estimated annual broker revenue</div>
               </div>
             </div>
-            <div style={{ background: "#fff", borderRadius: 10, padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+            <div style={{ background: "#fff", borderRadius: 10, padding: "24px", border: "1px solid #E6E8EC", boxShadow: "0 1px 2px rgba(11,27,51,0.04)" }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#0B1D3A", marginBottom: 4 }}>Stalled Leads — Priority Order</div>
               <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 20 }}>Sorted by estimated value. These leads need a personal touch from Tom.</div>
               {(!stalledLeads?.leads || stalledLeads.leads.length === 0) && <div style={{ color: "#9CA3AF", textAlign: "center", padding: 32 }}>No stalled leads. Pipeline is healthy.</div>}
@@ -703,14 +1134,10 @@ export default function DashboardPage() {
                         <td style={{ padding: "10px 14px", fontWeight: 600, color: "#1B8C3A" }}>{fmt$(lead.estimated_value)}</td>
                         <td style={{ padding: "10px 14px", color: "#6B7280" }}>{lead.drip_step > 0 ? `Email ${lead.drip_step} sent` : "Not started"}</td>
                         <td style={{ padding: "10px 14px" }}>
-                          {lead.event_end && new Date(lead.event_end) < new Date() ? (
-                            <button onClick={() => markJoined(lead.id, lead.name || lead.email)} disabled={joiningId === lead.id}
-                              style={{ background: joiningId === lead.id ? "#E5E7EB" : "#0B1D3A", color: joiningId === lead.id ? "#9CA3AF" : "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: joiningId === lead.id ? "default" : "pointer" }}>
-                              {joiningId === lead.id ? "Sending..." : "Mark Joined"}
-                            </button>
-                          ) : (
-                            <span style={{ fontSize: 11, color: "#6B7280" }}>Call pending</span>
-                          )}
+                          <button onClick={() => markJoined(lead.id)} disabled={joiningId === lead.id}
+                            style={{ background: "#0B1D3A", color: "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                            Mark Joined
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -809,7 +1236,7 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {prospects.map((p: any) => (
+                    {prospects.map((p: ProspectRow) => (
                       <tr key={p.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
                         <td style={{ padding: "10px 8px", fontWeight: 500, color: "#1a1a1a" }}>{p.full_name}</td>
                         <td style={{ padding: "10px 8px", color: "#444" }}>{p.brokerage || "—"}</td>
@@ -846,45 +1273,6 @@ export default function DashboardPage() {
         )}
 
       </div>
-
-      {/* Mark Joined confirmation modal — requires typing agent name */}
-      {joinModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "#fff", borderRadius: 12, padding: "32px 36px", maxWidth: 420, width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>⚠️ Confirm Onboarding</div>
-            <p style={{ color: "#374151", fontSize: 14, lineHeight: 1.6, margin: "0 0 20px" }}>
-              This will <strong>immediately send {joinModal.leadName} a welcome email with their BearTeamOS login credentials</strong>. This cannot be undone.
-            </p>
-            <p style={{ color: "#6B7280", fontSize: 13, margin: "0 0 8px" }}>
-              Type <strong style={{ color: "#0B1D3A" }}>{joinModal.leadName}</strong> to confirm:
-            </p>
-            <input
-              autoFocus
-              value={joinConfirmText}
-              onChange={e => setJoinConfirmText(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && joinConfirmText === joinModal.leadName) confirmMarkJoined() }}
-              placeholder={joinModal.leadName}
-              style={{ width: "100%", padding: "10px 12px", border: "2px solid #E5E7EB", borderRadius: 6, fontSize: 14, outline: "none", boxSizing: "border-box", marginBottom: 20 }}
-            />
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <button
-                onClick={() => { setJoinModal(null); setJoinConfirmText("") }}
-                style={{ padding: "9px 20px", borderRadius: 6, border: "1px solid #E5E7EB", background: "#fff", color: "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
-                Cancel
-              </button>
-              <button
-                onClick={confirmMarkJoined}
-                disabled={joinConfirmText !== joinModal.leadName}
-                style={{ padding: "9px 20px", borderRadius: 6, border: "none", background: joinConfirmText === joinModal.leadName ? "#C62828" : "#E5E7EB", color: joinConfirmText === joinModal.leadName ? "#fff" : "#9CA3AF", fontWeight: 700, fontSize: 13, cursor: joinConfirmText === joinModal.leadName ? "pointer" : "default", transition: "background 0.15s" }}>
-                Send Credentials
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   )
 }
-
-

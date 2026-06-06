@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
 
   const supabase = createClient(
     process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!
+    // service-role so dashboard reads keep working once RLS is enabled
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY!
   )
 
   const now = new Date()
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
   // ── Fetch all leads (extended fields) ──────────────────────────────────────
   const { data: leads } = await supabase
     .from("leads")
-    .select("id, created_at, updated_at, name, email, phone, status, notes, event_start, event_end, stage, brokerage, deal_count, avg_price, drip_step, drip_last_sent_at, drip_unsubscribed, noshow_followup_sent, onboarded_at")
+    .select("id, created_at, updated_at, name, email, phone, status, notes, event_start, event_end, stage, brokerage, deal_count, avg_price, drip_step, drip_last_sent_at, drip_unsubscribed, noshow_followup_sent, onboarded_at, source")
     .order("created_at", { ascending: false })
 
   // ── Fetch conversation count + sessions ────────────────────────────────────
@@ -190,13 +191,29 @@ export async function GET(req: NextRequest) {
 
   // ── 4. SOURCE ATTRIBUTION ──────────────────────────────────────────────────
   // Tracks leads, booking rate, AND GCI value per source
+  // Humanize a tracked source code (from leads.source) into a readable label
+  const prettySource = (code: string) => {
+    const c = code.toLowerCase().trim()
+    if (!c || c === "direct") return "Direct"
+    if (c === "scout_chat") return "Scout Chat"
+    if (c.startsWith("referral") || c.startsWith("ref_")) return "Referral"
+    return code.split(/[_\-]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" · ")
+  }
+
   const sourceBreakdown = allLeads.reduce((acc: Record<string, { leads: number; booked: number; joined: number; gciValue: number }>, l) => {
-    let source = "Direct"
-    const notes = (l.notes || "").toLowerCase()
-    if (notes.includes("slot selected") || notes.includes("calendly")) source = "Scout Chat"
-    else if (notes.includes("referral") || notes.includes("referred")) source = "Referral"
-    else if (notes.includes("linkedin")) source = "LinkedIn"
-    else if (notes.includes("instagram") || notes.includes("facebook")) source = "Social"
+    let source: string
+    if (l.source) {
+      // Preferred: real tracked source captured from QR / link / referral
+      source = prettySource(l.source)
+    } else {
+      // Legacy fallback: infer from notes for leads captured before source tracking
+      const notes = (l.notes || "").toLowerCase()
+      source = "Direct"
+      if (notes.includes("slot selected") || notes.includes("calendly")) source = "Scout Chat"
+      else if (notes.includes("referral") || notes.includes("referred")) source = "Referral"
+      else if (notes.includes("linkedin")) source = "LinkedIn"
+      else if (notes.includes("instagram") || notes.includes("facebook")) source = "Social"
+    }
 
     if (!acc[source]) acc[source] = { leads: 0, booked: 0, joined: 0, gciValue: 0 }
     acc[source].leads++
