@@ -36,12 +36,12 @@ export async function GET(req: NextRequest) {
 
   // ── Fetch conversation count + sessions ────────────────────────────────────
   const { count: convCount } = await supabase
-    .from("conversations")
-    .select("id", { count: "exact", head: true })
+    .from("scout_sessions")
+    .select("session_id", { count: "exact", head: true })
 
   const { data: sessions } = await supabase
-    .from("conversations")
-    .select("session_id, created_at")
+    .from("scout_sessions")
+    .select("session_id")
 
   const allLeads = leads || []
   const totalLeads = allLeads.length
