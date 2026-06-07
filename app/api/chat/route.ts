@@ -18,7 +18,7 @@ async function sendEmail(to: string, subject: string, html: string) {
     headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
-      from: { email: "scout@joinbearteam.com", name: "Scout" },
+      from: { email: "thomas.songer@gmail.com", name: "Scout" },
       subject,
       content: [{ type: "text/html", value: html }],
     }),
