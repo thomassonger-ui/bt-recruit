@@ -56,6 +56,7 @@ interface LeadRecord {
   call_outcome?: string;
   top_objection?: string;
   follow_up_date?: string;
+  transcript?: { role: string; content: string }[];
 }
 
 // ─── SUPABASE MEMORY HELPERS ──────────────────────────────────────────────────
@@ -359,6 +360,7 @@ export async function POST(req: NextRequest) {
           leadData.notes = [leadData.notes, `Referred by: ${leadData.referred_by}`].filter(Boolean).join(" | ")
         };
 
+        leadData.transcript = chatMessages;
         await upsertLead(leadData);
 
         // Fire-and-forget Tom alert on full lead capture
