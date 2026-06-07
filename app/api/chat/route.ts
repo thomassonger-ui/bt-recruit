@@ -165,6 +165,58 @@ async function getSessionSnapshot(sessionId: string): Promise<{
  * Extracts an email address from a message string, if present.
  * Scout can use this to trigger memory lookup mid-conversation.
  */
+function extractName(messages: { role: string; content: string }[]): string | undefined {
+  for (let i = 0; i < messages.length - 1; i++) {
+    const a = messages[i];
+    if (a.role !== "assistant") continue;
+    const q = a.content.toLowerCase();
+    if (q.includes("full name") || q.includes("first and last") || q.includes("your name")) {
+      const reply = messages[i + 1];
+      if (reply && reply.role === "user") {
+        const raw = reply.content.trim();
+        if (raw && !raw.includes("@") && raw.replace(/\D/g, "").length < 5 && raw.length <= 60) {
+          return raw.replace(/\b\w/g, (c) => c.toUpperCase());
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
+function extractPhone(messages: { role: string; content: string }[]): string | undefined {
+  const re = /(\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/;
+  for (const msg of messages) {
+    if (msg.role !== "user") continue;
+    const m = msg.content.match(re);
+    if (m) {
+      const digits = m[0].replace(/\D/g, "");
+      if (digits.length >= 10) {
+        const d = digits.slice(-10);
+        return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+      }
+    }
+  }
+  return undefined;
+}
+
+function extractNotes(messages: { role: string; content: string }[]): string | undefined {
+  const triggers = ["what would it take", "most important", "prompting", "considering a move", "frustrat", "why are you", "driving", "looking for", "biggest"];
+  const notes: string[] = [];
+  for (let i = 0; i < messages.length - 1; i++) {
+    const a = messages[i];
+    if (a.role !== "assistant") continue;
+    const q = a.content.toLowerCase();
+    if (triggers.some((t) => q.includes(t))) {
+      const reply = messages[i + 1];
+      if (reply && reply.role === "user") {
+        const r = reply.content.trim();
+        if (r && r.length <= 200 && !r.includes("@")) notes.push(r);
+      }
+    }
+  }
+  return notes.length ? notes.join(" | ").slice(0, 300) : undefined;
+}
+
 function extractEmail(text: string): string | null {
   const match = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   return match ? match[0] : null;
@@ -360,15 +412,22 @@ export async function POST(req: NextRequest) {
           leadData.notes = [leadData.notes, `Referred by: ${leadData.referred_by}`].filter(Boolean).join(" | ")
         };
 
+        const nameFromChat = extractName(chatMessages);
+        const phoneFromChat = extractPhone(chatMessages);
+        const notesFromChat = extractNotes(chatMessages);
+        if (!leadData.name && nameFromChat) leadData.name = nameFromChat;
+        if (!leadData.phone && phoneFromChat) leadData.phone = phoneFromChat;
+        if (notesFromChat) leadData.notes = [leadData.notes, notesFromChat].filter(Boolean).join(" | ");
+
         leadData.transcript = chatMessages;
         await upsertLead(leadData);
 
         // Fire-and-forget Tom alert on full lead capture
-        if (bodyName && bodyPhone) {
+        if (leadData.name && leadData.phone) {
           sendEmail(
             "contact@joinbearteam.com",
-            `🔔 New Lead: ${bodyName}`,
-            `<p><strong>Scout captured a new lead:</strong></p><ul><li><strong>Name:</strong> ${bodyName}</li><li><strong>Email:</strong> ${resolvedEmail}</li><li><strong>Phone:</strong> ${bodyPhone}</li></ul><p>Log in to your <a href="https://joinbearteam.com/dashboard">dashboard</a> to follow up.</p>`,
+            `🔔 New Lead: ${leadData.name}`,
+            `<p><strong>Scout captured a new lead:</strong></p><ul><li><strong>Name:</strong> ${leadData.name}</li><li><strong>Email:</strong> ${resolvedEmail}</li><li><strong>Phone:</strong> ${leadData.phone}</li></ul><p>Log in to your <a href="https://joinbearteam.com/dashboard">dashboard</a> to follow up.</p>`,
           ).catch(() => {});
         }
       }
