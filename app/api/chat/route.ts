@@ -364,7 +364,7 @@ export async function POST(req: NextRequest) {
         // Fire-and-forget Tom alert on full lead capture
         if (bodyName && bodyPhone) {
           sendEmail(
-            "tom@bearteam.com",
+            "contact@joinbearteam.com",
             `🔔 New Lead: ${bodyName}`,
             `<p><strong>Scout captured a new lead:</strong></p><ul><li><strong>Name:</strong> ${bodyName}</li><li><strong>Email:</strong> ${resolvedEmail}</li><li><strong>Phone:</strong> ${bodyPhone}</li></ul><p>Log in to your <a href="https://joinbearteam.com/dashboard">dashboard</a> to follow up.</p>`,
           ).catch(() => {});

@@ -14,11 +14,11 @@ function getSupabase() {
 }
 
 
-const TOM_EMAIL = "thomas.songer@gmail.com";
+const TOM_EMAIL = "contact@joinbearteam.com";
 const TOM_PHONE = "407-758-8102";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
 const FROM_EMAIL = "contact@joinbearteam.com";
-const REPLY_TO = "thomas.songer@gmail.com"; // Fix: replies from agents now route to Tom, not a void
+const REPLY_TO = "contact@joinbearteam.com"; // Fix: replies from agents now route to Tom, not a void
 
 // ─── NO-SHOW DETECTION LOGIC ──────────────────────────────────────────────────
 //

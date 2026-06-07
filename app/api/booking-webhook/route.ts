@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             personalizations: [{ to: [{ email: process.env.NOTIFY_EMAIL }] }],
             from: { email: "contact@joinbearteam.com", name: "Scout | Bear Team" },
-            reply_to: { email: "thomas.songer@gmail.com" },
+            reply_to: { email: "contact@joinbearteam.com" },
             subject: "⚠️ Booking — email missing, manual entry needed",
             content: [{ type: "text/html", value: `<p>Invitee URI: ${inviteeUri}</p><p>Token length in Vercel: ${process.env.CALENDLY_TOKEN?.length||0}</p><p>Event: ${eventStart}</p><p>Raw (first 500): ${rawBody.slice(0,500)}</p>` }]
           })
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           personalizations: [{ to: [{ email: process.env.NOTIFY_EMAIL }] }],
           from: { email: "contact@joinbearteam.com", name: "Scout | Bear Team" },
-          reply_to: { email: "thomas.songer@gmail.com" },
+          reply_to: { email: "contact@joinbearteam.com" },
           subject: `📞 Call booked — ${name} · ${timeStr}`,
           content: [{ type: "text/html", value: `<p><strong>${name}</strong><br>${email}<br>${phone||"no phone"}<br>${timeStr} ET</p>` }]
         })

@@ -19,17 +19,17 @@ async function sendEmail(to: string, subject: string, html: string, replyTo?: st
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
       from: { email: "contact@joinbearteam.com", name: "Tom Songer" },
-      reply_to: { email: replyTo || "thomas.songer@gmail.com" },
+      reply_to: { email: replyTo || "contact@joinbearteam.com" },
       subject,
       content: [{ type: "text/html", value: html }],
     }),
   })
 }
 
-const TOM_EMAIL = "thomas.songer@gmail.com";
+const TOM_EMAIL = "contact@joinbearteam.com";
 const CALENDLY_LINK = "https://calendly.com/thomas-songer/bear-team-meet";
 const FROM_EMAIL = "Tom Songer <contact@joinbearteam.com>";
-const REPLY_TO = "thomas.songer@gmail.com";
+const REPLY_TO = "contact@joinbearteam.com";
 
 // ─── COLD CRON — TWO SEGMENTS ─────────────────────────────────────────────────
 //

@@ -119,7 +119,7 @@ export async function GET(req: Request) {
     </div>`
   }
 
-  await sendEmail("tom@bearteam.com", `🔔 ${total} need a human today — ${dateStr}`, html)
+  await sendEmail("contact@joinbearteam.com", `🔔 ${total} need a human today — ${dateStr}`, html)
 
   return NextResponse.json({
     ok: true,

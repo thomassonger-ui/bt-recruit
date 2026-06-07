@@ -24,7 +24,7 @@ export const runtime = "nodejs";
 
 const FROM_NAME  = "Tom Songer";
 const FROM_EMAIL = "contact@joinbearteam.com";
-const REPLY_TO   = "thomas.songer@gmail.com";
+const REPLY_TO   = "contact@joinbearteam.com";
 
 type Channel = "email" | "linkedin";
 
@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const toEmail = process.env.SIGNAL_TO_EMAIL || "thomas.songer@gmail.com";
+  const toEmail = process.env.SIGNAL_TO_EMAIL || "contact@joinbearteam.com";
   const now     = new Date();
   const dow     = now.getDay();
   const channel = CHANNEL_BY_DOW[dow];

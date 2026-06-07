@@ -19,7 +19,7 @@ async function sendEmail(to: string, subject: string, html: string, replyTo?: st
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
       from: { email: "contact@joinbearteam.com", name: "Tom Songer" },
-      reply_to: { email: replyTo || "thomas.songer@gmail.com", name: "Tom Songer" },
+      reply_to: { email: replyTo || "contact@joinbearteam.com", name: "Tom Songer" },
       subject,
       content: [{ type: "text/html", value: html }],
     }),
@@ -134,11 +134,11 @@ async function provisionBearTeamOSCredentials(
   return { success: true };
 }
 
-const TOM_EMAIL = "thomas.songer@gmail.com";
+const TOM_EMAIL = "contact@joinbearteam.com";
 const TOM_PHONE = "407-758-8102";
 const ACADEMY_URL = "https://academy.joinbearteam.com";
 const BEARTEAMOS_URL = "https://bearteam-os-dashboard.vercel.app";
-const REPLY_TO = "thomas.songer@gmail.com";
+const REPLY_TO = "contact@joinbearteam.com";
 
 export async function POST(req: NextRequest) {
   try {
