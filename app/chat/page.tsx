@@ -496,7 +496,11 @@ function ChatPageInner() {
                             li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                             strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                             a: ({ href, children }) => (
-                              <a href={href} className="underline" target="_blank" rel="noopener noreferrer">{children}</a>
+                              href && href.includes("calendly") ? (
+                                <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "12px 24px", marginTop: "8px", borderRadius: "9px", background: "#1b365d", color: "#ffffff", fontWeight: 600, fontSize: "0.9rem", letterSpacing: "0.04em", textDecoration: "none" }}>{children}</a>
+                              ) : (
+                                <a href={href} className="underline" target="_blank" rel="noopener noreferrer">{children}</a>
+                              )
                             ),
                           }}
                         >
