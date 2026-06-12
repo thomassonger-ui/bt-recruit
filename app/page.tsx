@@ -17,6 +17,12 @@ const ACCENT = "#2F5C8F";
 const FONT = "var(--font-geist-sans), Inter, system-ui, sans-serif";
 const MAXW = 1080;
 
+// ─── Motion system (one vocabulary, reused on every section) ───
+const EASE = "cubic-bezier(.22,.61,.36,1)";
+const DUR = 0.6;   // entrance duration (s)
+const STEP = 0.09; // stagger between siblings (s)
+const DIST = 22;   // entrance travel (px)
+
 // ─── Reveal on scroll (fade-up) ───────────────────────────────────────────────
 function Reveal({
   children,
@@ -54,14 +60,59 @@ function Reveal({
         transform: shown
           ? "translate(0,0)"
           : from === "left"
-          ? "translateX(-30px)"
+          ? `translateX(-${DIST}px)`
           : from === "right"
-          ? "translateX(30px)"
-          : "translateY(18px)",
-        transition: `opacity .6s ease ${delay}s, transform .65s cubic-bezier(.22,.61,.36,1) ${delay}s`,
+          ? `translateX(${DIST}px)`
+          : `translateY(${DIST}px)`,
+        transition: `opacity ${DUR}s ${EASE} ${delay}s, transform ${DUR}s ${EASE} ${delay}s`,
         ...style,
       }}
     >
+      {children}
+    </div>
+  );
+}
+
+function Parallax({
+  children,
+  strength = 26,
+}: {
+  children: React.ReactNode;
+  strength?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [y, setY] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+      const center = r.top + r.height / 2;
+      const prog = (center - vh / 2) / (vh / 2 + r.height / 2);
+      setY(Math.max(-1, Math.min(1, prog)) * -strength);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [strength]);
+  return (
+    <div ref={ref} style={{ transform: `translate3d(0, ${y}px, 0)`, willChange: "transform" }}>
       {children}
     </div>
   );
@@ -353,10 +404,10 @@ function Hero() {
       }}
     >
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
-        <Reveal>
+        <Reveal from="left">
           <Eyebrow>Boutique residential real estate brokerage · Orlando, FL</Eyebrow>
         </Reveal>
-        <Reveal delay={0.05}>
+        <Reveal from="left" delay={STEP}>
           <h1
             style={{
               fontSize: "clamp(38px,6vw,62px)",
@@ -372,7 +423,7 @@ function Hero() {
             <span style={{ color: ACCENT }}>you never hit.</span>
           </h1>
         </Reveal>
-        <Reveal delay={0.08}>
+        <Reveal delay={2 * STEP}>
           <h2
             style={{
               fontSize: "clamp(18px,2.6vw,24px)",
@@ -386,7 +437,7 @@ function Hero() {
             Built for Orlando agents who are done overpaying.
           </h2>
         </Reveal>
-        <Reveal delay={0.12}>
+        <Reveal delay={3 * STEP}>
           <p
             style={{
               fontSize: "clamp(17px,2.2vw,20px)",
@@ -401,7 +452,7 @@ function Hero() {
             real numbers before you switch.
           </p>
         </Reveal>
-        <Reveal delay={0.15}>
+        <Reveal delay={4 * STEP}>
           <div
             style={{
               display: "flex",
@@ -430,8 +481,10 @@ function Hero() {
           </div>
         </Reveal>
 
-        <Reveal delay={0.2} style={{ marginTop: "clamp(40px,6vw,64px)" }}>
-          <DashboardMock />
+        <Reveal delay={3 * STEP} style={{ marginTop: "clamp(40px,6vw,64px)" }}>
+          <Parallax strength={30}>
+            <DashboardMock />
+          </Parallax>
         </Reveal>
       </div>
     </section>
