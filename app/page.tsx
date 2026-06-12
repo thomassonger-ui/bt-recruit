@@ -21,10 +21,12 @@ const MAXW = 1080;
 function Reveal({
   children,
   delay = 0,
+  from = "up",
   style,
 }: {
   children: React.ReactNode;
   delay?: number;
+  from?: "up" | "left" | "right";
   style?: React.CSSProperties;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -49,13 +51,66 @@ function Reveal({
       ref={ref}
       style={{
         opacity: shown ? 1 : 0,
-        transform: shown ? "translateY(0)" : "translateY(18px)",
-        transition: `opacity .6s ease ${delay}s, transform .6s ease ${delay}s`,
+        transform: shown
+          ? "translate(0,0)"
+          : from === "left"
+          ? "translateX(-30px)"
+          : from === "right"
+          ? "translateX(30px)"
+          : "translateY(18px)",
+        transition: `opacity .6s ease ${delay}s, transform .65s cubic-bezier(.22,.61,.36,1) ${delay}s`,
         ...style,
       }}
     >
       {children}
     </div>
+  );
+}
+
+function CountUp({
+  to,
+  prefix = "",
+  suffix = "",
+  durationMs = 1100,
+}: {
+  to: number;
+  prefix?: string;
+  suffix?: string;
+  durationMs?: number;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        obs.disconnect();
+        const start = performance.now();
+        const tick = (now: number) => {
+          const t = Math.min(1, (now - start) / durationMs);
+          const eased = 1 - Math.pow(1 - t, 3);
+          setVal(Math.round(to * eased));
+          if (t < 1) raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+      },
+      { threshold: 0.4 }
+    );
+    obs.observe(el);
+    return () => {
+      obs.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [to, durationMs]);
+  return (
+    <span ref={ref}>
+      {prefix}
+      {val.toLocaleString()}
+      {suffix}
+    </span>
   );
 }
 
@@ -388,7 +443,7 @@ function DashboardMock() {
   const kpis = [
     { label: "Starting Split", value: "60/40", delta: "up to 90/10" },
     { label: "Monthly Fees", value: "$0", delta: "always" },
-    { label: "Per Closing", value: "$150", delta: "flat fee" },
+    { label: "Per Closing", value: <CountUp to={150} prefix="$" />, delta: "flat fee" },
     { label: "E&O Insurance", value: "Covered", delta: "by Bear Team" },
   ];
   const rows = [
@@ -445,8 +500,8 @@ function DashboardMock() {
           <strong style={{ color: INK, fontSize: 15 }}>
             Your Bear Team numbers
           </strong>
-          <span style={{ fontSize: 12, color: "#4FAE63", fontWeight: 600 }}>
-            ● ONLINE
+          <span style={{ fontSize: 12, color: "#4FAE63", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span className="bt-live-dot" /> ONLINE
           </span>
         </div>
         <div
@@ -584,7 +639,7 @@ function WhyStuck() {
       style={{ background: SOFT, padding: "clamp(60px,9vw,110px) 24px" }}
     >
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
-        <Reveal>
+        <Reveal from="left">
           <Eyebrow>Why good agents stay stuck</Eyebrow>
           <h2 style={h2Style}>
             It&apos;s rarely talent. It&apos;s the absence of a system.
@@ -787,7 +842,7 @@ function TierLadder() {
       style={{ background: "#fff", padding: "clamp(60px,9vw,110px) 24px" }}
     >
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
-        <Reveal>
+        <Reveal from="left">
           <Eyebrow>The commission model</Eyebrow>
           <h2 style={h2Style}>You earn your split. You don&apos;t wait for it.</h2>
           <p style={{ ...leadStyle, maxWidth: 560 }}>
@@ -887,10 +942,10 @@ function TierLadder() {
             }}
           >
             {[
-              ["$0", "Monthly cost to you"],
-              ["$150", "Flat fee per closing"],
-              ["$16K", "Cap, then you advance"],
-            ].map(([v, l]) => (
+              { v: <>$0</>, l: "Monthly cost to you" },
+              { v: <CountUp to={150} prefix="$" />, l: "Flat fee per closing" },
+              { v: <CountUp to={16} prefix="$" suffix="K" />, l: "Cap, then you advance" },
+            ].map(({ v, l }) => (
               <div
                 key={l}
                 style={{
@@ -934,7 +989,7 @@ function Comparison() {
   return (
     <section style={{ background: SOFT, padding: "clamp(56px,8vw,96px) 24px" }}>
       <div style={{ maxWidth: 880, margin: "0 auto" }}>
-        <Reveal>
+        <Reveal from="left">
           <Eyebrow>Side by side</Eyebrow>
           <h2 style={h2Style}>Traditional brokerage vs. Bear Team</h2>
         </Reveal>
@@ -1012,7 +1067,7 @@ function ScoutDemo() {
           alignItems: "center",
         }}
       >
-        <Reveal>
+        <Reveal from="left">
           <Eyebrow>Meet Scout</Eyebrow>
           <h2 style={{ ...h2Style, marginTop: 14 }}>
             Your AI assistant. Available 24/7. Just answers.
@@ -1068,7 +1123,7 @@ function ScoutDemo() {
                 <div style={{ fontSize: 14, fontWeight: 700, color: INK }}>
                   Scout
                 </div>
-                <div style={{ fontSize: 11.5, color: "#2E8B57" }}>● Online</div>
+                <div style={{ fontSize: 11.5, color: "#2E8B57", display: "inline-flex", alignItems: "center", gap: 6 }}><span className="bt-live-dot" /> Online</div>
               </div>
             </div>
             <div
@@ -1191,7 +1246,7 @@ function Proof() {
   return (
     <section style={{ background: SOFT, padding: "clamp(60px,9vw,110px) 24px" }}>
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
-        <Reveal>
+        <Reveal from="left">
           <Eyebrow>Agent results</Eyebrow>
           <h2 style={h2Style}>What agents say after they make the move.</h2>
         </Reveal>
@@ -1317,7 +1372,7 @@ function FinalCTA() {
       style={{ background: "#fff", padding: "clamp(64px,10vw,120px) 24px" }}
     >
       <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
-        <Reveal>
+        <Reveal from="left">
           <Eyebrow>Get started</Eyebrow>
           <h2
             style={{
@@ -1481,6 +1536,12 @@ export default function HomePage() {
         html { scroll-behavior: smooth; }
         main { overflow-x: hidden; }
         :target { scroll-margin-top: 80px; }
+        @keyframes btLive {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(63,174,99,0.5); opacity: 1; }
+          50% { box-shadow: 0 0 0 5px rgba(63,174,99,0); opacity: 0.55; }
+        }
+        .bt-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #3FAE63; display: inline-block; animation: btLive 1.6s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .bt-live-dot { animation: none; } }
         @media (max-width: 860px) {
           .nav-links { display: none !important; }
           .nav-burger { display: inline-flex !important; }
