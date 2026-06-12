@@ -1426,21 +1426,22 @@ function Proof() {
                 gap: 12,
               }}
             >
-              <span
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/tom-songer.webp"
+                alt="Tom Songer, Team Lead at Bear Team Real Estate"
+                width={48}
+                height={48}
                 style={{
-                  width: 42,
-                  height: 42,
+                  width: 48,
+                  height: 48,
                   borderRadius: "50%",
-                  background: "#1c3a63",
-                  color: "#fff",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 700,
+                  objectFit: "cover",
+                  border: "2px solid rgba(255,255,255,0.25)",
+                  flexShrink: 0,
+                  display: "block",
                 }}
-              >
-                TS
-              </span>
+              />
               <div>
                 <div style={{ fontWeight: 700, color: "#fff" }}>Tom Songer</div>
                 <div style={{ fontSize: 13, color: "#9DB4D0" }}>
