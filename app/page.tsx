@@ -1310,6 +1310,217 @@ function Bubble({
 }
 
 // ─── Proof: testimonials + founder ────────────────────────────────────────────
+function ToolsMock() {
+  const leads: [string, string, string][] = [
+    ["New buyer lead", "Captured by your IDX website", "New"],
+    ["Follow-up due today", "Scout scheduled the next touch", "Auto"],
+    ["Tour requested", "3-bed near Baldwin Park, Orlando", "Hot"],
+  ];
+  return (
+    <div
+      style={{
+        borderRadius: 18,
+        overflow: "hidden",
+        border: `1px solid ${BORDER}`,
+        background: "#fff",
+        boxShadow: "0 22px 56px -30px rgba(11,27,51,0.28)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "12px 16px",
+          borderBottom: `1px solid ${BORDER}`,
+          background: SOFT,
+        }}
+      >
+        <span style={dot("#E0564E")} />
+        <span style={dot("#E7B14C")} />
+        <span style={dot("#4FAE63")} />
+        <span
+          style={{
+            marginLeft: 12,
+            fontSize: 12.5,
+            color: MUTED,
+            fontFamily: "ui-monospace, monospace",
+          }}
+        >
+          app.bearteamos.com
+        </span>
+      </div>
+      <div style={{ padding: "clamp(16px,3vw,24px)" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            border: `1px solid ${BORDER}`,
+            borderRadius: 10,
+            padding: "11px 14px",
+            color: MUTED,
+            fontSize: 13.5,
+          }}
+        >
+          <span aria-hidden="true">⌕</span> Search homes for sale in Orlando…
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            margin: "18px 0 10px",
+          }}
+        >
+          <strong style={{ color: INK, fontSize: 14 }}>Your leads</strong>
+          <span
+            style={{
+              fontSize: 12,
+              color: "#2E8B57",
+              fontWeight: 600,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <span className="bt-live-dot" /> Live
+          </span>
+        </div>
+        {leads.map(([a, b, tag]) => (
+          <div
+            key={a}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr auto",
+              alignItems: "center",
+              gap: 8,
+              padding: "12px 0",
+              borderTop: `1px solid ${BORDER}`,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{a}</div>
+              <div style={{ fontSize: 12.5, color: BODY }}>{b}</div>
+            </div>
+            <span
+              style={{
+                fontSize: 11.5,
+                fontWeight: 700,
+                color: ACCENT,
+                background: "#EEF3F9",
+                padding: "4px 10px",
+                borderRadius: 999,
+              }}
+            >
+              {tag}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AgentTools() {
+  const tools: [string, string][] = [
+    [
+      "BoldTrail (kvCORE) IDX website",
+      "Your own home-search website that captures buyer and seller leads — you don't need listings of your own to start bringing in business.",
+    ],
+    [
+      "Built-in CRM",
+      "Every lead organized in one place with automated follow-up, so nothing slips while you're still learning the ropes.",
+    ],
+    [
+      "BearTeamOS + Scout AI",
+      "Your pipeline, commissions, and next best action in one system. Scout tells you exactly what to do next on every lead, 24/7.",
+    ],
+    [
+      "Training to actually use it",
+      "BearTeam Academy walks you through the whole stack — you're never handed a login and wished good luck.",
+    ],
+  ];
+  return (
+    <section id="tools" style={{ background: SOFT, padding: "clamp(60px,9vw,110px) 24px" }}>
+      <div
+        className="tools-grid"
+        style={{
+          maxWidth: MAXW,
+          margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "clamp(32px,5vw,64px)",
+          alignItems: "center",
+        }}
+      >
+        <Reveal from="left">
+          <Parallax strength={20}>
+            <ToolsMock />
+          </Parallax>
+        </Reveal>
+        <div>
+          <Reveal from="right">
+            <Eyebrow>Included at no cost</Eyebrow>
+            <h2 style={h2Style}>Your lead-gen website + CRM — running on day one.</h2>
+            <p style={{ ...leadStyle, maxWidth: 520 }}>
+              A new agent&apos;s biggest fear is no leads and no system to work
+              them. At Bear Team you walk in with the whole stack — no cobbling
+              tools together, no $200–300 a month platform bill.
+            </p>
+          </Reveal>
+          <div style={{ marginTop: 22 }}>
+            {tools.map(([t, d], i) => (
+              <Reveal key={t} delay={STEP * (i + 1)}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 14,
+                    padding: "14px 0",
+                    borderTop: `1px solid ${BORDER}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      width: 26,
+                      height: 26,
+                      borderRadius: 8,
+                      background: NAVY,
+                      color: "#fff",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      marginTop: 2,
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  <div>
+                    <div style={{ fontWeight: 700, color: INK, fontSize: 16 }}>{t}</div>
+                    <div style={{ color: BODY, fontSize: 14.5, lineHeight: 1.55, marginTop: 2 }}>{d}</div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal delay={STEP * 5}>
+            <p style={{ marginTop: 18, fontSize: 14.5, color: BODY }}>
+              All of it <strong style={{ color: INK }}>included at $0</strong> — part of the
+              no-monthly-fee model.{" "}
+              <Link href="/no-fee-brokerage" style={{ color: ACCENT, fontWeight: 700 }}>
+                See the fee structure →
+              </Link>
+            </p>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Proof() {
   const cards = [
     {
@@ -1661,6 +1872,7 @@ export default function HomePage() {
           .stuck-body > div:first-child { border-right: none !important; border-bottom: 1px solid ${BORDER} !important; }
           .tier-row { grid-template-columns: repeat(2,1fr) !important; }
           .scout-grid { grid-template-columns: 1fr !important; }
+          .tools-grid { grid-template-columns: 1fr !important; }
           .proof-grid { grid-template-columns: 1fr !important; }
           .stat-row { grid-template-columns: 1fr !important; }
           .hero-grid { grid-template-columns: 1fr !important; }
@@ -1680,6 +1892,7 @@ export default function HomePage() {
       <TierLadder />
       <Comparison />
       <ScoutDemo />
+      <AgentTools />
       <Proof />
       <FinalCTA />
       <Footer />
