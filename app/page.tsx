@@ -404,6 +404,16 @@ function Hero() {
       }}
     >
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
+        <div
+          className="hero-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.05fr 0.95fr",
+            gap: "clamp(28px,5vw,56px)",
+            alignItems: "center",
+          }}
+        >
+        <div>
         <Reveal from="left">
           <Eyebrow>Boutique residential real estate brokerage · Orlando, FL</Eyebrow>
         </Reveal>
@@ -480,6 +490,33 @@ function Hero() {
             </a>
           </div>
         </Reveal>
+        </div>
+        <Reveal from="right" delay={2 * STEP}>
+          <Parallax strength={16}>
+            <div
+              className="hero-photo"
+              style={{
+                borderRadius: 20,
+                overflow: "hidden",
+                aspectRatio: "4 / 5",
+                boxShadow: "0 30px 70px -34px rgba(11,27,51,0.45)",
+                border: `1px solid ${BORDER}`,
+                background: SOFT,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/bethanne.webp"
+                alt="Bethanne Baer, Broker and Owner of Bear Team Real Estate, in an Orlando kitchen"
+                width={1200}
+                height={1500}
+                fetchPriority="high"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            </div>
+          </Parallax>
+        </Reveal>
+        </div>
 
         <Reveal delay={3 * STEP} style={{ marginTop: "clamp(40px,6vw,64px)" }}>
           <Parallax strength={30}>
@@ -1610,6 +1647,8 @@ export default function HomePage() {
           .scout-grid { grid-template-columns: 1fr !important; }
           .proof-grid { grid-template-columns: 1fr !important; }
           .stat-row { grid-template-columns: 1fr !important; }
+          .hero-grid { grid-template-columns: 1fr !important; }
+          .hero-photo { max-width: 360px; margin: 8px auto 0; }
         }
         @media (max-width: 560px) {
           .cmp-grid { grid-template-columns: 1fr !important; }
