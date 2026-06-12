@@ -32,7 +32,12 @@ const breadcrumb = {
 const POINTS = [
   ["Graduating commission splits", "Start at 60/40 and move to 90/10 as you produce — not one flat rate forever.", "/commission-splits"],
   ["Zero monthly fees", "No desk, tech, or royalty fees. Just a flat $150 per closing, E&O covered.", "/no-fee-brokerage"],
+  ["Run your take-home", "Use the calculator to see what fees are costing you versus Bear Team.", "/your-numbers"],
   ["A real switching plan", "Move your license, clients, and pending deals without losing momentum.", "/switch-brokerages-florida"],
+  ["New to real estate?", "Training, a 30-60-90 day plan, and mentorship so you start with a system.", "/new-agents"],
+  ["Join the team", "Support, systems, and culture — boutique attention, not a phone tree.", "/join-a-team"],
+  ["Place your license", "Need a Florida sponsoring broker? Fast onboarding, $0 monthly fees.", "/place-your-license"],
+  ["100% commission?", "See why the headline split isn't always more money.", "/100-percent-commission"],
   ["Straight answers", "Splits, fees, the cap, support — answered in real numbers.", "/faq"],
 ];
 

@@ -1389,6 +1389,9 @@ function Footer() {
           <Link href="/commission-splits" style={footLink}>
             Splits
           </Link>
+          <Link href="/your-numbers" style={footLink}>
+            Calculator
+          </Link>
           <Link href="/switch-brokerages-florida" style={footLink}>
             Switch in FL
           </Link>
