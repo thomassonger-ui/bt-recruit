@@ -1397,53 +1397,68 @@ function Proof() {
 
         <Reveal delay={0.1}>
           <div
+            className="founder-card"
             style={{
               marginTop: 40,
               background: NAVY,
               borderRadius: 18,
-              padding: "clamp(28px,4vw,44px)",
+              overflow: "hidden",
               color: "#E7ECF3",
+              display: "flex",
+              alignItems: "stretch",
             }}
           >
-            <p
-              style={{
-                fontSize: "clamp(18px,2.4vw,23px)",
-                lineHeight: 1.55,
-                margin: 0,
-                fontWeight: 500,
-              }}
-            >
-              &ldquo;I built this model because I was tired of watching good
-              agents pay into a cap they never hit. I&apos;ve been on both sides
-              of this. The structure works because I designed it to reward
-              production.&rdquo;
-            </p>
             <div
+              className="founder-photo"
               style={{
-                marginTop: 22,
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
+                flex: "0 0 clamp(220px, 34%, 360px)",
+                position: "relative",
+                minHeight: 320,
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/tom-songer.webp"
                 alt="Tom Songer, Team Lead at Bear Team Real Estate"
-                width={48}
-                height={48}
+                width={720}
+                height={720}
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "50%",
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
                   objectFit: "cover",
-                  border: "2px solid rgba(255,255,255,0.25)",
-                  flexShrink: 0,
+                  objectPosition: "center 28%",
                   display: "block",
                 }}
               />
-              <div>
-                <div style={{ fontWeight: 700, color: "#fff" }}>Tom Songer</div>
+            </div>
+            <div
+              style={{
+                flex: 1,
+                padding: "clamp(28px,4vw,48px)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "clamp(18px,2.4vw,23px)",
+                  lineHeight: 1.55,
+                  margin: 0,
+                  fontWeight: 500,
+                }}
+              >
+                &ldquo;I built this model because I was tired of watching good
+                agents pay into a cap they never hit. I&apos;ve been on both
+                sides of this. The structure works because I designed it to
+                reward production.&rdquo;
+              </p>
+              <div style={{ marginTop: 22 }}>
+                <div style={{ fontWeight: 700, color: "#fff", fontSize: 16 }}>
+                  Tom Songer
+                </div>
                 <div style={{ fontSize: 13, color: "#9DB4D0" }}>
                   Team Lead · Bear Team Real Estate
                 </div>
@@ -1650,6 +1665,8 @@ export default function HomePage() {
           .stat-row { grid-template-columns: 1fr !important; }
           .hero-grid { grid-template-columns: 1fr !important; }
           .hero-photo { max-width: 360px; margin: 8px auto 0; }
+          .founder-card { flex-direction: column !important; }
+          .founder-photo { flex: none !important; height: 340px; min-height: 0 !important; }
         }
         @media (max-width: 560px) {
           .cmp-grid { grid-template-columns: 1fr !important; }
