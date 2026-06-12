@@ -85,8 +85,10 @@ export function Footer() {
           <Link href="/scout" style={footLink}>The System</Link>
           <Link href="/orlando-real-estate-brokerage" style={footLink}>Orlando Brokerage</Link>
           <Link href="/commission-splits" style={footLink}>Splits</Link>
+          <Link href="/your-numbers" style={footLink}>Calculator</Link>
           <Link href="/switch-brokerages-florida" style={footLink}>Switch in FL</Link>
           <Link href="/faq" style={footLink}>FAQ</Link>
+          <Link href="/blog" style={footLink}>Blog</Link>
           <Link href="/academy" style={footLink}>Academy</Link>
           <Link href="/privacy" style={footLink}>Privacy</Link>
         </div>

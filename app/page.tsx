@@ -1398,6 +1398,9 @@ function Footer() {
           <Link href="/faq" style={footLink}>
             FAQ
           </Link>
+          <Link href="/blog" style={footLink}>
+            Blog
+          </Link>
           <Link href="/academy" style={footLink}>
             Academy
           </Link>

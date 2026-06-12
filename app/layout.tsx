@@ -16,7 +16,7 @@ const SITE_URL = "https://www.joinbearteam.com";
 const TITLE =
   "Join Bear Team — Orlando Real Estate Brokerage for Agents";
 const DESCRIPTION =
-  "Thinking of switching brokerages in Orlando? Bear Team offers progressive 60/40 to 90/10 commission splits, $0 monthly fees, $150 flat per closing, E&O covered, and Scout AI to run your pipeline. See your real numbers before you switch.";
+  "Orlando real estate brokerage built for agents: 60/40 to 90/10 commission splits, $0 monthly fees, $150 per closing, E&O covered, and Scout AI to run your pipeline.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -36,7 +36,6 @@ export const metadata: Metadata = {
     "real estate agent recruiting Orlando",
     "Bear Team Real Estate",
   ],
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: SITE_URL,
