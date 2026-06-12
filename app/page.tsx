@@ -770,7 +770,7 @@ function VideoEmbed({ id, title }: { id: string; title: string }) {
 
 function VideoSection() {
   return (
-    <section style={{ background: "#fff", padding: "clamp(56px,8vw,96px) 24px" }}>
+    <section style={{ background: "#fff", padding: "clamp(32px,4vw,52px) 24px" }}>
       <div style={{ maxWidth: 680, margin: "0 auto", textAlign: "center" }}>
         <Reveal>
           <Eyebrow>Watch the overview</Eyebrow>
@@ -782,7 +782,7 @@ function VideoSection() {
             business as an agent.
           </p>
         </Reveal>
-        <Reveal delay={STEP} style={{ marginTop: 32 }}>
+        <Reveal delay={STEP} style={{ marginTop: 20 }}>
           <VideoEmbed id="lDSsdOcHxjg" title="See how Bear Team works" />
         </Reveal>
       </div>
@@ -797,7 +797,7 @@ function WhyStuck() {
   return (
     <section
       id="why"
-      style={{ background: SOFT, padding: "clamp(60px,9vw,110px) 24px" }}
+      style={{ background: SOFT, padding: "clamp(40px,5vw,68px) 24px" }}
     >
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
         <Reveal from="left">
@@ -1001,7 +1001,7 @@ function TierLadder() {
   return (
     <section
       id="math"
-      style={{ background: "#fff", padding: "clamp(60px,9vw,110px) 24px" }}
+      style={{ background: "#fff", padding: "clamp(40px,5vw,68px) 24px" }}
     >
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
         <Reveal from="left">
@@ -1149,7 +1149,7 @@ function Comparison() {
     ["E&O comes out of your pocket", "E&O paid by Bear Team"],
   ];
   return (
-    <section style={{ background: SOFT, padding: "clamp(56px,8vw,96px) 24px" }}>
+    <section style={{ background: SOFT, padding: "clamp(32px,4vw,52px) 24px" }}>
       <div style={{ maxWidth: 880, margin: "0 auto" }}>
         <Reveal from="left">
           <Eyebrow>Side by side</Eyebrow>
@@ -1216,7 +1216,7 @@ function ScoutDemo() {
   return (
     <section
       id="scout"
-      style={{ background: "#fff", padding: "clamp(60px,9vw,110px) 24px" }}
+      style={{ background: "#fff", padding: "clamp(40px,5vw,68px) 24px" }}
     >
       <div
         className="scout-grid"
@@ -1401,7 +1401,7 @@ function AgentTools() {
     ],
   ];
   return (
-    <section id="tools" style={{ background: SOFT, padding: "clamp(60px,9vw,110px) 24px" }}>
+    <section id="tools" style={{ background: SOFT, padding: "clamp(40px,5vw,68px) 24px" }}>
       <div
         className="tools-grid"
         style={{
@@ -1505,7 +1505,7 @@ function Proof() {
     },
   ];
   return (
-    <section style={{ background: SOFT, padding: "clamp(60px,9vw,110px) 24px" }}>
+    <section style={{ background: SOFT, padding: "clamp(40px,5vw,68px) 24px" }}>
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
         <Reveal from="left">
           <Eyebrow>Agent results</Eyebrow>
