@@ -1381,118 +1381,6 @@ function Bubble({
 }
 
 // ─── Proof: testimonials + founder ────────────────────────────────────────────
-function ToolsMock() {
-  const leads: [string, string, string][] = [
-    ["New buyer lead", "Captured by your IDX website", "New"],
-    ["Follow-up due today", "Scout scheduled the next touch", "Auto"],
-    ["Tour requested", "3-bed near Baldwin Park, Orlando", "Hot"],
-  ];
-  return (
-    <div
-      style={{
-        borderRadius: 18,
-        overflow: "hidden",
-        border: `1px solid ${BORDER}`,
-        background: "#fff",
-        boxShadow: "0 22px 56px -30px rgba(11,27,51,0.28)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          padding: "12px 16px",
-          borderBottom: `1px solid ${BORDER}`,
-          background: SOFT,
-        }}
-      >
-        <span style={dot("#E0564E")} />
-        <span style={dot("#E7B14C")} />
-        <span style={dot("#4FAE63")} />
-        <span
-          style={{
-            marginLeft: 12,
-            fontSize: 12.5,
-            color: MUTED,
-            fontFamily: "ui-monospace, monospace",
-          }}
-        >
-          app.bearteamos.com
-        </span>
-      </div>
-      <div style={{ padding: "clamp(16px,3vw,24px)" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            border: `1px solid ${BORDER}`,
-            borderRadius: 10,
-            padding: "11px 14px",
-            color: MUTED,
-            fontSize: 13.5,
-          }}
-        >
-          <span aria-hidden="true">⌕</span> Search homes for sale in Orlando…
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            margin: "18px 0 10px",
-          }}
-        >
-          <strong style={{ color: INK, fontSize: 14 }}>Your leads</strong>
-          <span
-            style={{
-              fontSize: 12,
-              color: "#2E8B57",
-              fontWeight: 600,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <span className="bt-live-dot" /> Live
-          </span>
-        </div>
-        {leads.map(([a, b, tag]) => (
-          <div
-            key={a}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr auto",
-              alignItems: "center",
-              gap: 8,
-              padding: "12px 0",
-              borderTop: `1px solid ${BORDER}`,
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{a}</div>
-              <div style={{ fontSize: 12.5, color: BODY }}>{b}</div>
-            </div>
-            <span
-              style={{
-                fontSize: 11.5,
-                fontWeight: 700,
-                color: ACCENT,
-                background: "#EEF3F9",
-                padding: "4px 10px",
-                borderRadius: 999,
-              }}
-            >
-              {tag}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function AgentTools() {
   const tools: [string, string][] = [
     [
@@ -1527,7 +1415,7 @@ function AgentTools() {
       >
         <Reveal from="left">
           <Parallax strength={20}>
-            <ToolsMock />
+            <VideoEmbed id="pCQD2speGDA" title="The Bear Team agent tools, in action" />
           </Parallax>
         </Reveal>
         <div>
