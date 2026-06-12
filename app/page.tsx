@@ -1401,7 +1401,8 @@ function Footer() {
           color: "#6E89AD",
         }}
       >
-        © 2026 Bear Real Estate Team. All rights reserved.
+        <div>Made exclusively for · © 2026 Bear Team Real Estate · Bethanne Baer, Broker</div>
+        <div style={{ marginTop: 4 }}>Design &amp; development · © 2026 Atticus&trade; · WorldTeachPathways dba WorldTeachESL LLC · All IP rights reserved</div>
       </div>
     </footer>
   );
