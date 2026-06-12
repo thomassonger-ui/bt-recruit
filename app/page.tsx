@@ -1959,10 +1959,10 @@ export default function HomePage() {
       `}</style>
       <Nav />
       <Hero />
-      <VideoSection />
       <WhyStuck />
       <TierLadder />
       <Comparison />
+      <VideoSection />
       <ScoutDemo />
       <AgentTools />
       <Proof />
