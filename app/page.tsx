@@ -1383,6 +1383,12 @@ function Footer() {
           <Link href="/scout" style={footLink}>
             The System
           </Link>
+          <Link href="/orlando-real-estate-brokerage" style={footLink}>
+            Orlando Brokerage
+          </Link>
+          <Link href="/commission-splits" style={footLink}>
+            Splits
+          </Link>
           <Link href="/switch-brokerages-florida" style={footLink}>
             Switch in FL
           </Link>

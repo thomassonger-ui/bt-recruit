@@ -6,6 +6,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${base}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/scout`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/orlando-real-estate-brokerage`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${base}/commission-splits`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/no-fee-brokerage`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/switch-brokerages-florida`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/faq`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/academy`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
