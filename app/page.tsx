@@ -196,15 +196,21 @@ function Nav() {
           className="nav-links"
           style={{ display: "flex", alignItems: "center", gap: 28 }}
         >
-          <a href="#math" style={navLink}>
-            The Math
-          </a>
-          <a href="#why" style={navLink}>
+          <Link href="/orlando-real-estate-brokerage" style={navLink}>
             Why Switch
-          </a>
-          <a href="#scout" style={navLink}>
-            Scout
-          </a>
+          </Link>
+          <Link href="/commission-splits" style={navLink}>
+            Splits
+          </Link>
+          <Link href="/your-numbers" style={navLink}>
+            Calculator
+          </Link>
+          <Link href="/faq" style={navLink}>
+            FAQ
+          </Link>
+          <Link href="/blog" style={navLink}>
+            Blog
+          </Link>
           <GhostBtn href={CHAT}>Talk to Scout</GhostBtn>
           <PrimaryBtn href={CALENDLY} external>
             Book a Call
@@ -242,15 +248,21 @@ function Nav() {
             borderTop: `1px solid ${BORDER}`,
           }}
         >
-          <a href="#math" style={navLinkMobile} onClick={() => setOpen(false)}>
-            The Math
-          </a>
-          <a href="#why" style={navLinkMobile} onClick={() => setOpen(false)}>
+          <Link href="/orlando-real-estate-brokerage" style={navLinkMobile} onClick={() => setOpen(false)}>
             Why Switch
-          </a>
-          <a href="#scout" style={navLinkMobile} onClick={() => setOpen(false)}>
-            Scout
-          </a>
+          </Link>
+          <Link href="/commission-splits" style={navLinkMobile} onClick={() => setOpen(false)}>
+            Splits
+          </Link>
+          <Link href="/your-numbers" style={navLinkMobile} onClick={() => setOpen(false)}>
+            Calculator
+          </Link>
+          <Link href="/faq" style={navLinkMobile} onClick={() => setOpen(false)}>
+            FAQ
+          </Link>
+          <Link href="/blog" style={navLinkMobile} onClick={() => setOpen(false)}>
+            Blog
+          </Link>
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
             <GhostBtn href={CHAT}>Talk to Scout</GhostBtn>
             <PrimaryBtn href={CALENDLY} external>
