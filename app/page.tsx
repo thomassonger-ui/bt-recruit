@@ -299,7 +299,7 @@ function Hero() {
     >
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
         <Reveal>
-          <Eyebrow>Boutique brokerage · Orlando, FL</Eyebrow>
+          <Eyebrow>Boutique residential real estate brokerage · Orlando, FL</Eyebrow>
         </Reveal>
         <Reveal delay={0.05}>
           <h1
@@ -317,7 +317,21 @@ function Hero() {
             <span style={{ color: ACCENT }}>you never hit.</span>
           </h1>
         </Reveal>
-        <Reveal delay={0.1}>
+        <Reveal delay={0.08}>
+          <h2
+            style={{
+              fontSize: "clamp(18px,2.6vw,24px)",
+              lineHeight: 1.3,
+              fontWeight: 600,
+              color: BODY,
+              margin: "14px 0 0",
+              maxWidth: 700,
+            }}
+          >
+            Built for Orlando agents who are done overpaying.
+          </h2>
+        </Reveal>
+        <Reveal delay={0.12}>
           <p
             style={{
               fontSize: "clamp(17px,2.2vw,20px)",
@@ -327,9 +341,9 @@ function Hero() {
               maxWidth: 620,
             }}
           >
-            Bear Team is a boutique Orlando brokerage with progressive splits
-            from 60/40 to 90/10, zero monthly fees, and an AI assistant that
-            runs your pipeline. See your real numbers before you switch.
+            Bear Team gives you progressive splits from 60/40 to 90/10, zero
+            monthly fees, and an AI assistant that runs your pipeline. See your
+            real numbers before you switch.
           </p>
         </Reveal>
         <Reveal delay={0.15}>
