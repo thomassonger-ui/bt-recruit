@@ -1383,6 +1383,12 @@ function Footer() {
           <Link href="/scout" style={footLink}>
             The System
           </Link>
+          <Link href="/switch-brokerages-florida" style={footLink}>
+            Switch in FL
+          </Link>
+          <Link href="/faq" style={footLink}>
+            FAQ
+          </Link>
           <Link href="/academy" style={footLink}>
             Academy
           </Link>
