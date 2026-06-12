@@ -702,7 +702,7 @@ function WhyStuck() {
           </p>
         </Reveal>
 
-        <Reveal delay={0.08}>
+        <Reveal delay={STEP}>
           <div
             style={{
               marginTop: 36,
@@ -752,7 +752,8 @@ function WhyStuck() {
             </div>
 
             <div
-              className="stuck-body"
+              key={i}
+              className="stuck-body stuck-swap"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
@@ -1595,6 +1596,9 @@ export default function HomePage() {
         }
         .bt-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #3FAE63; display: inline-block; animation: btLive 1.6s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .bt-live-dot { animation: none; } }
+        @keyframes stuckSwap { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        .stuck-swap { animation: stuckSwap ${DUR}s ${EASE}; }
+        @media (prefers-reduced-motion: reduce) { .stuck-swap { animation: none; } }
         @media (max-width: 860px) {
           .nav-links { display: none !important; }
           .nav-burger { display: inline-flex !important; }
