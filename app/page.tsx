@@ -1413,11 +1413,19 @@ function AgentTools() {
           alignItems: "center",
         }}
       >
-        <Reveal from="left">
-          <Parallax strength={20}>
-            <VideoEmbed id="pCQD2speGDA" title="The Bear Team agent tools, in action" />
-          </Parallax>
-        </Reveal>
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <Reveal from="left">
+            <Parallax strength={20}>
+              <VideoEmbed id="pCQD2speGDA" title="The Bear Team agent tools, in action" />
+            </Parallax>
+          </Reveal>
+          <Reveal from="left" delay={STEP}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: ACCENT, marginBottom: 8 }}>
+              Bear Team Academy
+            </div>
+            <VideoEmbed id="ytb1sZyHk-Y" title="Bear Team Academy — training that gets you producing" />
+          </Reveal>
+        </div>
         <div>
           <Reveal from="right">
             <Eyebrow>Included at no cost</Eyebrow>
