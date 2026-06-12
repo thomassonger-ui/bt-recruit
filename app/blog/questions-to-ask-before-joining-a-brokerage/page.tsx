@@ -5,7 +5,6 @@ import { ArticleHead, Body, Lead, H2, P, Note, CTA, articleSchema, Link } from "
 const SLUG = "questions-to-ask-before-joining-a-brokerage";
 const TITLE = "12 questions to ask before you join a real estate brokerage";
 const DESC = "Before you sign with any real estate brokerage, get clear answers to these 12 questions on commission splits, fees, support, training, and what happens to your deals if you ever leave.";
-const DATE = "2026-06-12";
 
 export const metadata: Metadata = {
   title: "12 Questions to Ask Before Joining a Real Estate Brokerage",
@@ -25,10 +24,10 @@ const Q = ({ n, q, children }: { n: number; q: string; children: React.ReactNode
 export default function Page() {
   return (
     <Shell>
-      {articleSchema(SLUG, TITLE, DESC, DATE).map((o, i) => (
+      {articleSchema(SLUG, TITLE, DESC).map((o, i) => (
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(o) }} />
       ))}
-      <ArticleHead eyebrow="Choosing a brokerage" title={TITLE} dateLabel="June 12, 2026" read="5 min read" />
+      <ArticleHead eyebrow="Choosing a brokerage" title={TITLE} read="5 min read" />
       <Body>
         <Lead>Picking a brokerage is one of the biggest decisions in your real estate career, and the brochure rarely tells the whole story. Bring these 12 questions to every interview — the answers tell you more than any pitch.</Lead>
 

@@ -5,7 +5,6 @@ import { ArticleHead, Body, Lead, H2, P, UL, Note, CTA, articleSchema, Link } fr
 const SLUG = "real-estate-brokerage-fees-explained";
 const TITLE = "Real estate brokerage fees explained: desk, tech, royalty & E&O";
 const DESC = "A plain-English guide to real estate brokerage fees — desk fees, technology fees, royalty/franchise fees, transaction fees, caps, and E&O — and which ones quietly eat your income.";
-const DATE = "2026-06-12";
 
 export const metadata: Metadata = {
   title: "Real Estate Brokerage Fees Explained (Desk, Tech, Royalty, E&O)",
@@ -18,10 +17,10 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <Shell>
-      {articleSchema(SLUG, TITLE, DESC, DATE).map((o, i) => (
+      {articleSchema(SLUG, TITLE, DESC).map((o, i) => (
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(o) }} />
       ))}
-      <ArticleHead eyebrow="Brokerage costs" title={TITLE} dateLabel="June 12, 2026" read="5 min read" />
+      <ArticleHead eyebrow="Brokerage costs" title={TITLE} read="5 min read" />
       <Body>
         <Lead>Two brokerages can advertise the same commission split and leave you with completely different take-home — because the split is only one line on the bill. Here are the fees agents actually pay, and how to compare them honestly.</Lead>
 

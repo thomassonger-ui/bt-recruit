@@ -6,11 +6,11 @@ const { INK, BODY, BORDER, ACCENT, NAVY, MAXW } = tokens;
 
 export const ARTWRAP: React.CSSProperties = { maxWidth: 760, margin: "0 auto", padding: "0 24px" };
 
-export function ArticleHead({ eyebrow, title, dateLabel, read }: { eyebrow: string; title: string; dateLabel: string; read: string }) {
+export function ArticleHead({ eyebrow, title, read }: { eyebrow: string; title: string; read: string }) {
   return (
     <div style={{ ...ARTWRAP, paddingTop: "clamp(40px,6vw,72px)" }}>
       <Link href="/blog" style={{ color: ACCENT, fontWeight: 700, fontSize: 13, textDecoration: "none" }}>← Bear Team Blog</Link>
-      <div style={{ fontSize: 12.5, color: BODY, opacity: 0.8, marginTop: 14 }}>{eyebrow} · {dateLabel} · {read}</div>
+      <div style={{ fontSize: 12.5, color: BODY, opacity: 0.8, marginTop: 14 }}>{eyebrow} · {read}</div>
       <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.8rem)", fontWeight: 800, color: INK, margin: "8px 0 18px", lineHeight: 1.12 }}>{title}</h1>
     </div>
   );
@@ -19,7 +19,6 @@ export function ArticleHead({ eyebrow, title, dateLabel, read }: { eyebrow: stri
 export function Body({ children }: { children: ReactNode }) {
   return <div style={{ ...ARTWRAP, paddingBottom: 24 }}>{children}</div>;
 }
-
 export function Lead({ children }: { children: ReactNode }) {
   return <p style={{ fontSize: 19, color: BODY, lineHeight: 1.6, margin: "0 0 18px" }}>{children}</p>;
 }
@@ -51,7 +50,7 @@ export function CTA({ heading, sub }: { heading: string; sub: string }) {
   );
 }
 
-export function articleSchema(slug: string, title: string, description: string, date: string) {
+export function articleSchema(slug: string, title: string, description: string) {
   const SITE = "https://www.joinbearteam.com";
   return [
     { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
@@ -60,7 +59,7 @@ export function articleSchema(slug: string, title: string, description: string, 
       { "@type": "ListItem", position: 3, name: title, item: `${SITE}/blog/${slug}` },
     ] },
     { "@context": "https://schema.org", "@type": "Article", headline: title, description,
-      datePublished: date, dateModified: date, image: `${SITE}/og.png`,
+      image: `${SITE}/og.png`,
       author: { "@type": "Organization", name: "Bear Team Real Estate", url: SITE },
       publisher: { "@type": "Organization", name: "Bear Team Real Estate", logo: { "@type": "ImageObject", url: `${SITE}/bt-logo-mark.svg` } },
       mainEntityOfPage: `${SITE}/blog/${slug}` },

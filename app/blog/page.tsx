@@ -23,7 +23,7 @@ const blogJsonLd = {
   name: "Bear Team Blog",
   url: `${SITE}/blog`,
   publisher: { "@type": "Organization", name: "Bear Team Real Estate", url: SITE },
-  blogPost: POSTS.map((p) => ({ "@type": "BlogPosting", headline: p.title, url: `${SITE}/blog/${p.slug}`, datePublished: p.date })),
+  blogPost: POSTS.map((p) => ({ "@type": "BlogPosting", headline: p.title, url: `${SITE}/blog/${p.slug}` })),
 };
 
 export default function BlogIndex() {
@@ -40,7 +40,7 @@ export default function BlogIndex() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 18 }}>
           {POSTS.map((p) => (
             <Link key={p.slug} href={`/blog/${p.slug}`} style={{ textDecoration: "none", border: `1px solid ${BORDER}`, borderRadius: 16, padding: "24px", display: "flex", flexDirection: "column", gap: 10, background: "#fff" }}>
-              <div style={{ fontSize: 12.5, color: tokens.BODY, opacity: 0.8 }}>{p.dateLabel} · {p.read}</div>
+              <div style={{ fontSize: 12.5, color: tokens.BODY, opacity: 0.8 }}>{p.read}</div>
               <div style={{ fontSize: 19, fontWeight: 800, color: INK, lineHeight: 1.25 }}>{p.title}</div>
               <div style={{ fontSize: 14.5, color: BODY, lineHeight: 1.55 }}>{p.excerpt}</div>
               <div style={{ color: ACCENT, fontWeight: 700, fontSize: 14, marginTop: 4 }}>Read article →</div>

@@ -5,7 +5,6 @@ import { ArticleHead, Body, Lead, H2, P, UL, Note, CTA, articleSchema, Link } fr
 const SLUG = "how-much-do-orlando-real-estate-agents-make";
 const TITLE = "How much do real estate agents make in Orlando?";
 const DESC = "The honest math behind an Orlando real estate agent's income — how deals, sale price, commission rate, your split, and brokerage fees decide what you actually take home.";
-const DATE = "2026-06-12";
 
 export const metadata: Metadata = {
   title: "How Much Do Real Estate Agents Make in Orlando? (The Real Math)",
@@ -18,10 +17,10 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <Shell>
-      {articleSchema(SLUG, TITLE, DESC, DATE).map((o, i) => (
+      {articleSchema(SLUG, TITLE, DESC).map((o, i) => (
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(o) }} />
       ))}
-      <ArticleHead eyebrow="Agent income" title={TITLE} dateLabel="June 12, 2026" read="6 min read" />
+      <ArticleHead eyebrow="Agent income" title={TITLE} read="6 min read" />
       <Body>
         <Lead>There's no single salary for a real estate agent in Orlando — your income is a formula, not a paycheck. Once you understand the four levers that drive it, you can estimate your own number and see exactly where money leaks out.</Lead>
 
