@@ -90,10 +90,13 @@ const jsonLd = {
   },
   address: {
     "@type": "PostalAddress",
+    streetAddress: "2300 S Crystal Lake Dr",
     addressLocality: "Orlando",
     addressRegion: "FL",
+    postalCode: "32806",
     addressCountry: "US",
   },
+  telephone: "+1-407-228-1112",
   founder: {
     "@type": "Person",
     name: "Bethanne Baer",
