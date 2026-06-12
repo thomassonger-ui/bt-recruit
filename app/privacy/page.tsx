@@ -1,5 +1,7 @@
+import { Footer } from "@/components/seo/Shell";
 export default function PrivacyPolicy() {
   return (
+    <>
     <div style={{ minHeight: "100vh", background: "#ffffff", padding: "60px 20px" }}>
       <div style={{ maxWidth: "760px", margin: "0 auto", fontFamily: "Inter, -apple-system, sans-serif" }}>
         <h1 style={{ fontSize: "2rem", fontWeight: 800, color: "#0b1d3a", marginBottom: "8px" }}>Privacy Policy</h1>
@@ -102,12 +104,9 @@ export default function PrivacyPolicy() {
           </p>
         </Section>
       </div>
-
-      <footer style={{ maxWidth: "760px", margin: "48px auto 0", paddingTop: "20px", borderTop: "1px solid #E6E8EC", fontSize: "0.78rem", color: "#8A94A6", lineHeight: 1.7, fontFamily: "Inter, -apple-system, sans-serif" }}>
-        <div>Made exclusively for &middot; &copy; 2026 Bear Team Real Estate &middot; Bethanne Baer, Broker</div>
-        <div style={{ marginTop: "4px" }}>Design &amp; development &middot; &copy; 2026 Atticus&trade; &middot; WorldTeachPathways dba WorldTeachESL LLC &middot; All IP rights reserved</div>
-      </footer>
     </div>
+    <Footer />
+    </>
   );
 }
 

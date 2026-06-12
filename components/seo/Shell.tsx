@@ -45,15 +45,7 @@ function Header() {
           </Link>
           <a
             href={CALENDLY}
-            style={{
-              background: NAVY,
-              color: "#fff",
-              padding: "10px 18px",
-              borderRadius: 10,
-              fontSize: 14,
-              fontWeight: 700,
-              textDecoration: "none",
-            }}
+            style={{ background: NAVY, color: "#fff", padding: "10px 18px", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none" }}
           >
             Book a Call
           </a>
@@ -63,7 +55,7 @@ function Header() {
   );
 }
 
-function Footer() {
+export function Footer() {
   const footLink: React.CSSProperties = { color: "#9DB4D0", textDecoration: "none", fontSize: 14 };
   return (
     <footer style={{ background: NAVY, color: "#9DB4D0", padding: "clamp(40px,7vw,60px) 24px", fontFamily: FONT }}>
@@ -85,15 +77,16 @@ function Footer() {
             <span style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Bear Team Real Estate</span>
           </div>
           <div style={{ fontSize: 13, marginTop: 6 }}>
-            2300 S Crystal Lake Dr, Orlando, FL 32806 &middot; (407) 228-1112
-          </div>
-          <div style={{ fontSize: 13, marginTop: 2 }}>
-            Independent Licensed Brokerage &middot; Bethanne Baer, Broker
+            Orlando, FL &middot; Independent Licensed Brokerage &middot; Bethanne Baer, Broker
           </div>
         </div>
         <div style={{ display: "flex", gap: 22, flexWrap: "wrap", fontSize: 14 }}>
           <Link href="/chat" style={footLink}>Talk to Scout</Link>
           <Link href="/scout" style={footLink}>The System</Link>
+          <Link href="/orlando-real-estate-brokerage" style={footLink}>Orlando Brokerage</Link>
+          <Link href="/commission-splits" style={footLink}>Splits</Link>
+          <Link href="/switch-brokerages-florida" style={footLink}>Switch in FL</Link>
+          <Link href="/faq" style={footLink}>FAQ</Link>
           <Link href="/academy" style={footLink}>Academy</Link>
           <Link href="/privacy" style={footLink}>Privacy</Link>
         </div>
@@ -108,8 +101,7 @@ function Footer() {
           color: "#6E89AD",
         }}
       >
-        <div>Commission figures are illustrations, not guarantees of income. Individual results vary.</div>
-        <div style={{ marginTop: 8 }}>Made exclusively for &middot; &copy; 2026 Bear Team Real Estate &middot; Bethanne Baer, Broker</div>
+        <div>Made exclusively for &middot; &copy; 2026 Bear Team Real Estate &middot; Bethanne Baer, Broker</div>
         <div style={{ marginTop: 4 }}>Design &amp; development &middot; &copy; 2026 Atticus&trade; &middot; WorldTeachPathways dba WorldTeachESL LLC &middot; All IP rights reserved</div>
       </div>
     </footer>
