@@ -719,6 +719,77 @@ const STUCK = [
   },
 ];
 
+function VideoEmbed({ id, title }: { id: string; title: string }) {
+  const [play, setPlay] = useState(false);
+  return (
+    <div
+      style={{
+        position: "relative",
+        aspectRatio: "16 / 9",
+        borderRadius: 18,
+        overflow: "hidden",
+        background: "#000",
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 26px 64px -34px rgba(11,27,51,0.4)",
+      }}
+    >
+      {play ? (
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`}
+          title={title}
+          allow="autoplay; encrypted-media; picture-in-picture; web-share"
+          allowFullScreen
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+        />
+      ) : (
+        <button
+          onClick={() => setPlay(true)}
+          aria-label="Play video"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, padding: 0, cursor: "pointer", background: "transparent" }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`}
+            onError={(e) => {
+              e.currentTarget.src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+            }}
+            alt={title}
+            loading="lazy"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+          <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(11,27,51,0.28)" }}>
+            <span style={{ width: 76, height: 76, borderRadius: "50%", background: "rgba(255,255,255,0.96)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 34px rgba(0,0,0,0.32)" }}>
+              <span style={{ marginLeft: 6, width: 0, height: 0, borderStyle: "solid", borderWidth: "12px 0 12px 20px", borderColor: `transparent transparent transparent ${NAVY}` }} />
+            </span>
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function VideoSection() {
+  return (
+    <section style={{ background: "#fff", padding: "clamp(56px,8vw,96px) 24px" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+        <Reveal>
+          <Eyebrow>Watch the overview</Eyebrow>
+          <h2 style={{ ...h2Style, margin: "14px auto 0", maxWidth: 640 }}>
+            See how Bear Team works.
+          </h2>
+          <p style={{ ...leadStyle, margin: "16px auto 0", maxWidth: 560 }}>
+            A quick look at the model, the system, and what it means for your
+            business as an agent.
+          </p>
+        </Reveal>
+        <Reveal delay={STEP} style={{ marginTop: 32 }}>
+          <VideoEmbed id="lDSsdOcHxjg" title="See how Bear Team works" />
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 function WhyStuck() {
   const [i, setI] = useState(0);
   const n = STUCK.length;
@@ -1888,6 +1959,7 @@ export default function HomePage() {
       `}</style>
       <Nav />
       <Hero />
+      <VideoSection />
       <WhyStuck />
       <TierLadder />
       <Comparison />
