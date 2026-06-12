@@ -771,7 +771,7 @@ function VideoEmbed({ id, title }: { id: string; title: string }) {
 function VideoSection() {
   return (
     <section style={{ background: "#fff", padding: "clamp(56px,8vw,96px) 24px" }}>
-      <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+      <div style={{ maxWidth: 680, margin: "0 auto", textAlign: "center" }}>
         <Reveal>
           <Eyebrow>Watch the overview</Eyebrow>
           <h2 style={{ ...h2Style, margin: "14px auto 0", maxWidth: 640 }}>
