@@ -1408,7 +1408,7 @@ function AgentTools() {
           maxWidth: MAXW,
           margin: "0 auto",
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
+          gridTemplateColumns: "1.4fr 0.9fr",
           gap: "clamp(32px,5vw,64px)",
           alignItems: "center",
         }}
