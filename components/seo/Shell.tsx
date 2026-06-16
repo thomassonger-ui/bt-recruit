@@ -18,6 +18,7 @@ const NAV: [string, string][] = [
   ["/your-numbers", "Calculator"],
   ["/faq", "FAQ"],
   ["/blog", "Blog"],
+  ["/events", "Events"],
 ];
 
 function Header() {
@@ -127,6 +128,7 @@ export function Footer() {
           <Link href="/switch-brokerages-florida" style={footLink}>Switch in FL</Link>
           <Link href="/faq" style={footLink}>FAQ</Link>
           <Link href="/blog" style={footLink}>Blog</Link>
+          <Link href="/events" style={footLink}>Events</Link>
           <Link href="/academy" style={footLink}>Academy</Link>
           <Link href="/privacy" style={footLink}>Privacy</Link>
         </div>
