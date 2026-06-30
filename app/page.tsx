@@ -803,7 +803,7 @@ function WhyStuck() {
         <Reveal from="left">
           <Eyebrow>Why good agents stay stuck</Eyebrow>
           <h2 style={h2Style}>
-            It&apos;s rarely talent. It&apos;s the absence of a system.
+            It&apos;s rarely talent.<br />It&apos;s the absence of a system.
           </h2>
           <p style={{ ...leadStyle, maxWidth: 560 }}>
             Six things that hold producers back — and what closes each one.
