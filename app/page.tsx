@@ -1006,7 +1006,7 @@ function TierLadder() {
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
         <Reveal from="left">
           <Eyebrow>The commission model</Eyebrow>
-          <h2 style={h2Style}>You earn your split. You don&apos;t wait for it.</h2>
+          <h2 style={h2Style}>You earn your split.<br />You don&apos;t wait for it.</h2>
           <p style={{ ...leadStyle, maxWidth: 560 }}>
             One $16,000 company-dollar cap, then you advance to the next tier
             automatically. Tap a tier to see when you reach it.
