@@ -1517,7 +1517,7 @@ function Proof() {
       <div style={{ maxWidth: MAXW, margin: "0 auto" }}>
         <Reveal from="left">
           <Eyebrow>Agent results</Eyebrow>
-          <h2 style={h2Style}>What agents say after they make the move.</h2>
+          <h2 style={{ ...h2Style, whiteSpace: "nowrap" }}>What agents say after they make the move.</h2>
         </Reveal>
         <div
           className="proof-grid"
