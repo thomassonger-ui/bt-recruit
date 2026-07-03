@@ -14,10 +14,32 @@ export const metadata: Metadata = {
 };
 const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [ { "@type": "ListItem", position: 1, name: "Home", item: SITE }, { "@type": "ListItem", position: 2, name: "100% Commission", item: `${SITE}/100-percent-commission` } ] };
 
+const FAQ = [
+  {
+    q: "Is a 100% commission brokerage really free?",
+    a: "No brokerage keeps zero of your money. In a 100% model the brokerage's costs are repackaged as monthly desk fees, per-transaction fees, and often per-file E&O charges — owed whether you close or not. The honest comparison is your total annual cost at your production level, not the headline percentage.",
+  },
+  {
+    q: "Who actually nets more on a 100% commission model?",
+    a: "Very high-volume, fully self-sufficient agents can come out ahead on a flat-fee model. For most agents doing roughly 3–20 deals a year, zero monthly fees plus a graduating split often nets more, because you're not paying fixed overhead in the months you don't close.",
+  },
+  {
+    q: "Does Bear Team offer 100% commission?",
+    a: "No — Bear Team uses a graduating split from 60/40 up to 90/10 through a single $16,000 company-dollar cap, with $0 monthly fees, a flat $150 per closing, and E&O covered by the brokerage. Costs scale with closings instead of arriving every month.",
+  },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
+
 export default function HundredPercent() {
   return (
     <Shell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "clamp(48px,7vw,84px) 24px 16px" }}>
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: ACCENT }}>The Real Math</div>
         <h1 style={{ fontSize: "clamp(2rem,4.5vw,3.1rem)", fontWeight: 800, color: INK, margin: "12px 0 16px", lineHeight: 1.08 }}>&ldquo;100% commission&rdquo; isn't always more money.</h1>
@@ -30,7 +52,18 @@ export default function HundredPercent() {
         <p style={{ fontSize: 16, color: BODY, lineHeight: 1.65, maxWidth: 760 }}>Bear Team uses a graduating split — 60/40 up to 90/10 as you produce — with $0 monthly fees, a flat $150 per closing, and E&amp;O covered by the brokerage. Your costs scale with your closings instead of arriving every month regardless of production.</p>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: "26px 0 10px" }}>So which keeps more?</h2>
         <p style={{ fontSize: 16, color: BODY, lineHeight: 1.65, maxWidth: 760 }}>It depends on your volume. Very high-volume agents can come out ahead on a pure 100% model. For most agents doing roughly 3–20 deals a year, $0 monthly fees plus a graduating split often nets more — because you're not paying fixed overhead in the months you don't close. The only way to know is to run your own numbers.</p>
-        <p style={{ fontSize: 15, color: BODY, marginTop: 18 }}>Run it: <Link href="/your-numbers" style={{ color: ACCENT, fontWeight: 700 }}>the take-home calculator</Link> · <Link href="/commission-splits" style={{ color: ACCENT, fontWeight: 700 }}>how splits graduate</Link> · <Link href="/no-fee-brokerage" style={{ color: ACCENT, fontWeight: 700 }}>the $0-fee structure</Link>.</p>
+        <p style={{ fontSize: 15, color: BODY, marginTop: 18 }}>Run it: <Link href="/your-numbers" style={{ color: ACCENT, fontWeight: 700 }}>the take-home calculator</Link> · <Link href="/commission-splits" style={{ color: ACCENT, fontWeight: 700 }}>how splits graduate</Link> · <Link href="/no-fee-brokerage" style={{ color: ACCENT, fontWeight: 700 }}>the $0-fee structure</Link> · <Link href="/blog/100-commission-brokerage-orlando-real-math" style={{ color: ACCENT, fontWeight: 700 }}>worked examples at 6, 12, and 20 deals</Link>.</p>
+      </section>
+      <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 8px" }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: "0 0 14px" }}>Frequently asked questions</h2>
+        <div style={{ border: `1px solid ${BORDER}`, borderRadius: 14, overflow: "hidden" }}>
+          {FAQ.map((f, i) => (
+            <div key={f.q} style={{ padding: "18px 22px", borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}>
+              <div style={{ fontWeight: 800, color: INK, fontSize: 16 }}>{f.q}</div>
+              <p style={{ color: BODY, fontSize: 14.5, margin: "6px 0 0", lineHeight: 1.6 }}>{f.a}</p>
+            </div>
+          ))}
+        </div>
       </section>
       <section style={{ background: NAVY, padding: "clamp(48px,7vw,72px) 24px", marginTop: 32 }}>
         <div style={{ maxWidth: MAXW, margin: "0 auto", textAlign: "center" }}>
