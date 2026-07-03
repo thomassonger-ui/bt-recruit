@@ -37,7 +37,7 @@ export default function Page() {
         <P>Agents tell themselves they'll switch "after the spring market" or "after the holidays." Meanwhile they pay monthly fees and a worse split the entire time. If the math clearly favors a move, the cost of waiting is real money. Run the comparison on the <Link href="/your-numbers" style={{ color: "#2F5C8F", fontWeight: 700 }}>calculator</Link> and see what staying actually costs.</P>
 
         <H2>The honest answer</H2>
-        <P>The best time to switch is when the math and the support clearly favor it, your pipeline is in a manageable spot, and you've checked your cap and contract. Once those line up, moving is straightforward — see the step-by-step <Link href="/switch-brokerages-florida" style={{ color: "#2F5C8F", fontWeight: 700 }}>Florida switching guide</Link>.</P>
+        <P>The best time to switch is when the math and the support clearly favor it, your pipeline is in a manageable spot, and you've checked your cap and contract. Once those line up, moving is straightforward — see the step-by-step <Link href="/switch-brokerages-florida" style={{ color: "#2F5C8F", fontWeight: 700 }}>Florida switching guide</Link> and our full walkthrough of <Link href="/blog/how-to-switch-real-estate-brokerages-in-florida" style={{ color: "#2F5C8F", fontWeight: 700 }}>how to switch brokerages in Florida</Link>, from ICA to DBPR to announcement.</P>
 
         <Note>General guidance only, not legal advice. Review your brokerage agreement and confirm Florida transfer steps with the DBPR.</Note>
       </Body>

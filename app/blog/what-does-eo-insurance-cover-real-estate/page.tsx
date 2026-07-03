@@ -43,7 +43,7 @@ export default function Page() {
         <P>Policies vary, so the exact coverage and exclusions depend on your brokerage's plan. The takeaway: E&amp;O protects you from honest mistakes, not from cutting corners.</P>
 
         <H2>Why who pays for it matters</H2>
-        <P>Some brokerages bill E&amp;O to the agent — a monthly charge or a per-transaction fee on every closing. Across a busy year, that adds up. Others cover it as part of the brokerage. At Bear Team, E&amp;O is covered by the brokerage, not deducted from your commission per file (here's the full <Link href="/no-fee-brokerage" style={{ color: "#2F5C8F", fontWeight: 700 }}>fee picture</Link>).</P>
+        <P>Some brokerages bill E&amp;O to the agent — a monthly charge or a per-transaction fee on every closing. Across a busy year, that adds up. Others cover it as part of the brokerage. At Bear Team, E&amp;O is covered by the brokerage, not deducted from your commission per file (here's the full <Link href="/no-fee-brokerage" style={{ color: "#2F5C8F", fontWeight: 700 }}>fee picture</Link>). Per-file E&amp;O charges are also a hidden cost of many <Link href="/blog/100-commission-brokerage-orlando-real-math" style={{ color: "#2F5C8F", fontWeight: 700 }}>100% commission models</Link>.</P>
 
         <Note>This is a general overview, not insurance or legal advice. Coverage, limits, and exclusions differ by policy — review your brokerage's specific E&amp;O coverage.</Note>
       </Body>

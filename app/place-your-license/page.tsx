@@ -14,6 +14,31 @@ export const metadata: Metadata = {
 };
 const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [ { "@type": "ListItem", position: 1, name: "Home", item: SITE }, { "@type": "ListItem", position: 2, name: "Place Your License", item: `${SITE}/place-your-license` } ] };
 
+const FAQ = [
+  {
+    q: "Can I hang my Florida license with Bear Team without actively producing?",
+    a: "Yes. With zero monthly fees it costs nothing to keep your license active month to month — the only fee is a flat $150 when you actually close a transaction. Training and support are there whenever you decide to ramp up.",
+  },
+  {
+    q: "What does it cost to place my license at Bear Team?",
+    a: "There are no sign-up, monthly, desk, or technology fees, and E&O insurance is covered by the brokerage. The complete fee schedule is a flat $150 per closing.",
+  },
+  {
+    q: "How does the license transfer work?",
+    a: "Your license association updates through your MyFloridaLicense (DBPR) account — an administrative step, not a new application. Bear Team handles it as part of day-one onboarding so there's no gap in your active status.",
+  },
+  {
+    q: "What if I'm switching from another brokerage?",
+    a: "Florida agents are independent contractors and can move their license at any time. Review your current independent contractor agreement for how pending deals are handled, then the transfer itself typically takes days, not weeks.",
+  },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
+
 const CARDS = [
   ["A sponsoring broker, fast", "In Florida your license has to sit with an active broker. Bear Team handles the DBPR transfer quickly so there's no gap."],
   ["$0 monthly to hold and grow", "No monthly desk or tech fees means it doesn't cost you every month to keep your license active — only a flat $150 when you close."],
@@ -25,6 +50,7 @@ export default function PlaceYourLicense() {
   return (
     <Shell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "clamp(48px,7vw,84px) 24px 16px" }}>
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: ACCENT }}>Sponsoring Broker</div>
         <h1 style={{ fontSize: "clamp(2rem,4.5vw,3.1rem)", fontWeight: 800, color: INK, margin: "12px 0 16px", lineHeight: 1.08 }}>Hang your Florida license with a broker that supports it.</h1>
@@ -39,7 +65,18 @@ export default function PlaceYourLicense() {
             </div>
           ))}
         </div>
-        <p style={{ fontSize: 15, color: BODY, marginTop: 18 }}>Switching from another broker? See the <Link href="/switch-brokerages-florida" style={{ color: ACCENT, fontWeight: 700 }}>Florida transfer guide</Link>. Arrangements vary — <Link href="/chat" style={{ color: ACCENT, fontWeight: 700 }}>ask Scout</Link> or book a call for specifics.</p>
+        <p style={{ fontSize: 15, color: BODY, marginTop: 18 }}>Switching from another broker? See the <Link href="/switch-brokerages-florida" style={{ color: ACCENT, fontWeight: 700 }}>Florida transfer guide</Link> and our <Link href="/blog/how-to-switch-real-estate-brokerages-in-florida" style={{ color: ACCENT, fontWeight: 700 }}>step-by-step switching walkthrough</Link>. Arrangements vary — <Link href="/chat" style={{ color: ACCENT, fontWeight: 700 }}>ask Scout</Link> or book a call for specifics.</p>
+      </section>
+      <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 8px" }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: "0 0 14px" }}>Frequently asked questions</h2>
+        <div style={{ border: `1px solid ${BORDER}`, borderRadius: 14, overflow: "hidden" }}>
+          {FAQ.map((f, i) => (
+            <div key={f.q} style={{ padding: "18px 22px", borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}>
+              <div style={{ fontWeight: 800, color: INK, fontSize: 16 }}>{f.q}</div>
+              <p style={{ color: BODY, fontSize: 14.5, margin: "6px 0 0", lineHeight: 1.6 }}>{f.a}</p>
+            </div>
+          ))}
+        </div>
       </section>
       <section style={{ background: NAVY, padding: "clamp(48px,7vw,72px) 24px", marginTop: 32 }}>
         <div style={{ maxWidth: MAXW, margin: "0 auto", textAlign: "center" }}>

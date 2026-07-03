@@ -29,6 +29,31 @@ const breadcrumb = {
   ],
 };
 
+const FAQ = [
+  {
+    q: "What does a no-monthly-fee brokerage actually mean?",
+    a: "At Bear Team it means zero recurring charges: no desk fee, no technology fee, no royalty fee, no monthly membership. Nothing is owed in a month you don't close.",
+  },
+  {
+    q: "What is the only fee agents pay at Bear Team?",
+    a: "A flat $150 transaction fee per closing. That's the complete fee schedule — there are no sign-up, monthly, annual, or per-file E&O charges.",
+  },
+  {
+    q: "Who pays for E&O insurance?",
+    a: "The brokerage. Errors & omissions coverage is fully covered by Bear Team, not billed to agents monthly or per file as at many brokerages.",
+  },
+  {
+    q: "How does Bear Team make money with no monthly fees?",
+    a: "Through the commission split. Agents start at 60/40 and graduate to 90/10 through a single $16,000 company-dollar cap — so the brokerage earns when agents close, not by charging overhead whether they produce or not.",
+  },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
+
 const COMPARE = [
   ["Monthly desk / tech / royalty fees", "$100–$300+ / month", "$0 / month — always"],
   ["Cost per closing", "Varies + franchise fees", "Flat $150"],
@@ -40,6 +65,7 @@ export default function NoFeeBrokerage() {
   return (
     <Shell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "clamp(48px,7vw,84px) 24px 16px" }}>
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: ACCENT }}>
@@ -81,9 +107,22 @@ export default function NoFeeBrokerage() {
           Typical-fee figures are general market ranges and vary by brokerage.
         </p>
         <p style={{ fontSize: 15, color: BODY, marginTop: 16 }}>
-          See also: <Link href="/commission-splits" style={{ color: ACCENT, fontWeight: 700 }}>how the splits graduate</Link>{" "}
+          See also: <Link href="/commission-splits" style={{ color: ACCENT, fontWeight: 700 }}>how the splits graduate</Link>,{" "}
+          our <Link href="/blog/real-estate-brokerage-fees-explained" style={{ color: ACCENT, fontWeight: 700 }}>guide to brokerage fees</Link>,{" "}
           and the <Link href="/faq" style={{ color: ACCENT, fontWeight: 700 }}>full FAQ</Link>.
         </p>
+      </section>
+
+      <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 8px" }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: "0 0 14px" }}>Frequently asked questions</h2>
+        <div style={{ border: `1px solid ${BORDER}`, borderRadius: 14, overflow: "hidden" }}>
+          {FAQ.map((f, i) => (
+            <div key={f.q} style={{ padding: "18px 22px", borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}>
+              <div style={{ fontWeight: 800, color: INK, fontSize: 16 }}>{f.q}</div>
+              <p style={{ color: BODY, fontSize: 14.5, margin: "6px 0 0", lineHeight: 1.6 }}>{f.a}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section style={{ background: NAVY, padding: "clamp(48px,7vw,72px) 24px", marginTop: 32 }}>
