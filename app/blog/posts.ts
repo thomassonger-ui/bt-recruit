@@ -7,6 +7,20 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "how-to-switch-real-estate-brokerages-in-florida",
+    title: "How to switch real estate brokerages in Florida — step by step",
+    excerpt:
+      "The complete Florida brokerage switch: reading your ICA, protecting pending deals, the DBPR transfer, MLS and lockbox moves, and a clean two-week timeline.",
+    read: "9 min read",
+  },
+  {
+    slug: "100-commission-brokerage-orlando-real-math",
+    title: "100% commission brokerages in Orlando: the real math",
+    excerpt:
+      "100% commission is a pricing model, not free. How flat-fee brokerages actually charge, worked examples at 6, 12, and 20 deals, and when a capped split wins.",
+    read: "8 min read",
+  },
+  {
     slug: "how-much-do-orlando-real-estate-agents-make",
     title: "How much do real estate agents make in Orlando?",
     excerpt:
