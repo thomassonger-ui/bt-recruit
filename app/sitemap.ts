@@ -16,6 +16,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/place-your-license`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/switch-brokerages-florida`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/blog/how-to-switch-real-estate-brokerages-in-florida`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/blog/100-commission-brokerage-orlando-real-math`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/how-much-do-orlando-real-estate-agents-make`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/blog/real-estate-brokerage-fees-explained`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/blog/questions-to-ask-before-joining-a-brokerage`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
