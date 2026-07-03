@@ -49,7 +49,7 @@ export default function Page() {
           <li>Confirm who pays E&amp;O.</li>
           <li>Compare total cost, not the headline split.</li>
         </UL>
-        <P>For most agents doing 3–20 deals a year, eliminating monthly fees often matters more than a slightly better split. See how a <Link href="/no-fee-brokerage" style={{ color: "#2F5C8F", fontWeight: 700 }}>$0-monthly-fee structure</Link> compares, or run the numbers on the <Link href="/your-numbers" style={{ color: "#2F5C8F", fontWeight: 700 }}>calculator</Link>.</P>
+        <P>For most agents doing 3–20 deals a year, eliminating monthly fees often matters more than a slightly better split. See how a <Link href="/no-fee-brokerage" style={{ color: "#2F5C8F", fontWeight: 700 }}>$0-monthly-fee structure</Link> compares, read <Link href="/blog/100-commission-brokerage-orlando-real-math" style={{ color: "#2F5C8F", fontWeight: 700 }}>the real math on 100% commission models</Link>, or run the numbers on the <Link href="/your-numbers" style={{ color: "#2F5C8F", fontWeight: 700 }}>calculator</Link>.</P>
 
         <Note>Fee ranges here are general market figures and vary by brokerage. Always confirm current terms in writing before you sign.</Note>
       </Body>
