@@ -46,7 +46,7 @@ export default function Page() {
         </UL>
 
         <H2>How to estimate your Orlando number</H2>
-        <P>Plug your own deals, price, and rate into the formula above, then subtract your current split and fees. Want it done for you? The <Link href="/your-numbers" style={{ color: "#2F5C8F", fontWeight: 700 }}>take-home calculator</Link> compares what your current brokerage keeps against Bear Team's $0 monthly fees and flat $150 per closing — and Scout can run your exact split across the tiers.</P>
+        <P>Plug your own deals, price, and rate into the formula above, then subtract your current split and fees. Want it done for you? The <Link href="/your-numbers" style={{ color: "#2F5C8F", fontWeight: 700 }}>take-home calculator</Link> compares what your current brokerage keeps against Bear Team's $0 monthly fees and flat $150 per closing — and Scout can run your exact split across the tiers. Chasing a bigger headline split? Read <Link href="/blog/100-commission-brokerage-orlando-real-math" style={{ color: "#2F5C8F", fontWeight: 700 }}>the real math on 100% commission models</Link> first.</P>
 
         <Note>These figures are illustrations to show how the math works, not guarantees of income. Your actual results depend on your market activity, pricing, and the agreements you sign.</Note>
       </Body>
