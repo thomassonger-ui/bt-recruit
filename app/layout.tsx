@@ -72,48 +72,93 @@ export const metadata: Metadata = {
   category: "real estate",
 };
 
+const ORG_ID = `${SITE_URL}/#organization`;
+const BROKER_ID = `${SITE_URL}/#bethanne-baer`;
+
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "RealEstateAgent",
-  name: "Bear Team Real Estate",
-  url: SITE_URL,
-  logo: `${SITE_URL}/bt-logo-mark.svg`,
-  image: `${SITE_URL}/og.png`,
-  description:
-    "Boutique Orlando real estate brokerage recruiting licensed agents — progressive 60/40 to 90/10 commission splits, zero monthly fees, $150 flat per closing, E&O covered, and Scout AI to run your pipeline.",
-  slogan: "Stop paying into a cap you never hit.",
-  areaServed: {
-    "@type": "City",
-    name: "Orlando",
-    containedInPlace: { "@type": "State", name: "Florida" },
-  },
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "2300 S Crystal Lake Dr",
-    addressLocality: "Orlando",
-    addressRegion: "FL",
-    postalCode: "32806",
-    addressCountry: "US",
-  },
-  telephone: "+1-407-228-1112",
-  founder: {
-    "@type": "Person",
-    name: "Bethanne Baer",
-    jobTitle: "Broker / Owner",
-  },
-  knowsAbout: [
-    "real estate agent recruiting",
-    "commission splits",
-    "brokerage onboarding",
-    "Orlando real estate market",
+  "@graph": [
+    {
+      "@type": "RealEstateAgent",
+      "@id": ORG_ID,
+      name: "Bear Team Real Estate",
+      url: SITE_URL,
+      logo: `${SITE_URL}/bt-logo-mark.svg`,
+      image: `${SITE_URL}/og.png`,
+      description:
+        "Boutique Orlando real estate brokerage recruiting licensed agents — progressive 60/40 to 90/10 commission splits, zero monthly fees, $150 flat per closing, E&O covered, and Scout AI to run your pipeline.",
+      slogan: "Stop paying into a cap you never hit.",
+      areaServed: {
+        "@type": "City",
+        name: "Orlando",
+        containedInPlace: { "@type": "State", name: "Florida" },
+      },
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "2300 S Crystal Lake Dr",
+        addressLocality: "Orlando",
+        addressRegion: "FL",
+        postalCode: "32806",
+        addressCountry: "US",
+      },
+      telephone: "+1-407-228-1112",
+      founder: { "@id": BROKER_ID },
+      employee: [{ "@id": BROKER_ID }],
+      knowsAbout: [
+        "real estate agent recruiting",
+        "commission splits",
+        "brokerage onboarding",
+        "Orlando real estate market",
+      ],
+      parentOrganization: {
+        "@type": "Organization",
+        name: "Bear Team Real Estate",
+        url: "https://bearteam.app",
+        logo: `${SITE_URL}/bt-logo-mark.svg`,
+      },
+      sameAs: [
+        "https://bearteam.app",
+        "https://www.instagram.com/bearteamrealestate/",
+        "https://www.facebook.com/TheBearTeam/",
+        "https://www.linkedin.com/company/bear-team-real-estate",
+        "https://www.youtube.com/@Bear_Team_Scout",
+        "https://linktr.ee/thebearteam",
+      ],
+    },
+    {
+      "@type": "Person",
+      "@id": BROKER_ID,
+      name: "Bethanne Baer",
+      jobTitle: "Broker / Owner",
+      worksFor: { "@id": ORG_ID },
+      telephone: "+1-407-228-1112",
+      identifier: {
+        "@type": "PropertyValue",
+        propertyID: "Florida Real Estate Broker License",
+        value: "BK553431",
+      },
+      hasCredential: {
+        "@type": "EducationalOccupationalCredential",
+        credentialCategory: "license",
+        name: "Florida Real Estate Broker License BK553431",
+        recognizedBy: {
+          "@type": "GovernmentOrganization",
+          name: "Florida Department of Business and Professional Regulation",
+          url: "https://www.myfloridalicense.com",
+        },
+      },
+      knowsAbout: [
+        "Orlando residential real estate",
+        "real estate brokerage management",
+        "agent training and mentorship",
+        "Florida real estate licensing",
+      ],
+      sameAs: [
+        "https://www.linkedin.com/in/thebearteam",
+        "https://www.zillow.com/profile/bearteam",
+      ],
+    },
   ],
-  parentOrganization: {
-    "@type": "Organization",
-    name: "Bear Team Real Estate",
-    url: "https://bearteam.app",
-    logo: `${SITE_URL}/bt-logo-mark.svg`,
-  },
-  sameAs: ["https://bearteam.app"],
 };
 
 export default function RootLayout({
