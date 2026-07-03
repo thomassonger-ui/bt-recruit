@@ -36,10 +36,40 @@ const breadcrumb = {
   ],
 };
 
+const FAQ = [
+  {
+    q: "How does the 60/40 to 90/10 split progression work?",
+    a: "You start at 60/40 on day one. There's a single $16,000 company-dollar cap — once Bear Team has collected $16,000 from your closings, you advance to the next tier automatically: 70/30, then 80/20, then 90/10. Your split climbs as you produce.",
+  },
+  {
+    q: "Are there monthly or desk fees on top of the split?",
+    a: "No. Bear Team charges zero monthly fees — no desk fee, no technology fee, no royalty fee. The only cost to agents is a flat $150 per closing, and E&O insurance is covered by the brokerage.",
+  },
+  {
+    q: "What split do new agents start at?",
+    a: "New agents start at 60/40, with free training through BearTeam Academy included. The same $16,000 cap and tier progression applies from your first closing.",
+  },
+  {
+    q: "How does this compare to a 100% commission model?",
+    a: "A 100% model repackages brokerage costs as monthly and per-file fees you pay whether you close or not. Bear Team's costs scale with closings only. For most agents doing 3–20 deals a year, $0 monthly fees plus a graduating split nets more — run your own numbers to compare.",
+  },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 export default function CommissionSplits() {
   return (
     <Shell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "clamp(48px,7vw,84px) 24px 16px" }}>
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: ACCENT }}>
@@ -96,9 +126,22 @@ export default function CommissionSplits() {
           ))}
         </div>
         <p style={{ fontSize: 15, color: BODY, marginTop: 22 }}>
-          See also: <Link href="/no-fee-brokerage" style={{ color: ACCENT, fontWeight: 700 }}>the no-fee fee structure</Link>{" "}
+          See also: <Link href="/no-fee-brokerage" style={{ color: ACCENT, fontWeight: 700 }}>the no-fee fee structure</Link>,{" "}
+          the <Link href="/blog/100-commission-brokerage-orlando-real-math" style={{ color: ACCENT, fontWeight: 700 }}>real math on 100% commission models</Link>,{" "}
           and the <Link href="/faq" style={{ color: ACCENT, fontWeight: 700 }}>full FAQ</Link>.
         </p>
+      </section>
+
+      <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 8px" }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: "0 0 14px" }}>Frequently asked questions</h2>
+        <div style={{ border: `1px solid ${BORDER}`, borderRadius: 14, overflow: "hidden" }}>
+          {FAQ.map((f, i) => (
+            <div key={f.q} style={{ padding: "18px 22px", borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}>
+              <div style={{ fontWeight: 800, color: INK, fontSize: 16 }}>{f.q}</div>
+              <p style={{ color: BODY, fontSize: 14.5, margin: "6px 0 0", lineHeight: 1.6 }}>{f.a}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section style={{ background: NAVY, padding: "clamp(48px,7vw,72px) 24px", marginTop: 32 }}>
