@@ -58,6 +58,9 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     images: ["/og.png"],
   },
+  verification: {
+    other: { "msvalidate.01": "D64BDD5A8752D9AB7B52579A1F287085" },
+  },
   robots: {
     index: true,
     follow: true,
