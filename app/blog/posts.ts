@@ -7,6 +7,13 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "is-joining-a-real-estate-team-worth-the-split",
+    title: "Is joining a real estate team worth the split? The honest math",
+    excerpt:
+      "Teams take 30-50% and hand you leads and systems. When that trade wins, when it doesn't, and the worked math at 6, 12, and 24 deals.",
+    read: "7 min read",
+  },
+  {
     slug: "orlando-real-estate-brokerages-that-provide-leads",
     title: "Orlando real estate brokerages that provide leads: the honest guide",
     excerpt:
