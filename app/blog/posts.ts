@@ -7,6 +7,13 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "orlando-real-estate-brokerages-that-provide-leads",
+    title: "Orlando real estate brokerages that provide leads: the honest guide",
+    excerpt:
+      "The four lead-provision models operating in Orlando, what each really costs agents, and the questions that separate a program from a recruiting pitch.",
+    read: "7 min read",
+  },
+  {
     slug: "signs-its-time-to-leave-your-real-estate-brokerage",
     title: "7 signs it's time to leave your real estate brokerage",
     excerpt:
