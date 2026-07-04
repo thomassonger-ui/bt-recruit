@@ -20,6 +20,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/bear-team-vs-keller-williams-orlando-agents`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/bear-team-vs-lpt-realty-orlando-agents`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/bear-team-vs-exit-realty-orlando-agents`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/blog/signs-its-time-to-leave-your-real-estate-brokerage`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/blog/my-brokerage-doesnt-give-me-leads`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/how-to-switch-real-estate-brokerages-in-florida`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/100-commission-brokerage-orlando-real-math`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/how-much-do-orlando-real-estate-agents-make`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
