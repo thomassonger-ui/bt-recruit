@@ -7,6 +7,27 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "bear-team-vs-keller-williams-orlando-agents",
+    title: "Bear Team vs Keller Williams: an honest comparison for Orlando agents",
+    excerpt:
+      "KW's 64/36 split, $22K-$35K cap, and 6% franchise royalty versus Bear Team's 60/40-to-90/10 ladder, $16K cap, and $0 monthly fees.",
+    read: "8 min read",
+  },
+  {
+    slug: "bear-team-vs-lpt-realty-orlando-agents",
+    title: "Bear Team vs LPT Realty: an honest comparison for Orlando agents",
+    excerpt:
+      "LPT's Blueprint and Brokerage Builder plans versus Bear Team's graduating split, $0 monthly fees, and in-person Orlando support.",
+    read: "8 min read",
+  },
+  {
+    slug: "bear-team-vs-exit-realty-orlando-agents",
+    title: "Bear Team vs EXIT Realty: an honest comparison for Orlando agents",
+    excerpt:
+      "EXIT's franchise model and sponsoring residuals versus Bear Team's published ladder, defined $16K cap, $0 monthly fees, and covered E&O.",
+    read: "7 min read",
+  },
+  {
     slug: "bear-team-vs-exp-realty-orlando-agents",
     title: "Bear Team vs eXp Realty: an honest comparison for Orlando agents",
     excerpt:
