@@ -29,6 +29,63 @@ const breadcrumb = {
   ],
 };
 
+const VENUE = {
+  "@type": "Place",
+  name: "Bear Team Real Estate",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "2300 S Crystal Lake Dr",
+    addressLocality: "Orlando",
+    addressRegion: "FL",
+    postalCode: "32806",
+    addressCountry: "US",
+  },
+};
+
+const eventSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Event",
+      name: "From 6 Deals to 60 — Orlando Growth Workshop",
+      description:
+        "Free in-person workshop for Orlando real estate agents: the system veterans use to break past a handful of deals a year — lead flow, listings, and the daily plan that scales.",
+      startDate: "2026-07-09T17:30:00-04:00",
+      endDate: "2026-07-09T19:00:00-04:00",
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      eventStatus: "https://schema.org/EventScheduled",
+      location: VENUE,
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${SITE}/events`, validFrom: "2026-06-01" },
+      organizer: { "@type": "Organization", name: "Bear Team Real Estate", url: SITE },
+      performer: [
+        { "@type": "Person", name: "Tom Songer" },
+        { "@type": "Person", name: "Bethanne Baer" },
+      ],
+      image: [`${SITE}/og.png`],
+    },
+    {
+      "@type": "Event",
+      name: "The REO Playbook — Where the Hidden Inventory Is in 2026",
+      description:
+        "Free in-person workshop for Orlando real estate agents: how the market is shifting, where distressed and REO opportunity is opening up, and how top agents position to win it.",
+      startDate: "2026-07-23T17:30:00-04:00",
+      endDate: "2026-07-23T19:00:00-04:00",
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      eventStatus: "https://schema.org/EventScheduled",
+      location: VENUE,
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${SITE}/events`, validFrom: "2026-06-01" },
+      organizer: { "@type": "Organization", name: "Bear Team Real Estate", url: SITE },
+      performer: [
+        { "@type": "Person", name: "Tom Songer" },
+        { "@type": "Person", name: "Bethanne Baer" },
+      ],
+      image: [`${SITE}/og.png`],
+    },
+  ],
+};
+
 const WORKSHOPS = [
   {
     badge: "Growth · 2nd Thursdays",
@@ -77,6 +134,7 @@ export default function Events() {
   return (
     <Shell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }} />
       <style>{`
         .ev-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
         .ev-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
