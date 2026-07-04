@@ -6,12 +6,15 @@ const { INK, BODY, BORDER, ACCENT, NAVY, MAXW } = tokens;
 
 export const ARTWRAP: React.CSSProperties = { maxWidth: 760, margin: "0 auto", padding: "0 24px" };
 
-export function ArticleHead({ eyebrow, title, read }: { eyebrow: string; title: string; read: string }) {
+export function ArticleHead({ eyebrow, title, read, author = "Tom Songer", authorRole = "Team Lead, Bear Team Real Estate" }: { eyebrow: string; title: string; read: string; author?: string; authorRole?: string }) {
   return (
     <div style={{ ...ARTWRAP, paddingTop: "clamp(40px,6vw,72px)" }}>
       <Link href="/blog" style={{ color: ACCENT, fontWeight: 700, fontSize: 13, textDecoration: "none" }}>← Bear Team Blog</Link>
       <div style={{ fontSize: 12.5, color: BODY, opacity: 0.8, marginTop: 14 }}>{eyebrow} · {read}</div>
-      <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.8rem)", fontWeight: 800, color: INK, margin: "8px 0 18px", lineHeight: 1.12 }}>{title}</h1>
+      <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.8rem)", fontWeight: 800, color: INK, margin: "8px 0 10px", lineHeight: 1.12 }}>{title}</h1>
+      <div style={{ fontSize: 13.5, color: BODY, marginBottom: 18 }}>
+        By <span style={{ fontWeight: 700, color: INK }}>{author}</span> · {authorRole}
+      </div>
     </div>
   );
 }
@@ -59,9 +62,15 @@ export function articleSchema(slug: string, title: string, description: string) 
       { "@type": "ListItem", position: 3, name: title, item: `${SITE}/blog/${slug}` },
     ] },
     { "@context": "https://schema.org", "@type": "Article", headline: title, description,
-      image: `${SITE}/og.png`,
-      author: { "@type": "Organization", name: "Bear Team Real Estate", url: SITE },
-      publisher: { "@type": "Organization", name: "Bear Team Real Estate", logo: { "@type": "ImageObject", url: `${SITE}/bt-logo-mark.svg` } },
+      image: `${SITE}/api/og?title=${encodeURIComponent(title)}`,
+      author: {
+        "@type": "Person",
+        name: "Tom Songer",
+        jobTitle: "Team Lead",
+        description: "7-time WSJ/RealTrends Top 100 agent; 7,000+ homes sold; Team Lead at Bear Team Real Estate, Orlando.",
+        worksFor: { "@id": `${SITE}/#organization` },
+      },
+      publisher: { "@type": "Organization", "@id": `${SITE}/#organization`, name: "Bear Team Real Estate", logo: { "@type": "ImageObject", url: `${SITE}/bt-logo-mark.svg` } },
       mainEntityOfPage: `${SITE}/blog/${slug}` },
   ];
 }
