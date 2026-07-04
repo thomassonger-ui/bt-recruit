@@ -7,6 +7,20 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "signs-its-time-to-leave-your-real-estate-brokerage",
+    title: "7 signs it's time to leave your real estate brokerage",
+    excerpt:
+      "From fee creep and vanishing leads to a broker who doesn't know your name — the seven honest signs a switch is due, and what to check before you decide.",
+    read: "6 min read",
+  },
+  {
+    slug: "my-brokerage-doesnt-give-me-leads",
+    title: "My brokerage doesn't give me leads — now what?",
+    excerpt:
+      "What brokerages actually owe you, three lead sources you control starting this week, and how to evaluate a brokerage or team that really provides leads.",
+    read: "6 min read",
+  },
+  {
     slug: "bear-team-vs-keller-williams-orlando-agents",
     title: "Bear Team vs Keller Williams: an honest comparison for Orlando agents",
     excerpt:
