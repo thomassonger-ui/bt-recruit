@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   title: "7 Signs It's Time to Leave Your Real Estate Brokerage",
   description: DESC,
   alternates: { canonical: `/blog/${SLUG}` },
-  openGraph: { type: "article", url: `https://www.joinbearteam.com/blog/${SLUG}`, title: TITLE, description: DESC, images: [{ url: "/og.png", width: 1200, height: 630 }] },
-  twitter: { card: "summary_large_image", images: ["/og.png"] },
+  openGraph: { type: "article", url: `https://www.joinbearteam.com/blog/${SLUG}`, title: TITLE, description: DESC, images: [{ url: `/api/og?title=${encodeURIComponent(TITLE)}`, width: 1200, height: 630 }] },
+  twitter: { card: "summary_large_image", images: [`/api/og?title=${encodeURIComponent(TITLE)}`] },
 };
 
 const FAQ = [
