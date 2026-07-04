@@ -7,6 +7,13 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "bear-team-vs-exp-realty-orlando-agents",
+    title: "Bear Team vs eXp Realty: an honest comparison for Orlando agents",
+    excerpt:
+      "Same $16,000 cap, very different models. eXp's 80/20, $85/month fee, stock and revenue share versus Bear Team's graduating split, $0 monthly fees, and in-person support.",
+    read: "8 min read",
+  },
+  {
     slug: "how-to-switch-real-estate-brokerages-in-florida",
     title: "How to switch real estate brokerages in Florida — step by step",
     excerpt:
