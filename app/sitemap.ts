@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/signs-its-time-to-leave-your-real-estate-brokerage`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/my-brokerage-doesnt-give-me-leads`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/orlando-real-estate-brokerages-that-provide-leads`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/blog/is-joining-a-real-estate-team-worth-the-split`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/how-to-switch-real-estate-brokerages-in-florida`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/100-commission-brokerage-orlando-real-math`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/how-much-do-orlando-real-estate-agents-make`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
