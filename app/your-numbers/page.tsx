@@ -28,6 +28,14 @@ export default function YourNumbers() {
       </section>
       <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "20px 24px 16px" }}>
         <Calculator />
+        <div style={{ marginTop: 20, border: `2px solid ${ACCENT}`, background: "#F4F8FC", borderRadius: 16, padding: "20px 24px", display: "flex", gap: 16, alignItems: "baseline", flexWrap: "wrap" }}>
+          <div style={{ fontSize: "clamp(1.4rem,2.5vw,1.9rem)", fontWeight: 800, color: NAVY, whiteSpace: "nowrap" }}>100+ leads/month</div>
+          <p style={{ fontSize: 15.5, color: INK, lineHeight: 1.6, margin: 0, flex: 1, minWidth: 260 }}>
+            The math above doesn&apos;t count what the office <em>gives back</em>: Bear Team&apos;s pipeline has been
+            generating 100+ seller leads a month, and agents claim them straight from the portal — leads most
+            brokerages would route through a 25&ndash;40% referral program. Ask Tom how lead distribution works on a call.
+          </p>
+        </div>
       </section>
       <section style={{ background: NAVY, padding: "clamp(48px,7vw,72px) 24px", marginTop: 24 }}>
         <div style={{ maxWidth: MAXW, margin: "0 auto", textAlign: "center" }}>
