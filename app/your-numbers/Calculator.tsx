@@ -101,7 +101,7 @@ export default function Calculator() {
 
         <div style={{ fontWeight: 800, color: INK, fontSize: 16, margin: "22px 0 16px" }}>What you pay today</div>
         <Field label="Your current split (what you keep)" suffix="%" value={split} min={50} max={100} step={1} onChange={setSplit} />
-        <Field label="Split cap (company dollar cap, if any)" suffix="$" value={splitCap} min={0} max={50000} step={1000} onChange={setSplitCap} zeroLabel="No cap" hint="If your brokerage caps what it keeps from splits each year, set it here." />
+        <Field label="Split cap (company dollar cap, if any)" suffix="$" value={splitCap} min={0} max={50000} step={1000} onChange={setSplitCap} zeroLabel="No cap" hint="If your brokerage caps what it keeps each year, set it here. Watch the reset date: many big-box caps run on a fixed year \u2014 join or produce late in that year and you can pay toward two caps in your first 12 months." />
         <Field label="Monthly brokerage fees" suffix="$" value={monthlyFee} min={0} max={1500} step={10} onChange={setMonthlyFee} hint="Desk / office fees billed monthly (not tech — that's next)." />
         <Field label="Technology fee (monthly)" suffix="$" value={techFee} min={0} max={300} step={5} onChange={setTechFee} zeroLabel="None" hint="CRM / platform fee — commonly billed separately (e.g. ~$85/mo at big-box brands)." />
         <Field label="Per-transaction fee" suffix="$" value={dealFee} min={0} max={800} step={25} onChange={setDealFee} hint="Charged on each closing on top of your split. Check your ICA." />
@@ -158,10 +158,18 @@ export default function Calculator() {
               <>At these numbers it&apos;s close — book a call and we&apos;ll run your exact ladder position.</>
             )}
           </div>
+          <div style={{ background: "#F4F8FC", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "12px 14px", marginTop: 12, fontSize: 13.5, color: INK, lineHeight: 1.6 }}>
+            <strong>Why the anniversary cap is huge:</strong> at brokerages where the cap resets on a fixed date,
+            switching mid-year can mean paying toward two cap cycles in your first twelve months. Bear Team&apos;s
+            $16,000 cap follows <em>your</em> twelve months from day one — no reset penalty for switching in June,
+            September, or the week before Christmas.
+          </div>
           <p style={{ fontSize: 12.5, color: BODY, lineHeight: 1.6, marginTop: 12, marginBottom: 0 }}>
-            Bear Team estimate assumes you start the year at 60/40 and advance a tier at each $16,000 of company dollar —
-            Scout can run your exact position. Competitor fees vary by office and agreement; use your ICA&apos;s real numbers.
-            MLS and board dues, license renewals, and lockbox fees are the same at any brokerage and excluded on both sides.
+            Estimate models your first 12 months from a 60/40 start, advancing a tier at each $16,000 of company
+            dollar. <strong>Bear Team&apos;s cap runs on your personal anniversary year</strong> — it starts the day you
+            join, not January 1, so every dollar counts toward the same climb no matter when you switch.
+            Competitor fees vary by office and agreement; use your ICA&apos;s real numbers. MLS and board dues, license
+            renewals, and lockbox fees are the same at any brokerage and excluded on both sides.
           </p>
         </div>
       </div>
