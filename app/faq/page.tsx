@@ -34,7 +34,7 @@ const GROUPS: Group[] = [
       },
       {
         q: "How does Bear Team's commission cap work?",
-        a: "There is one $16,000 company-dollar cap. Once Bear Team has collected $16,000 from your closings, you advance to the next tier automatically. You don't reset each year and you never pay into a cap you can't reach — you simply move up as you produce.",
+        a: "The cap is $16,000 in company dollar, and it runs on your personal anniversary year — the 12 months from the day you join, not the calendar year. Once Bear Team has collected $16,000 from your closings in that year, every closing after it is 100% yours minus the $150 flat fee, and you start your next anniversary year one tier up: 70/30, then 80/20, then 90/10. Because the clock is yours, switching mid-year never means paying toward two caps.",
       },
       {
         q: "How much will I actually take home at Bear Team?",

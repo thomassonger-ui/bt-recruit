@@ -9,7 +9,7 @@ const SITE = "https://www.joinbearteam.com";
 export const metadata: Metadata = {
   title: "Real Estate Take-Home Calculator — What You'd Net at Bear Team",
   description:
-    "See what brokerage fees are costing you. This free calculator compares your current monthly fees and split against Bear Team's $0 monthly fees and flat $150 per closing in Orlando.",
+    "Free take-home calculator for Orlando agents: enter your split, cap, monthly and tech fees, transaction fees, royalty, and referral fees — see your real NET at your brokerage vs Bear Team's $16K anniversary-year cap, $0 monthly fees, and $150 flat per closing.",
   alternates: { canonical: "/your-numbers" },
   openGraph: { type: "website", url: `${SITE}/your-numbers`, title: "Real Estate Take-Home Calculator — Bear Team Orlando", description: "Compare your current brokerage costs against Bear Team's $0 monthly fees.", images: [{ url: "/og.png", width: 1200, height: 630 }] },
   twitter: { card: "summary_large_image", images: ["/og.png"] },
@@ -24,7 +24,7 @@ export default function YourNumbers() {
       <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "clamp(48px,7vw,80px) 24px 8px" }}>
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: ACCENT }}>Take-Home Calculator</div>
         <h1 style={{ fontSize: "clamp(2rem,4.5vw,3rem)", fontWeight: 800, color: INK, margin: "12px 0 14px", lineHeight: 1.08 }}>See what fees are really costing you.</h1>
-        <p style={{ fontSize: 18, color: BODY, maxWidth: 740, lineHeight: 1.6 }}>Move the sliders to match your year. We'll show what your current brokerage keeps versus Bear Team's $0 monthly fees and flat $150 per closing — then Scout runs your exact split.</p>
+        <p style={{ fontSize: 18, color: BODY, maxWidth: 740, lineHeight: 1.6 }}>Move the sliders to match your year — split, cap, monthly and tech fees, transaction fees, royalty, corporate-lead referrals. You'll see the bottom line both ways: your NET where you are, and your NET at Bear Team's $16,000 anniversary-year cap with $0 monthly fees.</p>
       </section>
       <section style={{ maxWidth: MAXW, margin: "0 auto", padding: "20px 24px 16px" }}>
         <Calculator />

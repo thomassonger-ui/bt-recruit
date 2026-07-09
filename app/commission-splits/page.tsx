@@ -39,7 +39,7 @@ const breadcrumb = {
 const FAQ = [
   {
     q: "How does the 60/40 to 90/10 split progression work?",
-    a: "You start at 60/40 on day one. There's a single $16,000 company-dollar cap — once Bear Team has collected $16,000 from your closings, you advance to the next tier automatically: 70/30, then 80/20, then 90/10. Your split climbs as you produce.",
+    a: "You start at 60/40 on day one. The $16,000 company-dollar cap runs on your personal anniversary year — hit it and the rest of that year's closings are 100% yours minus the $150 flat fee, and you start your next year a tier up: 70/30, then 80/20, then 90/10. Your split climbs as you produce.",
   },
   {
     q: "Are there monthly or desk fees on top of the split?",

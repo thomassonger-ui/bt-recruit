@@ -25,7 +25,7 @@ const FAQ = [
   },
   {
     q: "Does Bear Team provide leads to agents?",
-    a: "Yes — company-generated leads are distributed to agents through the Bear Team pipeline system, alongside training on converting them and building your own sphere so you're never dependent on any single source. Ask Tom how distribution works; the answer is specific, not vague.",
+    a: "Yes — the office pipeline has been generating 100+ seller leads a month, and agents claim them directly from the portal at zero referral fee. That comes alongside training on converting them and building your own sphere so you're never dependent on any single source.",
   },
 ];
 
@@ -91,6 +91,12 @@ export default function Page() {
         </P>
 
         <H2>How Bear Team handles it</H2>
+        <P>
+          The current run rate: <strong>the office pipeline has been generating 100+ seller leads a month</strong>,
+          claimed by agents directly from the portal at <strong>zero referral fee</strong> — your lead, your
+          commission. Run the full math on the{" "}
+          <Link href="/your-numbers" style={{ color: "#2F5C8F", fontWeight: 700 }}>take-home calculator</Link>.
+        </P>
         <P>
           We're a boutique Orlando brokerage, so the honest version is specific: company-generated leads flow to
           agents through a pipeline system with visible distribution — you can see what you've been passed and where

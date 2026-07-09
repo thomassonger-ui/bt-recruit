@@ -100,6 +100,14 @@ export default function Page() {
           <Link href="/blog/questions-to-ask-before-joining-a-brokerage" style={{ color: "#2F5C8F", fontWeight: 700 }}>the 12 questions to ask any brokerage</Link>.
         </P>
 
+        <H2>Where Bear Team fits</H2>
+        <P>
+          For transparency, our own numbers: <strong>100+ office-generated seller leads a month</strong>, claimed by
+          agents straight from the portal at <strong>zero referral fee</strong> — while most models on this list
+          take 25&ndash;40% off the top of company-sourced closings. Check it against your situation on the{" "}
+          <Link href="/your-numbers" style={{ color: "#2F5C8F", fontWeight: 700 }}>take-home calculator</Link>.
+        </P>
+
         <H2>Don't move for leads alone</H2>
         <P>
           One honest caution: leads are the most common reason agents switch and the most common reason the switch

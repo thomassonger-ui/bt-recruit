@@ -25,7 +25,7 @@ const FAQ = [
   },
   {
     q: "Does Bear Team offer 100% commission?",
-    a: "No — Bear Team uses a graduating split from 60/40 up to 90/10 through a single $16,000 company-dollar cap, with $0 monthly fees, a flat $150 per closing, and E&O covered by the brokerage. Costs scale with closings instead of arriving every month.",
+    a: "No — Bear Team uses a graduating split from 60/40 up to 90/10 through a $16,000 company-dollar cap that runs on your anniversary year, with $0 monthly fees, a flat $150 per closing, and E&O covered by the brokerage. Costs scale with closings instead of arriving every month.",
   },
 ];
 
