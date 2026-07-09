@@ -37,18 +37,15 @@ function Field({ label, suffix, value, min, max, step, onChange, zeroLabel, hint
   );
 }
 
-// Bear Team ladder: start 60/40; every $16,000 of cumulative company dollar
-// advances the split one tier (70/30 -> 80/20 -> 90/10). Simulated deal by deal.
-const TIERS = [0.6, 0.7, 0.8, 0.9];
+// Bear Team cap: you start at 60/40; the brokerage side of the split (company
+// dollar) stops at the $16,000 cap — every dollar after that is the agent's,
+// minus the flat $150 per closing. Cap runs on the agent's anniversary year.
+// Hitting the cap advances you a tier (70/30, then 80/20, 90/10) for the NEXT year.
+const BT_START_SPLIT = 0.6;
 const CAP = 16000;
-function bearTeamCompanyDollar(deals: number, grossPerDeal: number): { company: number; endSplit: number } {
-  let company = 0;
-  let tier = 0;
-  for (let i = 0; i < deals; i++) {
-    company += grossPerDeal * (1 - TIERS[tier]);
-    while (tier < TIERS.length - 1 && company >= CAP * (tier + 1)) tier++;
-  }
-  return { company, endSplit: TIERS[tier] * 100 };
+function bearTeamCompanyDollar(deals: number, grossPerDeal: number): { company: number; capped: boolean } {
+  const company = Math.min(deals * grossPerDeal * (1 - BT_START_SPLIT), CAP);
+  return { company, capped: company >= CAP };
 }
 
 export default function Calculator() {
@@ -90,6 +87,8 @@ export default function Calculator() {
   const btFixed = 150 * deals;
   const btTotal = bt.company + btFixed;
   const diff = currentToBrokerage - btTotal;
+  const currentNet = gci - currentToBrokerage;
+  const btNet = gci - btTotal;
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(280px,1fr) minmax(280px,1fr)", gap: 28, alignItems: "start" }}>
@@ -135,12 +134,13 @@ export default function Calculator() {
           {annualDues > 0 && <Row label="Annual dues / renewals" value={usd(annualDues)} highlight />}
           <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 8, paddingTop: 8 }}>
             <Row label="Total to brokerage / year" value={usd(currentToBrokerage)} bold />
+            <Row label="NET TO YOU" value={usd(currentNet)} bold />
           </div>
         </div>
 
         <div style={{ border: `2px solid ${ACCENT}`, borderRadius: 16, padding: "22px" }}>
           <div style={{ fontWeight: 800, color: INK, marginBottom: 10 }}>At Bear Team — same year, full math</div>
-          <Row label="Split given up (60/40 → 90/10 ladder)" value={usd(bt.company)} />
+          <Row label={bt.capped ? "Split given up — CAPPED at $16,000" : "Split given up (60/40 start)"} value={usd(bt.company)} />
           <Row label={`Per closing (${usd(150)} × ${deals})`} value={usd(btFixed)} />
           <Row label="Monthly fees" value="$0 — always" />
           <Row label="Technology fee" value="$0" />
@@ -149,15 +149,24 @@ export default function Calculator() {
           <Row label="E&O insurance" value="Covered" />
           <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 8, paddingTop: 8 }}>
             <Row label="Total to Bear Team / year (est.)" value={usd(btTotal)} bold />
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0 2px", fontSize: 17 }}>
+              <span style={{ color: INK, fontWeight: 800 }}>NET TO YOU</span>
+              <span style={{ color: GREEN, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{usd(btNet)}</span>
+            </div>
+            {bt.capped && (
+              <div style={{ fontSize: 13, color: GREEN, fontWeight: 600, marginTop: 2 }}>
+                You hit the $16,000 cap — every closing after that is 100% yours, minus the $150.
+              </div>
+            )}
           </div>
           <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 10, paddingTop: 10, fontSize: 15, color: INK }}>
             {diff > 0 ? (
-              <>Estimated difference in your pocket: <strong style={{ color: GREEN }}>+{usd(diff)}/year</strong>
-              {bt.endSplit > 60 ? <> — and you finish the year at a <strong>{bt.endSplit}/{100 - bt.endSplit}</strong> split.</> : null}</>
+              <>Bottom line: <strong style={{ color: GREEN }}>+{usd(diff)} more in your pocket</strong> in year one
+              {bt.capped ? <> — and hitting the cap advances you to 70/30 for your next anniversary year.</> : <>.</>}</>
             ) : (
               <>At these numbers it&apos;s close — book a call and we&apos;ll run your exact ladder position.</>
             )}
-          </div>
+            </div>
           <div style={{ background: "#F4F8FC", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "12px 14px", marginTop: 12, fontSize: 13.5, color: INK, lineHeight: 1.6 }}>
             <strong>Why the anniversary cap is huge:</strong> at brokerages where the cap resets on a fixed date,
             switching mid-year can mean paying toward two cap cycles in your first twelve months. Bear Team&apos;s
@@ -165,8 +174,9 @@ export default function Calculator() {
             September, or the week before Christmas.
           </div>
           <p style={{ fontSize: 12.5, color: BODY, lineHeight: 1.6, marginTop: 12, marginBottom: 0 }}>
-            Estimate models your first 12 months from a 60/40 start, advancing a tier at each $16,000 of company
-            dollar. <strong>Bear Team&apos;s cap runs on your personal anniversary year</strong> — it starts the day you
+            Estimate models your first 12 months: 60/40 split with company dollar capped at $16,000 — after the cap,
+            closings are 100% yours minus the $150 flat fee. Hitting the cap advances your tier (70/30 → 80/20 → 90/10)
+            for the following year. <strong>Bear Team&apos;s cap runs on your personal anniversary year</strong> — it starts the day you
             join, not January 1, so every dollar counts toward the same climb no matter when you switch.
             Competitor fees vary by office and agreement; use your ICA&apos;s real numbers. MLS and board dues, license
             renewals, and lockbox fees are the same at any brokerage and excluded on both sides.
