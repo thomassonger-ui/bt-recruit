@@ -32,8 +32,9 @@ export default function YourNumbers() {
           <div style={{ fontSize: "clamp(1.4rem,2.5vw,1.9rem)", fontWeight: 800, color: NAVY, whiteSpace: "nowrap" }}>100+ leads/month</div>
           <p style={{ fontSize: 15.5, color: INK, lineHeight: 1.6, margin: 0, flex: 1, minWidth: 260 }}>
             The math above doesn&apos;t count what the office <em>gives back</em>: Bear Team&apos;s pipeline has been
-            generating 100+ seller leads a month, and agents claim them straight from the portal — leads most
-            brokerages would route through a 25&ndash;40% referral program. Ask Tom how lead distribution works on a call.
+            generating 100+ seller leads a month, and agents claim them straight from the portal at
+            <strong> zero referral fee</strong> — the same leads most brokerages route through a 25&ndash;40%
+            referral program. Your lead, your commission.
           </p>
         </div>
       </section>

@@ -145,6 +145,7 @@ export default function Calculator() {
           <Row label="Monthly fees" value="$0 — always" />
           <Row label="Technology fee" value="$0" />
           <Row label="Franchise / royalty" value="$0" />
+          <Row label="Referral fee on office leads" value="$0" />
           <Row label="E&O insurance" value="Covered" />
           <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 8, paddingTop: 8 }}>
             <Row label="Total to Bear Team / year (est.)" value={usd(btTotal)} bold />
