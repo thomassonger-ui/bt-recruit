@@ -64,12 +64,18 @@ export default function Calculator() {
   const [eoFee, setEoFee] = useState(40);
   const [annualDues, setAnnualDues] = useState(0);
   const [splitCap, setSplitCap] = useState(0);
+  const [refDeals, setRefDeals] = useState(0);
+  const [refPct, setRefPct] = useState(35);
 
   const grossPerDeal = price * (rate / 100);
   const gci = deals * grossPerDeal;
 
   // --- current brokerage ---
-  const rawSplitCost = gci * (1 - split / 100);
+  // Corporate-lead referral fees (REO / relocation / company leads) come off
+  // the top; the split then applies to what's left.
+  const refDealsClamped = Math.min(refDeals, deals);
+  const referralCost = refDealsClamped * grossPerDeal * (refPct / 100);
+  const rawSplitCost = (gci - referralCost) * (1 - split / 100);
   const currentSplitCost = splitCap > 0 ? Math.min(rawSplitCost, splitCap) : rawSplitCost;
   const currentMonthly = monthlyFee * 12;
   const currentTech = techFee * 12;
@@ -77,7 +83,7 @@ export default function Calculator() {
   const rawRoyalty = gci * (royaltyPct / 100);
   const currentRoyalty = royaltyPct > 0 ? (royaltyCap > 0 ? Math.min(rawRoyalty, royaltyCap) : rawRoyalty) : 0;
   const currentEo = eoFee * 12;
-  const currentToBrokerage = currentSplitCost + currentMonthly + currentTech + currentDealFees + currentRoyalty + currentEo + annualDues;
+  const currentToBrokerage = currentSplitCost + currentMonthly + currentTech + currentDealFees + currentRoyalty + currentEo + annualDues + referralCost;
 
   // --- Bear Team ---
   const bt = bearTeamCompanyDollar(deals, grossPerDeal);
@@ -103,6 +109,10 @@ export default function Calculator() {
         {royaltyPct > 0 && (
           <Field label="Royalty capped at" suffix="$" value={royaltyCap} min={0} max={6000} step={250} onChange={setRoyaltyCap} zeroLabel="No cap" />
         )}
+        <Field label="Closings from corporate / relo / REO leads" value={refDeals} min={0} max={40} step={1} onChange={setRefDeals} zeroLabel="None" hint="Company-sourced leads usually carry a referral fee off the top." />
+        {refDeals > 0 && (
+          <Field label="Referral fee on those leads" suffix="%" value={refPct} min={10} max={45} step={1} onChange={setRefPct} hint="Typical 25\u201340% on REO / relocation programs \u2014 check your program agreement." />
+        )}
         <Field label="E&O / risk fee (monthly)" suffix="$" value={eoFee} min={0} max={150} step={5} onChange={setEoFee} hint="Bear Team covers E&O — enter what you pay now." />
         <Field label="Annual dues / renewals to brokerage" suffix="$" value={annualDues} min={0} max={2000} step={50} onChange={setAnnualDues} zeroLabel="None" />
       </div>
@@ -120,6 +130,7 @@ export default function Calculator() {
           {currentTech > 0 && <Row label="Technology fee (×12)" value={usd(currentTech)} highlight />}
           <Row label={`Transaction fees (${usd(dealFee)} × ${deals})`} value={usd(currentDealFees)} highlight />
           {currentRoyalty > 0 && <Row label="Franchise / royalty" value={usd(currentRoyalty)} highlight />}
+          {referralCost > 0 && <Row label={`Corporate-lead referral fees (${refDealsClamped} deal${refDealsClamped === 1 ? "" : "s"} @ ${refPct}%)`} value={usd(referralCost)} highlight />}
           {currentEo > 0 && <Row label="E&O / risk fees (×12)" value={usd(currentEo)} highlight />}
           {annualDues > 0 && <Row label="Annual dues / renewals" value={usd(annualDues)} highlight />}
           <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 8, paddingTop: 8 }}>
