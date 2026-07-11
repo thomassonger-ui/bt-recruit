@@ -241,10 +241,11 @@ function buildColdEmail(firstName: string): string {
         <li>Progressive tiers: 60/40 &rarr; 70/30 &rarr; 80/20 &rarr; 90/10</li>
         <li>$16,000 cap, then you advance automatically</li>
         <li>Zero monthly fees. Zero desk fees. Zero tech fees.</li>
-        <li>E&amp;O fully covered. Only cost: $150 flat per closing.</li>
+        <li>E&amp;O covered.* Only cost: $150 flat per closing.</li>
       </ul>
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes</a></p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
+      <p style="color:#888;font-size:11px;line-height:1.5;">*E&amp;O insurance is provided under Bear Team Real Estate's office policy. Agents specializing in commercial or vacant-land transactions are required to carry individual E&amp;O coverage for those transactions. Coverage is subject to policy terms, limits, and exclusions.</p>
     </div>`;
 }
 
@@ -258,12 +259,13 @@ function buildStalledEmail(firstName: string, brokerage?: string): string {
       <p>Spring market is here. If you're heading into a busy stretch and want to rethink your cost
       structure before deals start closing, now's the right time for a quick conversation.</p>
       <ul>
-        <li>Zero monthly fees. Zero desk fees. Zero E&amp;O.</li>
+        <li>Zero monthly fees. Zero desk fees. Zero E&amp;O fees.*</li>
         <li>$150 flat per closing — that's it.</li>
         <li>Progressive tiers: 60/40 &rarr; 70/30 &rarr; 80/20 &rarr; 90/10</li>
       </ul>
       <p><a href="${CALENDLY_LINK}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Schedule 15 Minutes</a></p>
       <p>If the timing still isn't right, just let me know — I'll follow up when it makes more sense.</p>
       <p>Tom Songer<br><em>Team Lead | Bear Team Real Estate</em><br><a href="https://joinbearteam.com" style="color:#1a3a5c;">joinbearteam.com</a></p>
+      <p style="color:#888;font-size:11px;line-height:1.5;">*E&amp;O insurance is provided under Bear Team Real Estate's office policy. Agents specializing in commercial or vacant-land transactions are required to carry individual E&amp;O coverage for those transactions. Coverage is subject to policy terms, limits, and exclusions.</p>
     </div>`;
 }

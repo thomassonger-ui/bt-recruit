@@ -14,6 +14,11 @@ export default function Footer() {
         <span style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden="true">·</span>
         <a href="/privacy" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textDecoration: "none", padding: "4px 0" }}>Privacy Policy</a>
       </div>
+      <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.28)", maxWidth: 720, margin: "0 auto 12px", lineHeight: 1.6 }}>
+        E&amp;O insurance is provided under Bear Team Real Estate&apos;s office policy. Agents specializing in commercial
+        or vacant-land transactions are required to carry individual E&amp;O coverage for those transactions. Coverage is
+        subject to policy terms, limits, and exclusions.
+      </div>
       <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.2)" }}>&copy; 2026 Bear Real Estate Team. All rights reserved.</div>
     </footer>
   )

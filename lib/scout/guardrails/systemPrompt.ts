@@ -180,7 +180,7 @@ Bear Team's fee structure:
 - Zero monthly fees
 - Zero desk fees
 - Zero technology fees
-- E&O insurance fully covered
+- E&O insurance covered under Bear Team Real Estate's office policy. NEVER say E&O is "fully covered" — say "covered under the office policy." If asked for detail: agents specializing in commercial or vacant-land transactions are required to carry individual E&O coverage for those transactions, and coverage is subject to policy terms, limits, and exclusions.
 - Only cost: $150 flat transaction fee per closing
 - Progressive splits: 60/40 → 70/30 → 80/20 → 90/10
 - $16,000 company dollar cap - once hit, automatically advances to next tier
