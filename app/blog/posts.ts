@@ -7,6 +7,13 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "reo-playbook-workshop-orlando",
+    title: "The REO Playbook workshop comes to the Bear Team office July 23",
+    excerpt:
+      "Florida leads the nation in foreclosure filings and REOs more than doubled in a year. Join Tom Songer July 23 for a free workshop on what to look for, how to build your systems, and how to prepare — featuring a PropertyOnion demo.",
+    read: "8 min read",
+  },
+  {
     slug: "orlando-real-estate-brokerages-that-provide-leads",
     title: "Orlando real estate brokerages that provide leads: the honest guide",
     excerpt:

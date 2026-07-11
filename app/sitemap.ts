@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/chat`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
     { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/blog/reo-playbook-workshop-orlando`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/blog/bear-team-vs-exp-realty-orlando-agents`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/bear-team-vs-keller-williams-orlando-agents`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/bear-team-vs-lpt-realty-orlando-agents`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
