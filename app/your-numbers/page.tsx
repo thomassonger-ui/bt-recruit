@@ -38,7 +38,7 @@ export default function YourNumbers() {
             referral program. Your lead, your commission.
           </p>
         </div>
-        <EODisclaimer />
+        <EODisclaimer asterisk />
       </section>
       <section style={{ background: NAVY, padding: "clamp(48px,7vw,72px) 24px", marginTop: 24 }}>
         <div style={{ maxWidth: MAXW, margin: "0 auto", textAlign: "center" }}>

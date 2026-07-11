@@ -7,7 +7,7 @@ export const EO_DISCLAIMER_TEXT =
  * Standard E&O coverage disclaimer. Place on any page that discusses
  * E&O fees or states that Bear Team covers E&O.
  */
-export default function EODisclaimer({ style }: { style?: React.CSSProperties }) {
+export default function EODisclaimer({ style, asterisk }: { style?: React.CSSProperties; asterisk?: boolean }) {
   return (
     <p
       style={{
@@ -19,7 +19,7 @@ export default function EODisclaimer({ style }: { style?: React.CSSProperties })
         ...style,
       }}
     >
-      E&amp;O insurance is provided under Bear Team Real Estate&apos;s office
+      {asterisk ? "*" : null}E&amp;O insurance is provided under Bear Team Real Estate&apos;s office
       policy. Agents specializing in commercial or vacant-land transactions are
       required to carry individual E&amp;O coverage for those transactions.
       Coverage is subject to policy terms, limits, and exclusions.
