@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Shell, { tokens } from "@/components/seo/Shell";
+import EODisclaimer from "@/components/seo/EODisclaimer";
 
 const { INK, BODY, BORDER, ACCENT, NAVY, MAXW } = tokens;
 const SITE = "https://www.joinbearteam.com";
@@ -161,6 +162,7 @@ export default function SwitchBrokeragesFlorida() {
             This is general information, not legal advice. Confirm specifics with the Florida DBPR and your broker.
             More answers on the <Link href="/faq" style={{ color: ACCENT, fontWeight: 700 }}>Bear Team FAQ</Link>.
           </p>
+          <EODisclaimer style={{ fontSize: 14, margin: "8px 0 0" }} />
         </div>
       </section>
 

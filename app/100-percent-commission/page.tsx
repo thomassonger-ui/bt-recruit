@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Shell, { tokens } from "@/components/seo/Shell";
+import EODisclaimer from "@/components/seo/EODisclaimer";
 const { INK, BODY, BORDER, ACCENT, NAVY, MAXW } = tokens;
 const SITE = "https://www.joinbearteam.com";
 
@@ -64,6 +65,7 @@ export default function HundredPercent() {
             </div>
           ))}
         </div>
+        <EODisclaimer />
       </section>
       <section style={{ background: NAVY, padding: "clamp(48px,7vw,72px) 24px", marginTop: 32 }}>
         <div style={{ maxWidth: MAXW, margin: "0 auto", textAlign: "center" }}>

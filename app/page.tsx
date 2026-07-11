@@ -1785,6 +1785,11 @@ function Footer() {
           color: "#6E89AD",
         }}
       >
+        <div style={{ marginBottom: 10, lineHeight: 1.6 }}>
+          E&amp;O insurance is provided under Bear Team Real Estate&apos;s office policy. Agents specializing in commercial
+          or vacant-land transactions are required to carry individual E&amp;O coverage for those transactions. Coverage
+          is subject to policy terms, limits, and exclusions.
+        </div>
         <div>Made exclusively for · © 2026 Bear Team Real Estate · Bethanne Baer, Broker</div>
         <div style={{ marginTop: 4 }}>Design &amp; development · © 2026 Atticus&trade; · WorldTeachPathways dba WorldTeachESL LLC · All IP rights reserved</div>
       </div>

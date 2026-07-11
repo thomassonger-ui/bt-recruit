@@ -38,6 +38,7 @@ export default function Page() {
 
         <H2>E&amp;O insurance</H2>
         <P>Errors &amp; omissions insurance protects you and the brokerage if a transaction goes sideways. Some brokerages bill it to the agent per file; others cover it. It's worth asking directly, because per-file E&amp;O charges add up across a busy year.</P>
+        <Note>E&amp;O insurance is provided under Bear Team Real Estate&apos;s office policy. Agents specializing in commercial or vacant-land transactions are required to carry individual E&amp;O coverage for those transactions. Coverage is subject to policy terms, limits, and exclusions.</Note>
 
         <H2>The cap</H2>
         <P>A cap limits how much company dollar the brokerage collects before your split improves. A clear, reachable cap is good; a cap you'll never hit at your volume is just marketing. Ask what the cap is and how many deals it typically takes to reach it.</P>

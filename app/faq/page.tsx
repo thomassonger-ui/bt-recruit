@@ -55,7 +55,7 @@ const GROUPS: Group[] = [
       },
       {
         q: "Who pays for E&O insurance — the agent or the broker?",
-        a: "Bear Team covers errors & omissions (E&O) insurance for its agents. It is not deducted from your commission per transaction.",
+        a: "Bear Team covers errors & omissions (E&O) insurance for its agents. It is not deducted from your commission per transaction. E&O insurance is provided under Bear Team Real Estate's office policy. Agents specializing in commercial or vacant-land transactions are required to carry individual E&O coverage for those transactions. Coverage is subject to policy terms, limits, and exclusions.",
       },
     ],
   },

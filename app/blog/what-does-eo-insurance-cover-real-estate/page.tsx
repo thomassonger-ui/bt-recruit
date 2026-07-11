@@ -46,6 +46,7 @@ export default function Page() {
         <P>Some brokerages bill E&amp;O to the agent — a monthly charge or a per-transaction fee on every closing. Across a busy year, that adds up. Others cover it as part of the brokerage. At Bear Team, E&amp;O is covered by the brokerage, not deducted from your commission per file (here's the full <Link href="/no-fee-brokerage" style={{ color: "#2F5C8F", fontWeight: 700 }}>fee picture</Link>). Per-file E&amp;O charges are also a hidden cost of many <Link href="/blog/100-commission-brokerage-orlando-real-math" style={{ color: "#2F5C8F", fontWeight: 700 }}>100% commission models</Link>.</P>
 
         <Note>This is a general overview, not insurance or legal advice. Coverage, limits, and exclusions differ by policy — review your brokerage's specific E&amp;O coverage.</Note>
+        <Note>E&amp;O insurance is provided under Bear Team Real Estate&apos;s office policy. Agents specializing in commercial or vacant-land transactions are required to carry individual E&amp;O coverage for those transactions. Coverage is subject to policy terms, limits, and exclusions.</Note>
       </Body>
       <CTA heading="Want a brokerage that covers E&O?" sub="See exactly what Bear Team covers — and what it doesn't charge you for." />
     </Shell>
