@@ -7,6 +7,13 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "leaving-a-real-estate-brokerage-rebranding-cost",
+    title: "Leaving a real estate brokerage: the pros, cons, and the rebranding-cost myth",
+    excerpt:
+      "The honest pros and cons of leaving your brokerage, the real cost of rebranding and why it barely matters, and why top-producing Orlando agents switch every day for better results.",
+    read: "7 min read",
+  },
+  {
     slug: "reo-playbook-workshop-orlando",
     title: "The REO Playbook workshop comes to the Bear Team office July 23",
     excerpt:
