@@ -218,10 +218,10 @@ export default function Page() {
           or book a call.
         </P>
 
-        <P style={{ fontSize: 13.5, opacity: 0.75 }}>
+        <p style={{ fontSize: 13.5, color: "#5B6B7F", opacity: 0.85, lineHeight: 1.7, margin: "18px 0 0" }}>
           #OrlandoRealEstate #FloridaRealEstate #RealEstateAgents #SwitchBrokerages #CommissionSplits #RealEstateCareers
           #TopProducer #RealtorLife #OrlandoRealtor #BrokerageSwitch #RealEstateTips #BearTeam #JoinBearTeam
-        </P>
+        </p>
 
         <Note>
           General guidance, not legal or financial advice. Dollar figures are illustrative examples, not a promise of
