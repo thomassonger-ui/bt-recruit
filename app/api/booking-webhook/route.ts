@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+—import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 export const dynamic = "force-dynamic"
@@ -30,6 +30,28 @@ export async function POST(req: NextRequest) {
     const eventStart = scheduledEvent.start_time || payload.event_start_time || null
     const eventEnd   = scheduledEvent.end_time   || payload.event_end_time   || null
     const eventUri   = scheduledEvent.uri || null
+
+    // ── Bear Team bookings ONLY ──────────────────────────────────────────
+    // Tom's Calendly account hosts several businesses: Atticus (career
+    // schools), one-on-ones, the old /60min link, and Bear Team. Before
+    // 2026-08-14 this webhook swallowed ALL of them as recruiting leads —
+    // dental schools, a nursing college, a dog groomer academy. Filter by
+    // event type URI. Add a URI here if a new Bear Team event type is made.
+    const BEAR_TEAM_EVENT_TYPES = [
+      "https://api.calendly.com/event_types/327f388a-0296-4a2b-960d-4e6f6fb93044", // "Bear Team" 15-min recruiting call (bear-team-meet)
+    ]
+    const bookedEventType =
+      (typeof scheduledEvent.event_type === "string" && scheduledEvent.event_type) ||
+      payload.event_type?.uri || null
+    if (bookedEventType && !BEAR_TEAM_EVENT_TYPES.includes(bookedEventType)) {
+      console.log(`[wh] skipped non-Bear-Team booking: ${bookedEventType}`)
+      return NextResponse.json({ ok: true, skipped: "not_bear_team_event_type" })
+    }
+    if (!bookedEventType) {
+      // Unknown payload shape — let it through but make it loud in the logs
+      // so a format change never silently drops real recruiting bookings.
+      console.warn("[wh] no event_type URI on payload; NOT filtered")
+    }
 
     console.log(`[wh] inviteeUri=${inviteeUri} directEmail=${email} directName=${name}`)
 
